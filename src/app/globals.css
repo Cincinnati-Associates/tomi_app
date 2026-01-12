@@ -1,0 +1,221 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Tomi Brand Colors */
+    --tomi-primary: 153 37% 26%;        /* #2D5A4A - Deep sage green */
+    --tomi-primary-light: 153 27% 39%; /* #4A7C6B */
+    --tomi-primary-dark: 153 37% 18%;  /* #1E3D32 */
+
+    --tomi-secondary: 30 25% 87%;      /* #E8DDD4 - Warm cream */
+    --tomi-secondary-dark: 30 20% 78%; /* #D4C4B5 */
+
+    --tomi-accent: 43 50% 56%;         /* #C4A35A - Warm gold */
+    --tomi-accent-light: 43 55% 62%;   /* #D4B76A */
+
+    --tomi-yellow: 52 65% 70%;         /* Logo yellow #E8DC7E */
+
+    /* Semantic mappings for shadcn */
+    --background: 40 20% 98%;          /* #FAFAF8 */
+    --foreground: 0 0% 10%;            /* #1A1A1A */
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+
+    --primary: 153 37% 26%;            /* Tomi primary green */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 30 25% 87%;           /* Tomi cream */
+    --secondary-foreground: 0 0% 10%;
+
+    --muted: 30 15% 93%;
+    --muted-foreground: 0 0% 42%;      /* #6B6B6B */
+
+    --accent: 43 50% 56%;              /* Tomi gold */
+    --accent-foreground: 0 0% 10%;
+
+    --destructive: 0 50% 50%;          /* #B54A4A */
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 90%;                /* #E5E5E5 */
+    --input: 0 0% 90%;
+    --ring: 153 37% 26%;               /* Tomi primary for focus */
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Dark mode - Tomi Yellow as primary accent */
+    --tomi-primary: 52 65% 70%;        /* Logo yellow #E8DC7E */
+    --tomi-primary-light: 52 60% 75%;  /* Lighter yellow */
+    --tomi-primary-dark: 52 70% 60%;   /* Deeper yellow */
+
+    --tomi-secondary: 220 15% 18%;     /* Dark blue-gray */
+    --tomi-secondary-dark: 220 15% 14%;
+
+    --tomi-accent: 52 65% 70%;         /* Logo yellow */
+    --tomi-accent-light: 52 60% 80%;
+
+    --tomi-yellow: 52 65% 70%;         /* Logo yellow #E8DC7E */
+
+    /* Semantic mappings for shadcn - dark mode */
+    --background: 220 15% 10%;         /* Very dark blue-gray #16181D */
+    --foreground: 40 20% 95%;          /* Warm off-white #F5F3EF */
+
+    --card: 220 15% 13%;               /* Slightly lighter than bg */
+    --card-foreground: 40 20% 95%;
+
+    --popover: 220 15% 13%;
+    --popover-foreground: 40 20% 95%;
+
+    --primary: 52 65% 70%;             /* Tomi logo yellow */
+    --primary-foreground: 220 15% 10%; /* Dark text on yellow */
+
+    --secondary: 220 15% 18%;          /* Dark surface */
+    --secondary-foreground: 40 20% 90%;
+
+    --muted: 220 12% 20%;
+    --muted-foreground: 220 10% 60%;   /* Muted gray text */
+
+    --accent: 52 65% 70%;              /* Tomi yellow accent */
+    --accent-foreground: 220 15% 10%;
+
+    --destructive: 0 60% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 12% 22%;             /* Subtle dark border */
+    --input: 220 12% 22%;
+    --ring: 52 65% 70%;                /* Yellow focus ring */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Custom animations */
+@keyframes blink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
+}
+
+.animate-blink {
+  animation: blink 1.06s step-end infinite;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+@keyframes bounce-subtle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 2s ease-in-out infinite;
+}
+
+/* Elegant glow effects for CTAs */
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 20px hsl(var(--primary) / 0.3),
+      0 0 40px hsl(var(--primary) / 0.2),
+      0 0 60px hsl(var(--primary) / 0.1);
+  }
+  50% {
+    box-shadow:
+      0 0 25px hsl(var(--primary) / 0.4),
+      0 0 50px hsl(var(--primary) / 0.3),
+      0 0 75px hsl(var(--primary) / 0.15);
+  }
+}
+
+/* Base glow class - subtle always-on glow */
+.glow {
+  box-shadow:
+    0 0 15px hsl(var(--primary) / 0.2),
+    0 0 30px hsl(var(--primary) / 0.1);
+  transition: box-shadow 0.3s ease-out;
+}
+
+/* Hover glow - intensifies on hover */
+.glow-hover {
+  transition: box-shadow 0.3s ease-out, transform 0.2s ease-out;
+}
+
+.glow-hover:hover {
+  box-shadow:
+    0 0 20px hsl(var(--primary) / 0.4),
+    0 0 40px hsl(var(--primary) / 0.25),
+    0 0 60px hsl(var(--primary) / 0.1);
+}
+
+/* Pulsing glow animation */
+.glow-pulse {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+/* Intense glow for special elements */
+.glow-intense {
+  box-shadow:
+    0 0 20px hsl(var(--primary) / 0.5),
+    0 0 40px hsl(var(--primary) / 0.3),
+    0 0 80px hsl(var(--primary) / 0.2),
+    inset 0 0 20px hsl(var(--primary) / 0.1);
+}
+
+.glow-intense:hover {
+  box-shadow:
+    0 0 30px hsl(var(--primary) / 0.6),
+    0 0 60px hsl(var(--primary) / 0.4),
+    0 0 100px hsl(var(--primary) / 0.25),
+    inset 0 0 30px hsl(var(--primary) / 0.15);
+}
