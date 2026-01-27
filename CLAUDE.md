@@ -89,19 +89,59 @@ Required in `.env.local`:
 
 ## Database (Drizzle ORM)
 
-### Schema Location
-All database schema definitions live in `src/db/schema/`:
-- `enums.ts` - PostgreSQL enum types (party_status, member_role, etc.)
-- `profiles.ts` - User profiles table (extends Supabase auth.users)
-- `parties.ts` - Buying parties, members, and invites
-- `chat.ts` - Visitor sessions, conversations, messages
-- `index.ts` - Barrel export for all schemas
+### Schema Ownership Model
+
+The database has two distinct ownership domains:
+
+**App-Owned Tables** (`src/db/schema/`) - Managed by Drizzle migrations:
+- `profiles` - User profiles (extends Supabase auth.users)
+- `buying_parties`, `party_members`, `party_invites` - Co-buying groups
+- `user_journeys`, `exercise_templates`, `user_exercise_responses` - Journey system (PRD-002)
+- `visitor_sessions`, `chat_conversations`, `chat_messages`, `visitor_user_links` - Chat system
+- `auth_audit_logs` - Auth event logging (PRD-001)
+
+**External Tables** (`src/db/external/`) - Managed by n8n pipelines (READ-ONLY from app):
+- Rentals: `properties`, `units`, `listings`, `reservations`, `guests`, `payouts`, etc.
+- Financial: `financial_transactions`, `chart_of_accounts`, `vendors`, etc.
+- AI/RAG: `ai_documents`, `ai_chunks`
+- Operations: `audit_logs` (n8n's), `expense_review_queue`, etc.
+
+**CRITICAL RULES:**
+1. ONLY modify tables in `src/db/schema/` - these are app-owned
+2. NEVER modify `src/db/external/` tables directly - n8n manages these
+3. External tables provide TypeScript types and query support only
+4. Drizzle migrations only affect app-owned tables
+
+### Schema Files
+
+App-owned (`src/db/schema/`):
+- `enums.ts` - PostgreSQL enums (party_status, journey_stage, exercise_category, etc.)
+- `profiles.ts` - User profiles (PRD-001)
+- `parties.ts` - Buying parties, members, invites
+- `journey.ts` - User journeys and exercises (PRD-002/003)
+- `chat.ts` - Visitor sessions and chat history
+- `audit.ts` - Auth audit logs (PRD-001)
+- `relations.ts` - All app-owned table relations
+- `index.ts` - Barrel export
+
+External (`src/db/external/`):
+- `enums.ts` - External enums (booking_status)
+- `rentals.ts` - Properties, units, listings, reservations
+- `financial.ts` - Transactions, accounts, vendors
+- `ai.ts` - AI documents and chunks
+- `operations.ts` - Audit logs, review queues
+- `relations.ts` - External table relations
+- `index.ts` - Barrel export
 
 ### Database Client
 Import from `src/db/index.ts`:
 ```typescript
-import { db, profiles, buyingParties } from '@/db'
-import { eq } from 'drizzle-orm'
+// App-owned tables (read/write)
+import { db, profiles, buyingParties, userJourneys } from '@/db'
+
+// External tables (read-only)
+import { external } from '@/db'
+const { properties, reservations } = external
 
 // Simple query
 const user = await db.query.profiles.findFirst({
@@ -113,12 +153,17 @@ const party = await db.query.buyingParties.findFirst({
   where: eq(buyingParties.id, partyId),
   with: { members: { with: { user: true } } }
 })
+
+// Query external table (read-only)
+const property = await db.query.properties.findFirst({
+  where: eq(external.properties.id, propertyId),
+})
 ```
 
 ### Migration Workflow (Supabase + Vercel + GitHub)
 
 **Development workflow:**
-1. Modify schema files in `src/db/schema/`
+1. Modify schema files in `src/db/schema/` (app-owned only!)
 2. Run `/db-migrate` command (or `npm run db:generate && npm run db:migrate`)
 3. Commit migration files to git
 4. Push to GitHub → Vercel auto-deploys
@@ -127,6 +172,7 @@ const party = await db.query.buyingParties.findFirst({
 - Migrations run automatically on Vercel deploy via build step
 - NEVER run destructive migrations (DROP, column type changes) without backup
 - Test migrations on Supabase staging branch first for major changes
+- NEVER modify external tables - coordinate with n8n pipeline team
 
 **Schema changes that require caution:**
 - Dropping columns/tables → Data loss
@@ -135,9 +181,11 @@ const party = await db.query.buyingParties.findFirst({
 
 ### Drizzle Configuration
 Config file: `drizzle.config.ts`
-- Schema path: `./src/db/schema/index.ts`
+- Schema path: `./src/db/schema/index.ts` (app-owned only)
 - Migrations output: `./src/db/migrations`
 - Dialect: PostgreSQL (Supabase)
+
+**Note:** External tables in `src/db/external/` are NOT included in migrations.
 
 ## PostHog Guidelines
 
