@@ -165,7 +165,7 @@ export function AssessmentPage() {
                   </div>
 
                   {/* Bottom section: Homi prompt + navigation - centered in remaining space */}
-                  <div className="flex-1 flex flex-col justify-center items-center py-4 min-h-[120px]">
+                  <div className="flex-1 flex flex-col justify-center items-center py-4 min-h-[120px] sm:min-h-[150px] mt-4 sm:mt-8">
                     <div className="space-y-3">
                       {/* Inline Homi prompt */}
                       <InlineHomiPrompt
