@@ -112,9 +112,9 @@ export function AssessmentPage() {
         {/* Compact header with title + progress */}
         {!isComplete && !showPreResultsGate && (
           <div className="flex-shrink-0 bg-background/95 backdrop-blur-sm border-b border-border/50">
-            {/* Page title - more compact */}
-            <div className="px-4 pt-3 pb-2">
-              <h1 className="font-heading text-base sm:text-lg md:text-xl font-bold text-foreground text-center">
+            {/* Page title - more compact, hidden on small mobile */}
+            <div className="px-4 pt-2 pb-1 sm:pt-3 sm:pb-2">
+              <h1 className="font-heading text-sm sm:text-lg md:text-xl font-bold text-foreground text-center">
                 Co-Ownership Readiness
               </h1>
             </div>
@@ -130,8 +130,8 @@ export function AssessmentPage() {
         )}
 
         {/* Main content - flex to fill remaining space */}
-        <main className="flex-1 flex flex-col px-4 py-2 sm:py-6 overflow-auto">
-          <div className="max-w-2xl mx-auto w-full flex-1 flex flex-col">
+        <main className="flex-1 flex flex-col px-4 py-1 sm:py-6 overflow-auto">
+          <div className="max-w-2xl mx-auto w-full flex flex-col">
             <AnimatePresence mode="wait">
               {showPreResultsGate ? (
                 /* Pre-results gate - save/share CTA */
@@ -151,10 +151,10 @@ export function AssessmentPage() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="flex-1 flex flex-col"
+                  className="flex flex-col"
                 >
-                  {/* Question - align top on mobile, center on larger screens */}
-                  <div className="flex-1 flex flex-col justify-start sm:justify-center pt-2 sm:pt-0">
+                  {/* Question - no flex-1 on mobile to keep it compact */}
+                  <div className="flex flex-col pt-1 sm:pt-4">
                     <AssessmentQuestion
                       question={currentQuestion}
                       questionIndex={currentQuestionIndex}
@@ -164,8 +164,8 @@ export function AssessmentPage() {
                     />
                   </div>
 
-                  {/* Bottom section: Homi prompt + navigation */}
-                  <div className="flex-shrink-0 space-y-2 pt-3 pb-2">
+                  {/* Bottom section: Homi prompt + navigation - directly after question */}
+                  <div className="space-y-2 pt-4 pb-2">
                     {/* Inline Homi prompt */}
                     <InlineHomiPrompt
                       prompt={currentQuestion.homiPrompt || "Ask Homi"}
