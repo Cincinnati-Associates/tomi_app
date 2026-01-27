@@ -151,10 +151,10 @@ export function AssessmentPage() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="flex flex-col"
+                  className="flex-1 flex flex-col min-h-0"
                 >
-                  {/* Question - no flex-1 on mobile to keep it compact */}
-                  <div className="flex flex-col pt-1 sm:pt-4">
+                  {/* Question - stays at top */}
+                  <div className="flex-shrink-0 pt-1 sm:pt-4">
                     <AssessmentQuestion
                       question={currentQuestion}
                       questionIndex={currentQuestionIndex}
@@ -164,26 +164,28 @@ export function AssessmentPage() {
                     />
                   </div>
 
-                  {/* Bottom section: Homi prompt + navigation - directly after question */}
-                  <div className="space-y-2 pt-4 pb-2">
-                    {/* Inline Homi prompt */}
-                    <InlineHomiPrompt
-                      prompt={currentQuestion.homiPrompt || "Ask Homi"}
-                      onClick={handleOpenChat}
-                    />
+                  {/* Bottom section: Homi prompt + navigation - centered in remaining space */}
+                  <div className="flex-1 flex flex-col justify-center items-center py-4 min-h-[120px]">
+                    <div className="space-y-3">
+                      {/* Inline Homi prompt */}
+                      <InlineHomiPrompt
+                        prompt={currentQuestion.homiPrompt || "Ask Homi"}
+                        onClick={handleOpenChat}
+                      />
 
-                    {/* Previous question link */}
-                    {currentQuestionIndex > 0 && (
-                      <div className="flex justify-center">
-                        <button
-                          onClick={previousQuestion}
-                          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors py-1 px-3"
-                        >
-                          <ChevronLeft className="w-3.5 h-3.5" />
-                          Previous
-                        </button>
-                      </div>
-                    )}
+                      {/* Previous question link */}
+                      {currentQuestionIndex > 0 && (
+                        <div className="flex justify-center">
+                          <button
+                            onClick={previousQuestion}
+                            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors py-1 px-3"
+                          >
+                            <ChevronLeft className="w-3.5 h-3.5" />
+                            Previous
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </motion.div>
               ) : (
