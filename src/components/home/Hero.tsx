@@ -55,6 +55,8 @@ export function Hero({ onOpenChat }: HeroProps) {
           className="mx-auto mt-6 max-w-3xl text-base text-muted-foreground sm:text-lg md:text-xl"
         >
           Every year, millions of Americans buy homes with friends and family.
+          <br />
+          <span className="font-semibold text-foreground">We&apos;re about to make that number much larger.</span>
         </motion.p>
 
         {/* CTAs */}
