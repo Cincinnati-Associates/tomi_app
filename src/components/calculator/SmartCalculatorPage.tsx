@@ -49,30 +49,30 @@ export function SmartCalculatorPage() {
         </div>
 
         {/* Mobile: Stacked layout with collapsible panel */}
-        <div className="md:hidden flex flex-col h-[calc(100vh-80px)]">
-          {/* Chat area - takes remaining space */}
+        <div className="md:hidden flex flex-col h-[calc(100vh-80px)] overflow-hidden">
+          {/* Chat area - takes remaining space, properly constrained */}
           <div
             className={cn(
-              "flex-1 flex flex-col bg-card transition-all duration-300",
-              isMobilePanelExpanded ? "h-[30vh]" : "flex-1"
+              "flex flex-col bg-card transition-all duration-300 min-h-0 overflow-hidden",
+              isMobilePanelExpanded ? "h-[calc(100%-60vh)]" : "flex-1"
             )}
           >
             <CalculatorChat />
           </div>
 
-          {/* Collapsible Calculator Panel */}
+          {/* Collapsible Calculator Panel - fixed position from bottom */}
           <motion.div
             initial={false}
             animate={{
-              height: isMobilePanelExpanded ? "70vh" : "80px",
+              height: isMobilePanelExpanded ? "60vh" : "80px",
             }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="bg-secondary/30 border-t border-border shadow-lg rounded-t-2xl overflow-hidden"
+            className="flex-shrink-0 bg-secondary/30 border-t border-border shadow-lg rounded-t-2xl overflow-hidden"
           >
             {/* Drag handle / Summary bar */}
             <button
               onClick={() => setIsMobilePanelExpanded(!isMobilePanelExpanded)}
-              className="w-full px-4 py-3 flex items-center justify-between bg-card border-b border-border"
+              className="w-full px-4 py-3 flex items-center justify-between bg-card border-b border-border touch-manipulation min-h-[56px]"
             >
               <MobileCalculatorSummary />
               <div className="flex items-center gap-2 text-muted-foreground">
@@ -91,7 +91,7 @@ export function SmartCalculatorPage() {
             <div
               className={cn(
                 "overflow-y-auto",
-                isMobilePanelExpanded ? "h-[calc(70vh-60px)]" : "h-0"
+                isMobilePanelExpanded ? "h-[calc(60vh-56px)]" : "h-0"
               )}
             >
               <LiveCalculatorPanel />

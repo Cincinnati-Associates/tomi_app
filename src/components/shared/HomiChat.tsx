@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowUp, Loader2, Sparkles, HelpCircle, TrendingUp, User, Calculator } from "lucide-react";
 import { useHomiChat } from "@/hooks/useHomiChat";
+import { useAnonymousContext } from "@/hooks/useAnonymousContext";
 import { ChatMarkdown } from "./ChatMarkdown";
 
 interface HomiChatProps {
@@ -20,7 +21,13 @@ const SUGGESTED_PROMPTS = [
 ];
 
 export function HomiChat({ isOpen, onClose, initialMessage }: HomiChatProps) {
-  const { messages, isLoading, sendMessage, clearChat } = useHomiChat();
+  // Anonymous user context for personalization
+  const { onChatMessage, getContextForAPI } = useAnonymousContext();
+
+  // Pass user context to the chat hook
+  const { messages, isLoading, sendMessage, clearChat } = useHomiChat({
+    userContext: getContextForAPI(),
+  });
   const [inputValue, setInputValue] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -81,6 +88,7 @@ export function HomiChat({ isOpen, onClose, initialMessage }: HomiChatProps) {
     e.preventDefault();
     if (inputValue.trim() && !isLoading) {
       sendMessage(inputValue);
+      onChatMessage(); // Track chat message count
       setInputValue("");
       // Reset textarea height
       if (textareaRef.current) {
@@ -111,6 +119,7 @@ export function HomiChat({ isOpen, onClose, initialMessage }: HomiChatProps) {
 
   const handleSuggestedPrompt = (prompt: string) => {
     sendMessage(prompt);
+    onChatMessage(); // Track chat message count
   };
 
   // Modal content shared between mobile and desktop
@@ -157,12 +166,12 @@ export function HomiChat({ isOpen, onClose, initialMessage }: HomiChatProps) {
               Ask me anything about co-ownership, or try one of these:
             </p>
 
-            <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
+            <div className="grid grid-cols-2 gap-3 w-full px-2">
               {SUGGESTED_PROMPTS.map((prompt) => (
                 <button
                   key={prompt.label}
                   onClick={() => handleSuggestedPrompt(prompt.label)}
-                  className="flex items-center gap-2 px-4 py-3 bg-muted hover:bg-muted/80 rounded-xl text-sm text-left border border-border transition-colors"
+                  className="flex items-center gap-2 px-3 py-3 bg-muted hover:bg-muted/80 rounded-xl text-sm text-left border border-border transition-colors"
                 >
                   <prompt.icon className="h-4 w-4 text-primary flex-shrink-0" />
                   <span className="line-clamp-2 text-foreground">{prompt.label}</span>
@@ -290,53 +299,28 @@ export function HomiChat({ isOpen, onClose, initialMessage }: HomiChatProps) {
               damping: 30,
               stiffness: 400,
             }}
-            drag="y"
-            dragConstraints={{ top: 0, bottom: 0 }}
-            dragElastic={{ top: 0, bottom: 0.3 }}
-            onDragEnd={(_, info) => {
-              if (info.offset.y > 100 || info.velocity.y > 500) {
-                handleClose();
-              }
-            }}
             className="fixed inset-0 z-50 md:hidden"
           >
-            {/* Glowing yellow border */}
-            <motion.div
-              className="absolute inset-0 rounded-[20px] m-1"
-              style={{
-                background: "linear-gradient(135deg, hsl(52 65% 70%) 0%, hsl(43 50% 56%) 50%, hsl(52 65% 70%) 100%)",
-                backgroundSize: "200% 200%",
-              }}
-              animate={{
-                backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"],
-              }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-            {/* Outer glow effect */}
-            <motion.div
-              className="absolute inset-0 rounded-[20px] m-1"
-              style={{
-                boxShadow: "0 0 30px hsl(52 65% 70% / 0.5), 0 0 60px hsl(52 65% 70% / 0.3), inset 0 0 30px hsl(52 65% 70% / 0.1)",
-              }}
-              animate={{
-                opacity: [0.7, 1, 0.7],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
+            {/* Theme-aware glowing border - uses CSS variables (green in light, yellow in dark) */}
+            <div className="absolute inset-0 rounded-[20px] m-1 chat-glow-border" />
+            {/* Outer glow effect - theme aware */}
+            <div className="absolute inset-0 rounded-[20px] m-1 chat-glow-outer" />
             {/* Inner content container */}
             <div className="absolute inset-[5px] rounded-[16px] bg-background flex flex-col overflow-hidden">
-              {/* Drag handle indicator */}
-              <div className="flex justify-center pt-3 pb-1">
+              {/* Drag handle area - only this area is draggable for swipe-to-dismiss */}
+              <motion.div
+                drag="y"
+                dragConstraints={{ top: 0, bottom: 0 }}
+                dragElastic={{ top: 0, bottom: 0.3 }}
+                onDragEnd={(_, info) => {
+                  if (info.offset.y > 100 || info.velocity.y > 500) {
+                    handleClose();
+                  }
+                }}
+                className="flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing touch-pan-y"
+              >
                 <div className="w-10 h-1 bg-muted-foreground/30 rounded-full" />
-              </div>
+              </motion.div>
 
               {/* Mobile Header - more compact */}
               <div className="flex items-center justify-between px-4 py-2 border-b border-border">
@@ -355,7 +339,7 @@ export function HomiChat({ isOpen, onClose, initialMessage }: HomiChatProps) {
 
                 <button
                   onClick={handleClose}
-                  className="h-9 w-9 rounded-full bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors"
+                  className="h-11 w-11 rounded-full bg-muted hover:bg-muted/80 active:bg-muted/70 flex items-center justify-center transition-colors touch-manipulation"
                   aria-label="Close chat"
                 >
                   <X className="h-5 w-5 text-muted-foreground" />
@@ -379,14 +363,14 @@ export function HomiChat({ isOpen, onClose, initialMessage }: HomiChatProps) {
                     </p>
 
                     {/* Single column on mobile for better fit */}
-                    <div className="flex flex-col gap-2 w-full max-w-xs">
+                    <div className="flex flex-col gap-2 w-full px-2">
                       {SUGGESTED_PROMPTS.map((prompt) => (
                         <button
                           key={prompt.label}
                           onClick={() => handleSuggestedPrompt(prompt.label)}
-                          className="flex items-center gap-2 px-3 py-2.5 bg-muted hover:bg-muted/80 rounded-xl text-sm text-left border border-border transition-colors"
+                          className="flex items-center gap-2 px-3 py-3.5 bg-muted hover:bg-muted/80 active:bg-muted/70 rounded-xl text-sm text-left border border-border transition-colors touch-manipulation min-h-[48px]"
                         >
-                          <prompt.icon className="h-4 w-4 text-primary flex-shrink-0" />
+                          <prompt.icon className="h-5 w-5 text-primary flex-shrink-0" />
                           <span className="text-foreground">{prompt.label}</span>
                         </button>
                       ))}
@@ -459,7 +443,8 @@ export function HomiChat({ isOpen, onClose, initialMessage }: HomiChatProps) {
                     onChange={handleTextareaChange}
                     onKeyDown={handleKeyDown}
                     placeholder="Ask about co-ownership..."
-                    className="flex-1 resize-none bg-transparent text-sm focus:outline-none min-h-[36px] max-h-[100px] py-2 text-foreground placeholder:text-muted-foreground"
+                    className="flex-1 resize-none bg-transparent text-sm focus:outline-none min-h-[40px] max-h-[100px] py-2 text-foreground placeholder:text-muted-foreground touch-manipulation text-base"
+                    style={{ fontSize: "16px" }} // Prevents iOS zoom on focus
                     rows={1}
                     disabled={isLoading}
                   />
@@ -467,13 +452,13 @@ export function HomiChat({ isOpen, onClose, initialMessage }: HomiChatProps) {
                   <motion.button
                     type="submit"
                     disabled={!inputValue.trim() || isLoading}
-                    className="h-9 w-9 rounded-xl bg-primary text-white disabled:opacity-50 flex items-center justify-center flex-shrink-0"
+                    className="h-11 w-11 rounded-xl bg-primary text-white disabled:opacity-50 flex items-center justify-center flex-shrink-0 touch-manipulation"
                     whileTap={{ scale: 0.95 }}
                   >
                     {isLoading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
-                      <ArrowUp className="h-4 w-4" />
+                      <ArrowUp className="h-5 w-5" />
                     )}
                   </motion.button>
                 </div>

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { HeroVariant } from "@/components/home/HeroVariant";
 import { UnlockSection } from "@/components/home/UnlockSection";
 import { HowItWorks } from "@/components/home/HowItWorks";
-import { ObjectionCards } from "@/components/home/ObjectionCards";
+import { AIChatSimulation } from "@/components/home/AIChatSimulation";
 import { StoryPreview } from "@/components/home/StoryPreview";
 import { TomiDifference } from "@/components/home/TomiDifference";
 import { FinalCta } from "@/components/home/FinalCta";
@@ -35,30 +35,28 @@ export default function Homepage1() {
       <HeroVariant
         headline={
           <>
-            The home you want,
+            AI-Powered
             <br />
-            <span className="text-primary">with the people you want in it.</span>
+            <span className="text-primary">Home Co-Ownership</span>
           </>
         }
         subheadline={
           <>
-            You don&apos;t have to wait for wedding bells to start building equity.
+            The easiest, most affordable, and rewarding way to own a home
             <br className="hidden sm:block" />
-            <span className="font-semibold text-foreground">
-              Tomi provides the legal and financial infrastructure to safely buy property with friends, partners, or family.
-            </span>
+            with someone you aren&apos;t married to.
           </>
         }
         primaryCta={{
-          text: "What's my co-buying power?",
-          href: "/calculator",
+          text: "Run the Numbers",
+          href: "/calc",
         }}
         onOpenChat={handleOpenChat}
         showTypewriter
       />
       <UnlockSection />
       <HowItWorks />
-      <ObjectionCards />
+      <AIChatSimulation onOpenChat={handleOpenChat} />
       <StoryPreview />
       <TomiDifference />
       <FinalCta onOpenChat={() => handleOpenChat()} />

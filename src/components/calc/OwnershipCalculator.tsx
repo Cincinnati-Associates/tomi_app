@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, LayoutGroup } from 'framer-motion';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { cn } from '@/lib/utils';
@@ -156,6 +156,20 @@ const OwnershipCalculator: React.FC<OwnershipCalculatorProps> = ({
   const [mode, setMode] = useState<CalcMode>('bottoms-up');
   const [newPersonName, setNewPersonName] = useState('');
   const [fetchingRate, setFetchingRate] = useState(false);
+  const [showAddDropdown, setShowAddDropdown] = useState(false);
+  const [rateSource, setRateSource] = useState<string | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowAddDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Bottoms-Up Logic: Recalculate Affordability
   useEffect(() => {
@@ -185,6 +199,22 @@ const OwnershipCalculator: React.FC<OwnershipCalculatorProps> = ({
       };
       setPeople([...people, newPerson]);
       setNewPersonName('');
+      setShowAddDropdown(false);
+    }
+  };
+
+  const handleAddPersonWithEqualSplit = () => {
+    if (newPersonName.trim() && people.length < 4 && people.length > 0) {
+      const firstPerson = people[0];
+      const newPerson: Person = {
+        id: new Date().toISOString(),
+        name: newPersonName.trim(),
+        downPaymentContribution: firstPerson.downPaymentContribution,
+        estimatedMonthlyContribution: firstPerson.estimatedMonthlyContribution,
+      };
+      setPeople([...people, newPerson]);
+      setNewPersonName('');
+      setShowAddDropdown(false);
     }
   };
 
@@ -214,6 +244,7 @@ const OwnershipCalculator: React.FC<OwnershipCalculatorProps> = ({
 
   const handleFetchCurrentRate = async () => {
     setFetchingRate(true);
+    setRateSource(null);
     try {
       const res = await fetch('/api/mortgage-rates');
       const data = await res.json();
@@ -225,6 +256,7 @@ const OwnershipCalculator: React.FC<OwnershipCalculatorProps> = ({
         handleMortgageChange({
           target: { name: 'interestRate', value: data.rate.toString() }
         } as React.ChangeEvent<HTMLInputElement>);
+        setRateSource(data.source);
       }
     } catch (error) {
       console.error('Failed to fetch rate:', error);
@@ -319,26 +351,45 @@ const OwnershipCalculator: React.FC<OwnershipCalculatorProps> = ({
           </>
         )}
 
-        <InputField
-          label="Interest Rate (%)"
-          name="interestRate"
-          value={mortgageDetails.interestRate}
-          onChange={handleMortgageChange}
-          labelAction={
-            <button
-              onClick={handleFetchCurrentRate}
-              disabled={fetchingRate}
-              className={cn(
-                "text-xs px-2.5 py-1 rounded font-medium whitespace-nowrap transition-all",
-                fetchingRate
-                  ? "bg-muted text-muted-foreground cursor-wait border border-border"
-                  : "bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 hover:border-primary cursor-pointer"
-              )}
-            >
-              {fetchingRate ? 'Fetching...' : 'Get Current Rate'}
-            </button>
-          }
-        />
+        <div>
+          <InputField
+            label="Interest Rate (%)"
+            name="interestRate"
+            value={mortgageDetails.interestRate}
+            onChange={handleMortgageChange}
+            labelAction={
+              <button
+                onClick={handleFetchCurrentRate}
+                disabled={fetchingRate}
+                className={cn(
+                  "text-xs px-2.5 py-1 rounded font-medium whitespace-nowrap transition-all",
+                  fetchingRate
+                    ? "bg-muted text-muted-foreground cursor-wait border border-border"
+                    : "bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 hover:border-primary cursor-pointer"
+                )}
+              >
+                {fetchingRate ? 'Fetching...' : "Get Today's Rate"}
+              </button>
+            }
+          />
+          {rateSource && (
+            <div className="flex items-center gap-1.5 mt-1.5 text-xs text-muted-foreground">
+              <span>Source:</span>
+              <a
+                href="https://www.bankrate.com/mortgages/mortgage-rates/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-primary hover:underline"
+              >
+                <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M3 3v18h18" />
+                  <path d="M18 9l-5 5-4-4-3 3" />
+                </svg>
+                {rateSource}
+              </a>
+            </div>
+          )}
+        </div>
 
         <div>
           <label className="block text-sm font-medium text-muted-foreground mb-1">Loan Term (Years)</label>
@@ -541,15 +592,58 @@ const OwnershipCalculator: React.FC<OwnershipCalculatorProps> = ({
             type="text"
             value={newPersonName}
             onChange={(e) => setNewPersonName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAddPerson();
+              }
+            }}
             placeholder="New owner name"
             className="flex-grow rounded-md bg-card border border-border text-foreground focus:border-primary focus:ring-primary sm:text-sm pl-4 py-2"
           />
-          <button
-            onClick={handleAddPerson}
-            className="px-4 py-2 bg-primary text-primary-foreground font-bold rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
-          >
-            Add
-          </button>
+          <div className="relative" ref={dropdownRef}>
+            <div className="flex">
+              <button
+                onClick={handleAddPerson}
+                className={cn(
+                  "px-4 py-2 bg-primary text-primary-foreground font-bold hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors",
+                  people.length > 0 ? "rounded-l-md" : "rounded-md"
+                )}
+              >
+                Add
+              </button>
+              {people.length > 0 && (
+                <button
+                  onClick={() => setShowAddDropdown(!showAddDropdown)}
+                  className="px-2 py-2 bg-primary text-primary-foreground font-bold rounded-r-md border-l border-primary-foreground/20 hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
+                  aria-label="More add options"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              )}
+            </div>
+            {showAddDropdown && people.length > 0 && (
+              <div className="absolute right-0 mt-1 w-64 bg-card border border-border rounded-md shadow-lg z-20">
+                <button
+                  onClick={handleAddPerson}
+                  className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-muted transition-colors rounded-t-md"
+                >
+                  Add (blank)
+                </button>
+                <button
+                  onClick={handleAddPersonWithEqualSplit}
+                  className="w-full px-4 py-3 text-left hover:bg-muted transition-colors rounded-b-md border-t border-border"
+                >
+                  <div className="text-sm font-medium text-foreground">Add with equal split</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    Same as {people[0].name}: ${people[0].downPaymentContribution.toLocaleString()} down, ${people[0].estimatedMonthlyContribution.toLocaleString()}/mo
+                  </div>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

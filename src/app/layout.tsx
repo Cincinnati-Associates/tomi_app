@@ -4,6 +4,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PostHogProvider } from "@/providers/PostHogProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
+import { AuthProvider } from "@/providers/AuthProvider";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://livetomi.com"),
@@ -69,9 +70,11 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <PostHogProvider>
-            <Navbar />
-            <main>{children}</main>
-            <Footer />
+            <AuthProvider>
+              <Navbar />
+              <main>{children}</main>
+              <Footer />
+            </AuthProvider>
           </PostHogProvider>
         </ThemeProvider>
       </body>

@@ -55,6 +55,7 @@ export const howItWorksSteps = [
     icon: "Compass",
     cta: { text: "Take the Readiness Assessment", href: "/assessment" },
     imageDirection: "left" as const,
+    image: "/eating outside 3.webp",
   },
   {
     number: "02",
@@ -64,6 +65,7 @@ export const howItWorksSteps = [
     icon: "Users",
     cta: { text: "Define Your Vision", href: "/vision-plan" },
     imageDirection: "right" as const,
+    image: "/camping 3.webp",
   },
   {
     number: "03",
@@ -73,6 +75,7 @@ export const howItWorksSteps = [
     icon: "FileCheck",
     cta: { text: "Try the TIC Builder", href: "/tic-builder" },
     imageDirection: "top" as const,
+    image: "/kitchen planning 3.webp",
   },
   {
     number: "04",
@@ -82,20 +85,21 @@ export const howItWorksSteps = [
     icon: "Home",
     cta: { text: "Calculate Your Numbers", href: "/calculator" },
     imageDirection: "bottom" as const,
+    image: "/hang out living room.webp",
   },
 ];
 
 export const tomiDifferenceFeatures = [
   {
-    title: "How does AI help me buy a home with friends?",
+    title: "AI that handles the hard parts",
     description:
-      "Homi guides you through every decision—from 'is co-owning right for me?' to 'how do we handle guests?' Get answers in seconds, not weeks of research.",
+      "Co-ownership used to mean expensive lawyers and months of back-and-forth. Now, Homi drafts your legal agreements, answers complex questions instantly, and guides every decision—from \"who pays for repairs?\" to \"what if someone wants out?\" This is why co-ownership finally works.",
     icon: "Sparkles",
   },
   {
-    title: "What does it cost to use Tomi?",
+    title: "We're your partner, not your vendor",
     description:
-      "Nothing until you sell. We take 1% at exit—not before. That means we're your partner for the entire journey, not a one-time transaction. We only succeed when your co-ownership succeeds.",
+      "We charge $0 upfront. Instead, we take a 1% stake in your home—realized only when you sell. That means our incentives are perfectly aligned: we make money when your home grows in value. We're not here for a quick transaction. We're here for your entire journey.",
     icon: "Handshake",
   },
 ];

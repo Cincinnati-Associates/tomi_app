@@ -2,11 +2,14 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Menu } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Menu, LogOut, Settings, Home, ChevronDown } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { MobileMenu } from "./MobileMenu";
+import { AuthModal } from "@/components/auth/AuthModal";
+import { useAuthContext } from "@/providers/AuthProvider";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -19,6 +22,11 @@ const navLinks = [
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+
+  const { isAuthenticated, profile, isLoading, signOut } = useAuthContext();
+  const router = useRouter();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -28,6 +36,42 @@ export function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (isUserMenuOpen) {
+        const target = e.target as HTMLElement;
+        if (!target.closest('[data-user-menu]')) {
+          setIsUserMenuOpen(false);
+        }
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [isUserMenuOpen]);
+
+  // Check for signin query param
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('signin') === 'true') {
+      setIsAuthModalOpen(true);
+      // Clean up URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete('signin');
+      window.history.replaceState({}, '', url.pathname);
+    }
+  }, []);
+
+  const handleSignOut = async () => {
+    await signOut();
+    setIsUserMenuOpen(false);
+    router.push('/');
+  };
+
+  const displayName = profile?.full_name || profile?.email?.split('@')[0] || 'User';
+  const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
     <>
@@ -59,12 +103,77 @@ export function Navbar() {
               ))}
             </div>
 
-            {/* Desktop Login Button & Theme Toggle */}
+            {/* Desktop Auth Section */}
             <div className="hidden md:flex md:items-center md:gap-2">
               <ThemeToggle />
-              <Button variant="outline" size="sm" asChild>
-                <Link href="#">Login</Link>
-              </Button>
+
+              {isLoading ? (
+                <div className="h-9 w-20 animate-pulse rounded-md bg-muted" />
+              ) : isAuthenticated ? (
+                <div className="relative" data-user-menu>
+                  <button
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+                  >
+                    {profile?.avatar_url ? (
+                      <img
+                        src={profile.avatar_url}
+                        alt="Avatar"
+                        className="h-6 w-6 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                        {initials}
+                      </div>
+                    )}
+                    <span className="max-w-[100px] truncate">{displayName}</span>
+                    <ChevronDown className={cn(
+                      "h-4 w-4 text-muted-foreground transition-transform",
+                      isUserMenuOpen && "rotate-180"
+                    )} />
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {isUserMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-48 rounded-lg border border-border bg-card shadow-lg">
+                      <div className="p-2">
+                        <Link
+                          href="/dashboard"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                        >
+                          <Home className="h-4 w-4" />
+                          Dashboard
+                        </Link>
+                        <Link
+                          href="/settings/profile"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                        >
+                          <Settings className="h-4 w-4" />
+                          Settings
+                        </Link>
+                        <hr className="my-2 border-border" />
+                        <button
+                          onClick={handleSignOut}
+                          className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-500 hover:bg-red-500/10 transition-colors"
+                        >
+                          <LogOut className="h-4 w-4" />
+                          Sign out
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsAuthModalOpen(true)}
+                >
+                  Sign In
+                </Button>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -84,6 +193,18 @@ export function Navbar() {
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
         links={navLinks}
+        isAuthenticated={isAuthenticated}
+        profile={profile}
+        onSignIn={() => {
+          setIsMobileMenuOpen(false);
+          setIsAuthModalOpen(true);
+        }}
+        onSignOut={handleSignOut}
+      />
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
       />
     </>
   );

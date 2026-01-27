@@ -7,6 +7,7 @@ import { howItWorksSteps } from "@/content/questions";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import Image from "next/image";
 
 const iconMap: Record<string, React.ElementType> = {
   Compass: Compass,
@@ -210,8 +211,16 @@ function StepPanel({
           }}
         >
           <div className="relative">
-            {/* Image placeholder */}
-            <div className="w-[280px] md:w-[320px] aspect-[4/3] rounded-xl bg-muted border border-border" />
+            {/* Image */}
+            <div className="w-[280px] md:w-[320px] aspect-[4/3] rounded-xl overflow-hidden border border-border">
+              <Image
+                src={step.image}
+                alt={step.title}
+                width={320}
+                height={240}
+                className="w-full h-full object-cover"
+              />
+            </div>
 
             {/* Icon badge - overlapping bottom-right */}
             <motion.div
@@ -416,8 +425,16 @@ export function HowItWorks({
                 className="flex-shrink-0 w-[280px] snap-center"
               >
                 <div className="bg-card rounded-2xl p-5 h-full border border-border flex flex-col">
-                  {/* Image placeholder */}
-                  <div className="w-full aspect-[16/9] rounded-lg bg-muted border border-border mb-4" />
+                  {/* Image */}
+                  <div className="w-full aspect-[16/9] rounded-lg overflow-hidden border border-border mb-4">
+                    <Image
+                      src={step.image}
+                      alt={step.title}
+                      width={280}
+                      height={158}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
 
                   {/* Icon and number */}
                   <div className="flex items-center gap-4 mb-3">

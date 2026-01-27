@@ -2,14 +2,14 @@
 
 import { motion } from "framer-motion";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
-import { DollarSign, FileText, Calculator, Home, ArrowRight } from "lucide-react";
+import { Sparkles, FileText, TrendingUp, Shield, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
-const services = [
+const whatYouGet = [
+  { icon: Sparkles, label: "AI-powered guidance" },
   { icon: FileText, label: "Legal agreements" },
-  { icon: Calculator, label: "Financial planning" },
-  { icon: DollarSign, label: "Financing strategy" },
-  { icon: Home, label: "Property management" },
+  { icon: Shield, label: "Ongoing support" },
+  { icon: TrendingUp, label: "Equity tracking" },
 ];
 
 export function NoCostSection() {
@@ -26,47 +26,61 @@ export function NoCostSection() {
         >
           {/* The hook */}
           <p className="text-primary font-medium text-sm md:text-base uppercase tracking-wide mb-4">
-            And what if we told you...
+            A new kind of partnership
           </p>
 
           {/* Main message */}
-          <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground leading-tight mb-6">
-            You don&apos;t pay us anything
-            <br />
-            <span className="text-primary">until you sell</span>.
+          <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground leading-tight mb-4">
+            $0 upfront. <span className="text-primary">1% when you sell.</span>
           </h2>
 
-          {/* Services */}
+          {/* Explanation */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={isInView ? { opacity: 1 } : {}}
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto mb-8"
+          >
+            We take a 1% stake in your home—realized only when you sell.
+            <br className="hidden sm:block" />
+            <span className="font-medium text-foreground">That means we win when your home grows in value. Not before.</span>
+          </motion.p>
+
+          {/* What you get */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{ duration: 0.6, delay: 0.25 }}
             className="flex flex-wrap justify-center gap-3 md:gap-4 mb-8"
           >
-            {services.map((service, index) => (
+            {whatYouGet.map((item, index) => (
               <motion.div
-                key={service.label}
+                key={item.label}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={isInView ? { opacity: 1, scale: 1 } : {}}
                 transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
                 className="flex items-center gap-2 px-4 py-2 bg-card rounded-full border border-border"
               >
-                <service.icon className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-foreground">{service.label}</span>
+                <item.icon className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium text-foreground">{item.label}</span>
               </motion.div>
             ))}
           </motion.div>
 
-          {/* Subtext */}
-          <motion.p
+          {/* Why this matters */}
+          <motion.div
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : {}}
             transition={{ duration: 0.6, delay: 0.5 }}
-            className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto mb-8"
+            className="bg-card border border-border rounded-2xl p-6 max-w-xl mx-auto mb-8"
           >
-            Think of Tomi as your shared home concierge—that&apos;s also a partner,
-            because we only succeed when you do.
-          </motion.p>
+            <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
+              <span className="font-semibold text-foreground">Why does this matter?</span>
+              {" "}Most platforms charge fees upfront—whether your co-ownership works out or not.
+              Our model means we&apos;re invested in your success for the long haul.
+              We don&apos;t disappear after you sign. We&apos;re your partner until you sell.
+            </p>
+          </motion.div>
 
           {/* CTA */}
           <motion.div

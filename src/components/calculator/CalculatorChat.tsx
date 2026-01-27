@@ -448,9 +448,9 @@ Use this context to answer questions about their specific situation.
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center gap-3 border-b border-border px-4 py-3 md:px-6 md:py-4 bg-background">
+      <div className="flex-shrink-0 flex items-center gap-3 border-b border-border px-4 py-3 md:px-6 md:py-4 bg-background">
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
           <Sparkles className="h-5 w-5 text-primary" />
         </div>
@@ -465,7 +465,7 @@ Use this context to answer questions about their specific situation.
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-6">
+      <div className="flex-1 min-h-0 overflow-y-auto p-4 md:p-6">
         <div className="space-y-4">
           {/* Structured conversation messages */}
           {messages.map((message) => (
@@ -535,7 +535,7 @@ Use this context to answer questions about their specific situation.
       {/* Quick Replies */}
       {showQuickReplies && getCurrentQuickReplies().length > 0 && (
         <motion.div
-          className="px-4 pb-2 md:px-6"
+          className="flex-shrink-0 px-4 pb-2 md:px-6"
           initial={false}
           animate={showInputGlow ? { scale: [1, 1.02, 1] } : {}}
           transition={{ duration: 0.5, repeat: showInputGlow ? 2 : 0 }}
@@ -549,8 +549,8 @@ Use this context to answer questions about their specific situation.
                 key={option.label}
                 onClick={() => handleQuickReply(option.value)}
                 className={cn(
-                  "px-4 py-2 rounded-full border-2 border-primary/30 text-primary text-sm font-medium",
-                  "hover:bg-primary/5 hover:border-primary/50 transition-all",
+                  "px-4 py-2.5 rounded-full border-2 border-primary/30 text-primary text-sm font-medium touch-manipulation min-h-[44px]",
+                  "hover:bg-primary/5 hover:border-primary/50 active:bg-primary/10 transition-all",
                   showInputGlow && "border-primary/50 shadow-md"
                 )}
                 animate={showInputGlow ? {
@@ -566,7 +566,7 @@ Use this context to answer questions about their specific situation.
       )}
 
       {/* Input */}
-      <form onSubmit={handleSubmit} className="border-t border-border p-4 md:p-6">
+      <form onSubmit={handleSubmit} className="flex-shrink-0 border-t border-border p-4 md:p-6">
         <motion.div
           className={cn(
             "flex gap-2 p-1 -m-1 rounded-full transition-all duration-500",

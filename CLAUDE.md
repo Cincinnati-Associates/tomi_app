@@ -9,11 +9,25 @@ Tomi is a marketing site for a co-ownership/co-buying home platform. It helps us
 ## Commands
 
 ```bash
+# Development
 npm run dev      # Start development server (localhost:3000)
 npm run build    # Production build
 npm run lint     # ESLint
 npx tsc --noEmit # Type check without emitting
+
+# Database (Drizzle ORM)
+npm run db:generate  # Generate migrations from schema changes
+npm run db:migrate   # Run pending migrations
+npm run db:push      # Push schema directly (dev only, no migration files)
+npm run db:pull      # Pull schema from database (introspection)
+npm run db:studio    # Open Drizzle Studio GUI
 ```
+
+### Custom Claude Commands
+
+- `/db-migrate` - Run the full database migration workflow with safety checks
+- `/db-migrate --dry-run` - Preview migration without applying
+- `/db-migrate --studio` - Migrate and open Drizzle Studio
 
 ## Architecture
 
@@ -23,7 +37,8 @@ npx tsc --noEmit # Type check without emitting
 - **Animations:** Framer Motion for scroll-based and interactive animations
 - **AI:** Vercel AI SDK with multi-provider support (Google/OpenAI/Anthropic)
 - **Analytics:** PostHog
-- **Backend:** Supabase (auth/db ready but not heavily used yet)
+- **Backend:** Supabase (PostgreSQL) with Drizzle ORM
+- **ORM:** Drizzle ORM with type-safe schema definitions
 
 ### Key Patterns
 
@@ -70,6 +85,59 @@ Required in `.env.local`:
 - Provider-specific API key (GOOGLE_GENERATIVE_AI_API_KEY, OPENAI_API_KEY, or ANTHROPIC_API_KEY)
 - `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`
 - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `DATABASE_URL` - Supabase connection string (use pooler URL for serverless)
+
+## Database (Drizzle ORM)
+
+### Schema Location
+All database schema definitions live in `src/db/schema/`:
+- `enums.ts` - PostgreSQL enum types (party_status, member_role, etc.)
+- `profiles.ts` - User profiles table (extends Supabase auth.users)
+- `parties.ts` - Buying parties, members, and invites
+- `chat.ts` - Visitor sessions, conversations, messages
+- `index.ts` - Barrel export for all schemas
+
+### Database Client
+Import from `src/db/index.ts`:
+```typescript
+import { db, profiles, buyingParties } from '@/db'
+import { eq } from 'drizzle-orm'
+
+// Simple query
+const user = await db.query.profiles.findFirst({
+  where: eq(profiles.id, userId),
+})
+
+// Query with relations
+const party = await db.query.buyingParties.findFirst({
+  where: eq(buyingParties.id, partyId),
+  with: { members: { with: { user: true } } }
+})
+```
+
+### Migration Workflow (Supabase + Vercel + GitHub)
+
+**Development workflow:**
+1. Modify schema files in `src/db/schema/`
+2. Run `/db-migrate` command (or `npm run db:generate && npm run db:migrate`)
+3. Commit migration files to git
+4. Push to GitHub → Vercel auto-deploys
+
+**Production safety:**
+- Migrations run automatically on Vercel deploy via build step
+- NEVER run destructive migrations (DROP, column type changes) without backup
+- Test migrations on Supabase staging branch first for major changes
+
+**Schema changes that require caution:**
+- Dropping columns/tables → Data loss
+- Changing column types → May fail if data incompatible
+- Adding NOT NULL without default → Will fail if existing rows
+
+### Drizzle Configuration
+Config file: `drizzle.config.ts`
+- Schema path: `./src/db/schema/index.ts`
+- Migrations output: `./src/db/migrations`
+- Dialect: PostgreSQL (Supabase)
 
 ## PostHog Guidelines
 

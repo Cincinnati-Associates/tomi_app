@@ -2,20 +2,28 @@ import { streamText } from "ai";
 import { NextRequest } from "next/server";
 import { getAIModel, MODEL_CONFIG } from "@/lib/ai-provider";
 import { buildSystemPrompt } from "@/lib/prompts";
+import type { AnonymousUserContext } from "@/lib/user-context";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
     // Support both formats:
-    // Homepage: { messages: [{role, content}...] }
-    // Calculator: { message: string, history: [...], calculatorContext: string }
+    // Homepage: { messages: [{role, content}...], userContext?: AnonymousUserContext }
+    // Calculator: { message: string, history: [...], calculatorContext: string, userContext?: AnonymousUserContext }
     const {
       messages: rawMessages,
       message: singleMessage,
       history: chatHistory,
       calculatorContext,
-    } = body;
+      userContext,
+    } = body as {
+      messages?: Array<{ role: string; content: string }>;
+      message?: string;
+      history?: Array<{ role: string; content: string }>;
+      calculatorContext?: string;
+      userContext?: AnonymousUserContext;
+    };
 
     // Normalize messages to Vercel AI SDK format
     let messages: Array<{ role: "user" | "assistant"; content: string }>;
@@ -43,8 +51,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Build system prompt with optional calculator context
-    const systemPrompt = buildSystemPrompt(calculatorContext);
+    // Build system prompt with user context and optional calculator context
+    const systemPrompt = buildSystemPrompt({
+      calculatorContext,
+      userContext,
+    });
 
     // Stream the response
     const result = await streamText({

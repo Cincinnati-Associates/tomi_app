@@ -219,3 +219,70 @@
     0 0 100px hsl(var(--primary) / 0.25),
     inset 0 0 30px hsl(var(--primary) / 0.15);
 }
+
+/* Snapchat-style continuous chat glow - theme aware */
+/* Light mode: stronger green glow to match dark mode yellow intensity */
+@keyframes chat-border-glow-light {
+  0%, 100% {
+    box-shadow:
+      0 0 15px hsl(153 37% 26% / 0.6),
+      0 0 30px hsl(153 37% 26% / 0.4),
+      0 0 45px hsl(153 37% 26% / 0.25),
+      inset 0 0 15px hsl(153 37% 26% / 0.15);
+  }
+  50% {
+    box-shadow:
+      0 0 25px hsl(153 37% 26% / 0.8),
+      0 0 50px hsl(153 37% 26% / 0.5),
+      0 0 70px hsl(153 37% 26% / 0.35),
+      inset 0 0 25px hsl(153 37% 26% / 0.2);
+  }
+}
+
+/* Dark mode: yellow glow */
+@keyframes chat-border-glow-dark {
+  0%, 100% {
+    box-shadow:
+      0 0 20px hsl(var(--primary) / 0.5),
+      0 0 40px hsl(var(--primary) / 0.3),
+      0 0 60px hsl(var(--primary) / 0.2),
+      inset 0 0 20px hsl(var(--primary) / 0.1);
+  }
+  50% {
+    box-shadow:
+      0 0 30px hsl(var(--primary) / 0.7),
+      0 0 60px hsl(var(--primary) / 0.5),
+      0 0 90px hsl(var(--primary) / 0.3),
+      inset 0 0 30px hsl(var(--primary) / 0.15);
+  }
+}
+
+@keyframes chat-border-gradient {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.chat-glow-border {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--primary)) 0%,
+    hsl(var(--primary) / 0.8) 25%,
+    hsl(var(--primary)) 50%,
+    hsl(var(--primary) / 0.8) 75%,
+    hsl(var(--primary)) 100%
+  );
+  background-size: 200% 200%;
+  animation: chat-border-gradient 3s ease-in-out infinite;
+}
+
+.chat-glow-outer {
+  animation: chat-border-glow-light 2s ease-in-out infinite;
+}
+
+.dark .chat-glow-outer {
+  animation: chat-border-glow-dark 2s ease-in-out infinite;
+}

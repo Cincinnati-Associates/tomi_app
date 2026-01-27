@@ -3,6 +3,7 @@
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
 
 const SOLO_AMOUNT = 340000;
@@ -17,34 +18,29 @@ const CO_BUYER_AMOUNTS: Record<number, number> = {
 
 // Config for each co-buyer count
 const CO_BUYER_CONFIG: Record<number, {
-  people: string;
-  home: string;
   label: string;
   description: string;
+  image: string;
 }> = {
   2: {
-    people: "👫",
-    home: "🏡",
-    label: "Charming starter",
-    description: "3BR in the neighborhood you want",
+    label: "Split the down payment 50/50",
+    description: "3BR in the neighborhood you actually want",
+    image: "/2 co-owners.webp",
   },
   3: {
-    people: "👨‍👩‍👧",
-    home: "🏠",
-    label: "Spacious family home",
-    description: "4BR with yard and garage",
+    label: "3-way shared equity",
+    description: "Spacious 4BR with yard and garage",
+    image: "/3 co-owners 3.webp",
   },
   4: {
-    people: "👨‍👩‍👧‍👦",
-    home: "🏘️",
-    label: "Modern townhouse",
-    description: "5BR multi-level living",
+    label: "4 partners, 4x the power",
+    description: "Modern 5BR multi-level townhouse",
+    image: "/4 co-owners 2.webp",
   },
   5: {
-    people: "👪",
-    home: "🏰",
-    label: "Luxury property",
-    description: "Estate-level living",
+    label: "Group investment property",
+    description: "Luxury estate-level living",
+    image: "/5 co-owners 2.webp",
   },
 };
 
@@ -168,12 +164,13 @@ interface UnlockSectionProps {
 }
 
 export function UnlockSection({
-  header = "Nicer spaces. Better places.",
-  subheader = "Co-buying = nicer home + better neighborhood + faster appreciation",
+  header = "Multiply Your Buying Power",
+  subheader = "Shared homeownership is the new first rung on the ladder — afford a nicer home in a better neighborhood, sooner.",
 }: UnlockSectionProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [coBuyerCount, setCoBuyerCount] = useState(2);
   const [hasAnimatedIn, setHasAnimatedIn] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
 
   // Scroll-based animation - starts when section enters viewport
   const { scrollYProgress } = useScroll({
@@ -198,6 +195,25 @@ export function UnlockSection({
     });
     return () => unsubscribe();
   }, [scrollYProgress, hasAnimatedIn]);
+
+  // Auto-rotate through co-buyer options
+  useEffect(() => {
+    if (!hasAnimatedIn || isPaused) return;
+
+    const interval = setInterval(() => {
+      setCoBuyerCount((prev) => (prev >= 5 ? 2 : prev + 1));
+    }, 4000); // Rotate every 4 seconds
+
+    return () => clearInterval(interval);
+  }, [hasAnimatedIn, isPaused]);
+
+  // Handle manual toggle - pause auto-rotation temporarily
+  const handleManualToggle = (count: number) => {
+    setCoBuyerCount(count);
+    setIsPaused(true);
+    // Resume auto-rotation after 10 seconds of no interaction
+    setTimeout(() => setIsPaused(false), 10000);
+  };
 
   const config = CO_BUYER_CONFIG[coBuyerCount];
   const amount = CO_BUYER_AMOUNTS[coBuyerCount];
@@ -235,23 +251,27 @@ export function UnlockSection({
             style={{ x: soloX, opacity: soloOpacity }}
             className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 md:p-8"
           >
-            {/* Image placeholder */}
-            <div className="aspect-[4/3] rounded-xl bg-gradient-to-br from-muted to-muted/50 mb-6 flex items-center justify-center overflow-hidden">
-              <div className="text-center text-muted-foreground">
-                <div className="text-4xl mb-2">🏠</div>
-                <p className="text-sm">Modest home</p>
-              </div>
+            {/* Image */}
+            <div className="aspect-[4/3] rounded-xl bg-muted mb-6 overflow-hidden relative">
+              <Image
+                src="/buying alone.png"
+                alt="Person looking at a modest apartment building"
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover object-center"
+                priority
+              />
             </div>
 
             <div className="space-y-2">
               <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                Buying alone
+                Buying Solo
               </p>
               <p className="font-heading text-3xl font-bold text-foreground md:text-4xl">
                 <AnimatedNumber target={SOLO_AMOUNT} isInView={hasAnimatedIn} />
               </p>
               <p className="text-muted-foreground">
-                Studio in the suburbs
+                Average first-time buyer budget
               </p>
             </div>
           </motion.div>
@@ -266,37 +286,41 @@ export function UnlockSection({
               key={coBuyerCount}
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="absolute top-4 right-4 text-xs font-semibold px-3 py-1 rounded-full bg-primary text-primary-foreground"
+              className="absolute top-10 right-10 md:top-12 md:right-12 z-10 text-xs font-semibold px-3 py-1 rounded-full bg-primary text-primary-foreground shadow-lg"
             >
               {coBuyerCount}x more home
             </motion.div>
 
             {/* Dynamic image with crossfade */}
-            <div className="aspect-[4/3] rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 mb-4 flex items-center justify-center overflow-hidden relative">
+            <div className="aspect-[4/3] rounded-xl bg-muted mb-4 overflow-hidden relative">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={coBuyerCount}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 1.1 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="text-center text-primary"
+                  className="absolute inset-0"
                 >
-                  <div className="text-4xl mb-2">{config.home}</div>
-                  <div className="text-2xl mb-1">{config.people}</div>
-                  <p className="text-sm font-medium">{config.label}</p>
+                  <Image
+                    src={config.image}
+                    alt={`${coBuyerCount} co-owners looking at ${config.label.toLowerCase()}`}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    className="object-cover object-bottom"
+                  />
                 </motion.div>
               </AnimatePresence>
             </div>
 
             {/* Co-buyer toggle */}
             <div className="mb-4">
-              <CoBuyerToggle count={coBuyerCount} onChange={setCoBuyerCount} />
+              <CoBuyerToggle count={coBuyerCount} onChange={handleManualToggle} />
             </div>
 
             <div className="space-y-2">
               <p className="text-sm font-medium text-primary uppercase tracking-wide">
-                Buying together
+                Co-Buying with Partners
               </p>
               <p className="font-heading text-3xl font-bold text-foreground md:text-4xl">
                 <SmoothCounter value={amount} />
@@ -310,12 +334,26 @@ export function UnlockSection({
                   transition={{ duration: 0.2 }}
                   className="text-muted-foreground"
                 >
-                  {config.description}
+                  {config.label}
                 </motion.p>
               </AnimatePresence>
+              <p className="text-sm text-muted-foreground/80">
+                {config.description}
+              </p>
             </div>
           </motion.div>
         </div>
+
+        {/* Trust element */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="mt-8 text-center text-sm text-muted-foreground"
+        >
+          Join the millions of Americans who are exploring shared homeownership
+        </motion.p>
 
         {/* CTA */}
         <motion.div
@@ -323,10 +361,10 @@ export function UnlockSection({
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="mt-10 md:mt-12 text-center"
+          className="mt-6 text-center"
         >
           <Button variant="glow" size="lg" className="rounded-full px-8" asChild>
-            <Link href="/calculator">Calculate Your Numbers</Link>
+            <Link href="/calc">Run the Numbers</Link>
           </Button>
         </motion.div>
       </div>
