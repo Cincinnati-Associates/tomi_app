@@ -272,7 +272,7 @@ function calculateResult(totalScore: number): AssessmentResult {
         "You're in great shape for co-ownership! You have clarity on the key decisions. Let's get you started with a free TIC agreement—just invite your potential co-owner to join.",
       primaryCta: {
         text: "Invite Your Co-Owner",
-        href: "/calculator",
+        href: "/calc",
         type: "invite_coowner",
       },
       secondaryCta: {

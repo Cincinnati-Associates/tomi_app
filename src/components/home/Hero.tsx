@@ -24,7 +24,7 @@ export function Hero({ onOpenChat }: HeroProps) {
   };
 
   return (
-    <section className="relative flex min-h-[90vh] md:min-h-screen flex-col items-center justify-center px-4 pt-20 md:pt-0">
+    <section className="relative flex min-h-[90vh] md:min-h-screen flex-col items-center px-4 pt-24 md:pt-0 md:justify-center">
       {/* Background gradient */}
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-secondary/30 via-background to-background" />
 
@@ -34,17 +34,16 @@ export function Hero({ onOpenChat }: HeroProps) {
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-accent/10 blur-3xl" />
       </div>
 
-      <div className="mx-auto max-w-4xl text-center">
+      <div className="mx-auto max-w-4xl text-center mt-8 md:mt-0">
         {/* Main headline */}
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl lg:text-6xl"
+          className="font-heading text-[1.75rem] font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl lg:text-6xl leading-tight"
         >
-          How do you own a home with
-          <br />
-          <span className="text-primary">someone you aren&apos;t married to?</span>
+          <span className="md:hidden">How do you own a home with <span className="text-primary">someone you aren&apos;t married to?</span></span>
+          <span className="hidden md:inline">How do you own a home with<br /><span className="text-primary">someone you aren&apos;t married to?</span></span>
         </motion.h1>
 
         {/* Subheadline */}
@@ -68,7 +67,7 @@ export function Hero({ onOpenChat }: HeroProps) {
         >
           {/* Primary CTA */}
           <Button variant="glow" size="lg" className="rounded-full px-8 text-base" asChild>
-            <Link href="/calculator">Co-Ownership Curious?</Link>
+            <Link href="/calc">Co-Ownership Curious?</Link>
           </Button>
 
           {/* Typewriter CTA */}

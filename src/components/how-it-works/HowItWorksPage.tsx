@@ -20,11 +20,11 @@ export function HowItWorksPage() {
 
   return (
     <>
-      <div className="fixed inset-0 overflow-hidden bg-background pt-16 md:pt-20">
+      <div className="min-h-screen bg-background pt-16 md:pt-20">
         {/* Desktop: Split-screen layout */}
-        <div className="hidden md:block h-full">
+        <div className="hidden md:block h-[calc(100vh-80px)]">
           <div className="mx-auto max-w-7xl px-6 lg:px-8 py-6 h-full">
-            <div className="grid grid-cols-2 gap-0 h-[calc(100vh-140px)] rounded-2xl overflow-hidden shadow-lg border border-border">
+            <div className="grid grid-cols-2 gap-0 h-full rounded-2xl overflow-hidden shadow-lg border border-border">
               {/* Left Panel: Visual */}
               <div className="flex flex-col bg-gradient-to-br from-secondary/30 to-background overflow-hidden rounded-l-2xl">
                 {/* Chapter Progress - Desktop */}
@@ -54,8 +54,8 @@ export function HowItWorksPage() {
         </div>
 
         {/* Mobile: Stacked layout */}
-        <div className="md:hidden flex flex-col h-[calc(100vh-64px)] overflow-hidden">
-          {/* Visual Panel - Top 2/3 */}
+        <div className="md:hidden flex flex-col h-[calc(100vh-64px)]">
+          {/* Visual Panel - Top portion */}
           <div className="flex-1 flex flex-col bg-gradient-to-br from-secondary/30 to-background overflow-hidden min-h-0">
             {/* Chapter Progress - Mobile */}
             <div className="px-4 py-3 border-b border-border bg-card/50 flex-shrink-0">
@@ -68,13 +68,13 @@ export function HowItWorksPage() {
             </div>
 
             {/* Visual Content */}
-            <div className="flex-1 flex items-center justify-center p-4 overflow-hidden">
+            <div className="flex-1 flex items-center justify-center p-4 overflow-auto">
               <StoryVisual step={currentStep} />
             </div>
           </div>
 
-          {/* Chat Panel - Bottom 1/3 */}
-          <div className="h-[35vh] flex-shrink-0 bg-card border-t border-border rounded-t-2xl shadow-lg overflow-hidden">
+          {/* Chat Panel - Bottom portion */}
+          <div className="h-[40vh] min-h-[200px] flex-shrink-0 bg-card border-t border-border rounded-t-2xl shadow-lg overflow-hidden">
             <StoryChat
               storyProgress={storyProgress}
               onOpenHomiChat={handleOpenChat}

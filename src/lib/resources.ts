@@ -25,7 +25,7 @@ export const TOMI_RESOURCES: Resource[] = [
     id: "calculator",
     name: "Co-Buying Power Calculator",
     description: "Calculate how much more home you could afford with co-buyers",
-    url: "/calculator",
+    url: "/calc",
     category: "tool",
     triggers: [
       "affordability",
@@ -191,7 +191,7 @@ When relevant, link users to these resources using markdown format: [Link Text](
 - Link naturally within your response, don't just dump links
 - Only suggest ONE primary action per response
 - For "coming soon" resources, acknowledge interest but don't link
-- Example: "That's a great question! Our [Co-Buying Calculator](/calculator) can help you see exactly how much more you could afford."
+- Example: "That's a great question! Our [Co-Buying Calculator](/calc) can help you see exactly how much more you could afford."
 `;
 
   return prompt;

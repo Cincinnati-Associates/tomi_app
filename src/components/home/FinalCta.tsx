@@ -43,7 +43,7 @@ export function FinalCta({ onOpenChat }: FinalCtaProps) {
               className="rounded-full px-8 text-primary hover:text-primary w-full sm:w-auto"
               asChild
             >
-              <Link href="/calculator">Start Your Journey</Link>
+              <Link href="/calc">Start Your Journey</Link>
             </Button>
 
             <Button

@@ -83,7 +83,7 @@ export const howItWorksSteps = [
     description:
       "Close with confidence and manage your shared home with tools built for co-owners.",
     icon: "Home",
-    cta: { text: "Calculate Your Numbers", href: "/calculator" },
+    cta: { text: "Calculate Your Numbers", href: "/calc" },
     imageDirection: "bottom" as const,
     image: "/hang out living room.webp",
   },

@@ -2,8 +2,9 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { X, Home, Settings, LogOut } from "lucide-react";
+import { X, Home, Settings, LogOut, Sun, Moon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "next-themes";
 import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 import type { Profile } from "@/types/user";
@@ -27,6 +28,8 @@ export function MobileMenu({
   onSignIn,
   onSignOut,
 }: MobileMenuProps) {
+  const { theme, setTheme } = useTheme();
+
   // Lock body scroll when menu is open
   useEffect(() => {
     if (isOpen) {
@@ -160,7 +163,29 @@ export function MobileMenu({
               </nav>
 
               {/* Footer */}
-              <div className="border-t border-border px-4 py-6">
+              <div className="border-t border-border px-4 py-6 space-y-4">
+                {/* Theme Toggle */}
+                <div className="flex items-center justify-between px-4 py-2">
+                  <span className="text-sm font-medium text-foreground">Theme</span>
+                  <button
+                    onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                    className="flex items-center gap-2 rounded-full bg-muted px-3 py-1.5 text-sm font-medium transition-colors"
+                    aria-label="Toggle theme"
+                  >
+                    {theme === "dark" ? (
+                      <>
+                        <Moon className="h-4 w-4" />
+                        Dark
+                      </>
+                    ) : (
+                      <>
+                        <Sun className="h-4 w-4" />
+                        Light
+                      </>
+                    )}
+                  </button>
+                </div>
+
                 {isAuthenticated ? (
                   <Button
                     variant="outline"

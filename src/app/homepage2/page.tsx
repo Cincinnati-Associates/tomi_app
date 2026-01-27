@@ -51,7 +51,7 @@ export default function Homepage2() {
         }
         primaryCta={{
           text: "See what you can afford",
-          href: "/calculator",
+          href: "/calc",
         }}
         onOpenChat={handleOpenChat}
         showTypewriter

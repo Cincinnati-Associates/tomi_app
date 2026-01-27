@@ -48,7 +48,7 @@ export default function Homepage3() {
         }
         primaryCta={{
           text: "Start your journey",
-          href: "/calculator",
+          href: "/calc",
         }}
         onOpenChat={handleOpenChat}
         showTypewriter

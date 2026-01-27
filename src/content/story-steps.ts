@@ -380,7 +380,7 @@ export const STORY_STEPS: StoryStep[] = [
     interaction: {
       type: "cta",
       ctaButtons: [
-        { label: "Calculate My Buying Power", href: "/calculator", primary: true },
+        { label: "Calculate My Buying Power", href: "/calc", primary: true },
         { label: "I have questions first", action: "chat" },
         { label: "Start over", action: "restart" },
       ],

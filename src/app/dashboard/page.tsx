@@ -137,7 +137,7 @@ export default function DashboardPage() {
                 Use our calculator to explore co-buying scenarios with potential partners.
               </p>
             </div>
-            <Link href="/calculator">
+            <Link href="/calc">
               <Button>
                 Open Calculator
                 <ArrowRight className="ml-2 h-4 w-4" />

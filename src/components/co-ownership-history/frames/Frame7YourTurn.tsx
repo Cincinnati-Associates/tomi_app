@@ -199,7 +199,7 @@ export function Frame7YourTurn({
             asChild
             onClick={onAssessmentClick}
           >
-            <Link href="/calculator">
+            <Link href="/calc">
               Take the Readiness Assessment
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>

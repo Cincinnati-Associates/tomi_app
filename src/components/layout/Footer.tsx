@@ -40,7 +40,7 @@ const footerLinks = {
     title: "Product",
     links: [
       { href: "/how-it-works", label: "How It Works" },
-      { href: "/calculator", label: "Calculator" },
+      { href: "/calc", label: "Calculator" },
       { href: "/stories", label: "Stories" },
     ],
   },
