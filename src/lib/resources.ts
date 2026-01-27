@@ -51,7 +51,7 @@ export const TOMI_RESOURCES: Resource[] = [
       "evaluate",
       "ready for co-ownership",
     ],
-    available: false,
+    available: true,
   },
   {
     id: "tic-builder",
