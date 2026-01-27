@@ -42,9 +42,9 @@ export function Hero({ onOpenChat }: HeroProps) {
           transition={{ duration: 0.6 }}
           className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl lg:text-6xl"
         >
-          What if you could afford
+          How do you own a home with
           <br />
-          <span className="text-primary">the home you actually want?</span>
+          <span className="text-primary">someone you aren&apos;t married to?</span>
         </motion.h1>
 
         {/* Subheadline */}
@@ -54,9 +54,7 @@ export function Hero({ onOpenChat }: HeroProps) {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="mx-auto mt-6 max-w-3xl text-base text-muted-foreground sm:text-lg md:text-xl"
         >
-          <span className="md:whitespace-nowrap">Every year millions of Americans buy property with someone they aren&apos;t married to.</span>
-          <br />
-          <span className="font-semibold text-foreground">We&apos;re about to make that number much larger.</span>
+          Every year, millions of Americans buy homes with friends and family.
         </motion.p>
 
         {/* CTAs */}
