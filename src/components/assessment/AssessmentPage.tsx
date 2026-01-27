@@ -130,7 +130,7 @@ export function AssessmentPage() {
         )}
 
         {/* Main content - flex to fill remaining space */}
-        <main className="flex-1 flex flex-col px-4 py-4 sm:py-6 overflow-auto">
+        <main className="flex-1 flex flex-col px-4 py-2 sm:py-6 overflow-auto">
           <div className="max-w-2xl mx-auto w-full flex-1 flex flex-col">
             <AnimatePresence mode="wait">
               {showPreResultsGate ? (
@@ -153,8 +153,8 @@ export function AssessmentPage() {
                   exit={{ opacity: 0 }}
                   className="flex-1 flex flex-col"
                 >
-                  {/* Question - takes available space */}
-                  <div className="flex-1 flex flex-col justify-center">
+                  {/* Question - align top on mobile, center on larger screens */}
+                  <div className="flex-1 flex flex-col justify-start sm:justify-center pt-2 sm:pt-0">
                     <AssessmentQuestion
                       question={currentQuestion}
                       questionIndex={currentQuestionIndex}
@@ -165,7 +165,7 @@ export function AssessmentPage() {
                   </div>
 
                   {/* Bottom section: Homi prompt + navigation */}
-                  <div className="flex-shrink-0 space-y-3 pt-4 pb-2">
+                  <div className="flex-shrink-0 space-y-2 pt-3 pb-2">
                     {/* Inline Homi prompt */}
                     <InlineHomiPrompt
                       prompt={currentQuestion.homiPrompt || "Ask Homi"}
@@ -177,7 +177,7 @@ export function AssessmentPage() {
                       <div className="flex justify-center">
                         <button
                           onClick={previousQuestion}
-                          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors py-1.5 px-3"
+                          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors py-1 px-3"
                         >
                           <ChevronLeft className="w-3.5 h-3.5" />
                           Previous
