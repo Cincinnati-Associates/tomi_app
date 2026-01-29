@@ -67,7 +67,7 @@ export function Hero({ onOpenChat }: HeroProps) {
         >
           {/* Primary CTA */}
           <Button variant="glow" size="lg" className="rounded-full px-8 text-base" asChild>
-            <Link href="/calc">Co-Ownership Curious?</Link>
+            <Link href="/calc">Are You Co-Ownership Curious?</Link>
           </Button>
 
           {/* Typewriter CTA */}

@@ -164,8 +164,8 @@ interface UnlockSectionProps {
 }
 
 export function UnlockSection({
-  header = "Multiply Your Buying Power",
-  subheader = "Shared homeownership is the new first rung on the ladder — afford a nicer home in a better neighborhood, sooner.",
+  header = "How Does Co-Buying Impact My Buying Power?",
+  subheader = "Pooling resources with trusted people gives you access to nicer homes in better neighborhoods—without stretching your budget to the breaking point.",
 }: UnlockSectionProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [coBuyerCount, setCoBuyerCount] = useState(2);

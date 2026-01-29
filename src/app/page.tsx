@@ -6,6 +6,7 @@ import { UnlockSection } from "@/components/home/UnlockSection";
 import { HowItWorks } from "@/components/home/HowItWorks";
 import { NoCostSection } from "@/components/home/NoCostSection";
 import { AIConciergeSection } from "@/components/home/AIConciergeSection";
+import { AgreementSection } from "@/components/home/AgreementSection";
 import { StoryPreview } from "@/components/home/StoryPreview";
 import { TomiDifference } from "@/components/home/TomiDifference";
 import { FinalCta } from "@/components/home/FinalCta";
@@ -30,9 +31,10 @@ export default function Home() {
     <>
       <Hero onOpenChat={handleOpenChat} />
       <UnlockSection />
-      <HowItWorks />
+      <HowItWorks header="Your partner at every stage" />
       <NoCostSection />
       <AIConciergeSection onOpenChat={handleOpenChat} />
+      <AgreementSection />
       <StoryPreview />
       <TomiDifference />
       <FinalCta onOpenChat={() => handleOpenChat()} />

@@ -51,43 +51,53 @@ export const objectionCards = [
 export const howItWorksSteps = [
   {
     number: "01",
-    title: "Explore",
+    title: "Design",
     description:
-      "Discover if co-ownership fits your life through guided exercises and AI-powered conversations.",
+      "Define your vision for co-ownership. Clarify your goals, timeline, and what you want out of sharing a home.",
     icon: "Compass",
-    cta: { text: "Take the Readiness Assessment", href: "/assessment" },
+    cta: { text: "Take the Assessment", href: "/assessment" },
     imageDirection: "left" as const,
     image: "/eating outside 3.webp",
   },
   {
     number: "02",
-    title: "Form Your Group",
+    title: "Align",
     description:
-      "Find compatible co-buyers or bring people you already know. We help you align on what matters.",
+      "Get your group on the same page. Share your vision, understand theirs, and find common ground on what matters.",
     icon: "Users",
-    cta: { text: "Define Your Vision", href: "/vision-plan" },
+    cta: { text: "Start a Group", href: "/vision-plan" },
     imageDirection: "right" as const,
     image: "/camping 3.webp",
   },
   {
     number: "03",
-    title: "Build Your Agreement",
+    title: "Formalize",
     description:
-      "Create your legal framework together with our TIC Agreement Builder. Every hard question, answered.",
+      "Build your legal agreement and get financially qualified. Every hard question answered before you buy.",
     icon: "FileCheck",
-    cta: { text: "Try the TIC Builder", href: "/tic-builder" },
+    cta: { text: "Build Your Agreement", href: "/tic-builder" },
     imageDirection: "top" as const,
     image: "/kitchen planning 3.webp",
   },
   {
     number: "04",
-    title: "Buy & Manage",
+    title: "Close",
     description:
-      "Close with confidence and manage your shared home with tools built for co-owners.",
-    icon: "Home",
+      "Buy your home with confidence. We coordinate with lenders, agents, and attorneys to get you to the finish line.",
+    icon: "Key",
     cta: { text: "Calculate Your Numbers", href: "/calc" },
     imageDirection: "bottom" as const,
-    image: "/hang out living room.webp",
+    image: "/living-room-lake-view.webp",
+  },
+  {
+    number: "05",
+    title: "Create",
+    description:
+      "Live, manage, and grow together. Track expenses, make decisions, and plan for the future—including eventual transitions.",
+    icon: "Home",
+    cta: { text: "See How It Works", href: "/demo" },
+    imageDirection: "left" as const,
+    image: "/movie-night-backyard.webp",
   },
 ];
 

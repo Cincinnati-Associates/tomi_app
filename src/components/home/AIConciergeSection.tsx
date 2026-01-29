@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
-import { Sparkles, FileText, DollarSign, Calendar, Shield, TrendingUp, Bell, Users } from "lucide-react";
+import { Sparkles, DollarSign, Hammer, CalendarClock, Scale } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // ============================================
@@ -13,8 +13,7 @@ import { cn } from "@/lib/utils";
 interface CoOwner {
   id: string;
   name: string;
-  color: string;
-  textColor: string;
+  initial: string;
 }
 
 interface ChatMessage {
@@ -22,89 +21,93 @@ interface ChatMessage {
   text: string;
 }
 
+interface Topic {
+  id: string;
+  label: string;
+  description: string;
+  icon: React.ElementType;
+}
+
 interface Scenario {
   id: string;
-  title: string;
+  topicId: string;
   messages: ChatMessage[];
 }
 
 const coOwners: CoOwner[] = [
-  { id: "marcus", name: "Marcus", color: "bg-blue-500", textColor: "text-blue-500" },
-  { id: "sarah", name: "Sarah", color: "bg-emerald-500", textColor: "text-emerald-500" },
-  { id: "alex", name: "Alex", color: "bg-orange-500", textColor: "text-orange-500" },
+  { id: "marcus", name: "Marcus", initial: "M" },
+  { id: "sarah", name: "Sarah", initial: "S" },
+  { id: "alex", name: "Alex", initial: "A" },
+];
+
+const topics: Topic[] = [
+  {
+    id: "finances",
+    label: "Finances",
+    description: "Track expenses, split bills automatically, and get quarterly reports",
+    icon: DollarSign
+  },
+  {
+    id: "improvements",
+    label: "Improvements",
+    description: "Analyze ROI on upgrades and coordinate home improvement projects",
+    icon: Hammer
+  },
+  {
+    id: "planning",
+    label: "Planning",
+    description: "Model buyouts, exits, and changes to your ownership structure",
+    icon: CalendarClock
+  },
+  {
+    id: "disagreements",
+    label: "Disagreements",
+    description: "Draft proposals, find compromises, and reference your agreements",
+    icon: Scale
+  },
 ];
 
 const scenarios: Scenario[] = [
   {
-    id: "tax",
-    title: "Tax Season",
+    id: "bills",
+    topicId: "finances",
     messages: [
-      { sender: "marcus", text: "When is property tax due?" },
-      { sender: "homi", text: "December 10th. Based on your 35% share, your portion is $1,847. I'll send reminders to everyone next week." },
-      { sender: "sarah", text: "What can I deduct on my taxes?" },
-      { sender: "homi", text: "You can deduct your share of mortgage interest and property tax. I'll prepare your breakdown before April." },
+      { sender: "marcus", text: "Mortgage payment hit. $3,200 this month." },
+      { sender: "homi", text: "Split evenly: $1,067 each. I've already sent payment reminders to everyone and logged it in your shared ledger." },
+      { sender: "sarah", text: "What's our total spending this quarter?" },
+      { sender: "homi", text: "Q1 total: $14,847. You're 8% under budget. I can generate a full breakdown with charts if you'd like." },
     ],
   },
   {
-    id: "maintenance",
-    title: "Maintenance",
+    id: "backyard",
+    topicId: "improvements",
     messages: [
-      { sender: "alex", text: "The roof needs repair. $8,000 quote." },
-      { sender: "homi", text: "I've logged this in decisions. Based on your agreement, repairs over $5K need group approval. Marcus and Sarah—thoughts?" },
-      { sender: "sarah", text: "Can we see other quotes first?" },
-      { sender: "homi", text: "Good call. I'll help you request 2 more quotes. Here's a template..." },
-    ],
-  },
-  {
-    id: "equity",
-    title: "Equity Check",
-    messages: [
-      { sender: "sarah", text: "What's my current equity?" },
-      { sender: "homi", text: "You own 35% ($127,500). You've contributed $45K down + 18 months of payments. Here's your breakdown..." },
-      { sender: "marcus", text: "How does that compare to mine?" },
-      { sender: "homi", text: "Marcus, you're at 40% ($145,000). The 5% difference reflects your larger down payment." },
+      { sender: "alex", text: "I got a quote for the backyard patio. $12,000." },
+      { sender: "homi", text: "Nice! Want me to put together a cost-benefit analysis? I can estimate the ROI based on comparable home values in your area." },
+      { sender: "marcus", text: "Yes please. How long would that take?" },
+      { sender: "homi", text: "Give me 30 seconds. I'll pull recent sales data, calculate the likely value add, and model your payback period." },
     ],
   },
   {
     id: "exit",
-    title: "Exit Planning",
+    topicId: "planning",
     messages: [
       { sender: "alex", text: "I might need to sell my share next year." },
-      { sender: "homi", text: "I understand. Per your TIC agreement, you'll need to give 90 days notice. Marcus and Sarah have first right of refusal." },
-      { sender: "marcus", text: "What would that cost us to buy Alex out?" },
-      { sender: "homi", text: "At current value, Alex's 25% would be ~$91,250. I can model financing options for both of you." },
+      { sender: "homi", text: "I've pulled up your TIC agreement. You'll need 90 days notice, and Marcus and Sarah have first right of refusal at fair market value." },
+      { sender: "marcus", text: "What would buying Alex out cost us?" },
+      { sender: "homi", text: "At current value, Alex's 33% is ~$127K. I can model financing options and show how it affects your monthly costs." },
     ],
   },
   {
-    id: "bills",
-    title: "Bill Splitting",
+    id: "dispute",
+    topicId: "disagreements",
     messages: [
-      { sender: "marcus", text: "Water bill came in. $180 this month." },
-      { sender: "homi", text: "Got it. Based on your usage split, that's $72 for Marcus, $63 for Sarah, and $45 for Alex. Added to expenses." },
-      { sender: "sarah", text: "Can I see our total expenses this month?" },
-      { sender: "homi", text: "This month: $2,847 total. Your share is $997. Mortgage, utilities, and insurance all included." },
+      { sender: "sarah", text: "I want to rent my room on Airbnb when I travel. Marcus isn't sure." },
+      { sender: "homi", text: "Per your agreement, short-term rentals need majority approval. I can draft a proposal with guest rules, revenue split, and liability coverage for everyone to review." },
+      { sender: "marcus", text: "That would help. What do other co-owners typically agree to?" },
+      { sender: "homi", text: "Most groups allow 30-60 days/year with a 24-hour guest approval window. I'll include those benchmarks in the proposal." },
     ],
   },
-  {
-    id: "documents",
-    title: "Document Access",
-    messages: [
-      { sender: "sarah", text: "I need a copy of our TIC agreement for my accountant." },
-      { sender: "homi", text: "Here's your TIC agreement, signed March 2024. I can also generate a summary of tax-relevant details." },
-      { sender: "alex", text: "Can you send me the insurance policy too?" },
-      { sender: "homi", text: "Done. I've emailed both of you the relevant documents. Let me know if your accountant needs anything else." },
-    ],
-  },
-];
-
-const capabilities = [
-  { icon: Sparkles, label: "AI-powered guidance" },
-  { icon: FileText, label: "Legal agreements" },
-  { icon: Shield, label: "Ongoing support" },
-  { icon: TrendingUp, label: "Equity tracking" },
-  { icon: DollarSign, label: "Expense splitting" },
-  { icon: Calendar, label: "Payment reminders" },
-  { icon: Bell, label: "Maintenance alerts" },
 ];
 
 // ============================================
@@ -112,16 +115,14 @@ const capabilities = [
 // ============================================
 
 // Homi Avatar with glow effect
-function HomiAvatar({ isTyping, size = "md" }: { isTyping: boolean; size?: "sm" | "md" | "lg" }) {
+function HomiAvatar({ isTyping, size = "md" }: { isTyping: boolean; size?: "sm" | "md" }) {
   const sizeClasses = {
-    sm: "w-8 h-8",
-    md: "w-10 h-10",
-    lg: "w-12 h-12",
+    sm: "w-7 h-7",
+    md: "w-9 h-9",
   };
   const iconSizes = {
-    sm: "w-4 h-4",
-    md: "w-5 h-5",
-    lg: "w-6 h-6",
+    sm: "w-3.5 h-3.5",
+    md: "w-4 h-4",
   };
 
   return (
@@ -129,465 +130,257 @@ function HomiAvatar({ isTyping, size = "md" }: { isTyping: boolean; size?: "sm" 
       <motion.div
         className={cn(
           sizeClasses[size],
-          "rounded-full bg-primary flex items-center justify-center shadow-lg"
+          "rounded-full bg-primary flex items-center justify-center"
         )}
         animate={{
           boxShadow: isTyping
             ? [
-                "0 0 20px hsl(var(--primary) / 0.4), 0 0 40px hsl(var(--primary) / 0.2)",
-                "0 0 30px hsl(var(--primary) / 0.6), 0 0 60px hsl(var(--primary) / 0.3)",
-                "0 0 20px hsl(var(--primary) / 0.4), 0 0 40px hsl(var(--primary) / 0.2)",
+                "0 0 12px hsl(var(--primary) / 0.4)",
+                "0 0 20px hsl(var(--primary) / 0.6)",
+                "0 0 12px hsl(var(--primary) / 0.4)",
               ]
-            : "0 0 15px hsl(var(--primary) / 0.3), 0 0 30px hsl(var(--primary) / 0.15)",
+            : "0 0 8px hsl(var(--primary) / 0.3)",
         }}
         transition={{
-          duration: 1.5,
+          duration: 1.2,
           repeat: isTyping ? Infinity : 0,
           ease: "easeInOut",
         }}
       >
         <Sparkles className={cn(iconSizes[size], "text-primary-foreground")} />
       </motion.div>
-      {isTyping && (
-        <motion.div
-          className="absolute inset-0 rounded-full border-2 border-primary"
-          initial={{ scale: 1, opacity: 0.6 }}
-          animate={{ scale: 1.5, opacity: 0 }}
-          transition={{ duration: 1, repeat: Infinity }}
-        />
-      )}
     </div>
   );
 }
 
-// Co-owner avatar
+// Co-owner avatar - hollow circle with primary stroke
 function CoOwnerAvatar({ coOwner, size = "md" }: { coOwner: CoOwner; size?: "sm" | "md" }) {
   const sizeClasses = {
-    sm: "w-6 h-6 text-xs",
-    md: "w-8 h-8 text-sm",
+    sm: "w-6 h-6 text-[10px]",
+    md: "w-7 h-7 text-xs",
   };
 
   return (
     <div
       className={cn(
         sizeClasses[size],
-        coOwner.color,
-        "rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0"
+        "rounded-full flex items-center justify-center font-semibold flex-shrink-0",
+        "border-2 border-primary bg-card text-primary"
       )}
     >
-      {coOwner.name[0]}
+      {coOwner.initial}
     </div>
   );
 }
 
-// Typing indicator
-function TypingIndicator() {
+// Typewriter text component
+function TypewriterText({
+  text,
+  isAnimating,
+  onComplete,
+  speed = 30,
+}: {
+  text: string;
+  isAnimating: boolean;
+  onComplete?: () => void;
+  speed?: number;
+}) {
+  const [displayedText, setDisplayedText] = useState("");
+  const [isComplete, setIsComplete] = useState(false);
+  const completedRef = useRef(false);
+
+  useEffect(() => {
+    if (!isAnimating) {
+      setDisplayedText(text);
+      setIsComplete(true);
+      return;
+    }
+
+    setDisplayedText("");
+    setIsComplete(false);
+    completedRef.current = false;
+    let charIndex = 0;
+
+    const interval = setInterval(() => {
+      if (charIndex < text.length) {
+        setDisplayedText(text.slice(0, charIndex + 1));
+        charIndex++;
+      } else {
+        setIsComplete(true);
+        clearInterval(interval);
+        if (!completedRef.current) {
+          completedRef.current = true;
+          onComplete?.();
+        }
+      }
+    }, speed);
+
+    return () => clearInterval(interval);
+  }, [text, isAnimating, speed, onComplete]);
+
   return (
-    <div className="flex items-center gap-1 px-3 py-2">
-      {[0, 1, 2].map((i) => (
-        <motion.div
-          key={i}
-          className="w-1.5 h-1.5 rounded-full bg-primary/60"
-          animate={{
-            y: [0, -4, 0],
-            opacity: [0.4, 1, 0.4],
-          }}
-          transition={{
-            duration: 0.6,
-            repeat: Infinity,
-            delay: i * 0.15,
-            ease: "easeInOut",
-          }}
+    <>
+      {displayedText}
+      {isAnimating && !isComplete && (
+        <motion.span
+          className="inline-block w-0.5 h-4 bg-primary ml-0.5 align-middle"
+          animate={{ opacity: [1, 0, 1] }}
+          transition={{ duration: 0.5, repeat: Infinity }}
         />
-      ))}
-    </div>
+      )}
+    </>
   );
 }
 
-// Chat bubble for co-owners
+// Chat bubble for co-owners (right-aligned) with typewriter
 function CoOwnerBubble({
   coOwner,
   text,
   onClick,
+  isAnimating,
+  onAnimationComplete,
 }: {
   coOwner: CoOwner;
   text: string;
   onClick: () => void;
+  isAnimating: boolean;
+  onAnimationComplete?: () => void;
 }) {
   return (
     <motion.button
       onClick={onClick}
-      className="flex items-start gap-2 w-full text-left group"
+      className="flex items-end gap-2 w-full justify-end text-left group"
       whileTap={{ scale: 0.98 }}
     >
-      <CoOwnerAvatar coOwner={coOwner} size="sm" />
-      <div className="flex-1 min-w-0">
-        <span className={cn("text-xs font-medium", coOwner.textColor)}>{coOwner.name}</span>
-        <div
-          className={cn(
-            "mt-1 px-3 py-2 rounded-2xl rounded-tl-md",
-            "bg-muted text-foreground text-sm",
-            "group-hover:bg-muted/80 transition-colors"
-          )}
-        >
-          {text}
-        </div>
+      <div
+        className={cn(
+          "px-3 py-2 rounded-2xl rounded-br-md max-w-[85%]",
+          "bg-muted text-foreground text-sm",
+          "group-hover:bg-muted/80 transition-colors"
+        )}
+      >
+        <TypewriterText
+          text={text}
+          isAnimating={isAnimating}
+          onComplete={onAnimationComplete}
+          speed={25}
+        />
       </div>
+      <CoOwnerAvatar coOwner={coOwner} size="sm" />
     </motion.button>
   );
 }
 
-// Chat bubble for Homi
+// Chat bubble for Homi (left-aligned) with typewriter
 function HomiBubble({
   text,
   onClick,
-  isTyping,
+  isAnimating,
+  onAnimationComplete,
 }: {
   text: string;
   onClick: () => void;
-  isTyping: boolean;
+  isAnimating: boolean;
+  onAnimationComplete?: () => void;
 }) {
-  const [displayedText, setDisplayedText] = useState("");
-  const [isComplete, setIsComplete] = useState(false);
-
-  useEffect(() => {
-    if (isTyping) {
-      setDisplayedText("");
-      setIsComplete(false);
-      const words = text.split(" ");
-      let currentIndex = 0;
-
-      const interval = setInterval(() => {
-        if (currentIndex < words.length) {
-          setDisplayedText(words.slice(0, currentIndex + 1).join(" "));
-          currentIndex++;
-        } else {
-          setIsComplete(true);
-          clearInterval(interval);
-        }
-      }, 100);
-
-      return () => clearInterval(interval);
-    } else {
-      setDisplayedText(text);
-      setIsComplete(true);
-    }
-  }, [text, isTyping]);
-
   return (
     <motion.button
       onClick={onClick}
-      className="flex items-start gap-2 w-full text-left group"
+      className="flex items-end gap-2 w-full text-left group"
       whileTap={{ scale: 0.98 }}
     >
-      <HomiAvatar isTyping={isTyping && !isComplete} size="sm" />
-      <div className="flex-1 min-w-0">
-        <span className="text-xs font-medium text-primary">Homi</span>
-        <motion.div
-          className={cn(
-            "mt-1 px-3 py-2 rounded-2xl rounded-tl-md",
-            "bg-card text-foreground text-sm leading-relaxed",
-            "border-2 border-transparent",
-            "group-hover:bg-card/80 transition-colors"
-          )}
-          style={{
-            background:
-              "linear-gradient(hsl(var(--card)), hsl(var(--card))) padding-box, linear-gradient(135deg, hsl(var(--primary) / 0.4), hsl(var(--accent) / 0.4)) border-box",
-          }}
-          animate={{
-            boxShadow: isComplete
-              ? "0 0 10px hsl(var(--primary) / 0.1)"
-              : "0 0 20px hsl(var(--primary) / 0.25)",
-          }}
-        >
-          {displayedText}
-          {!isComplete && (
-            <motion.span
-              className="inline-block w-0.5 h-3 bg-primary ml-0.5 align-middle"
-              animate={{ opacity: [1, 0, 1] }}
-              transition={{ duration: 0.8, repeat: Infinity }}
-            />
-          )}
-        </motion.div>
-      </div>
+      <HomiAvatar isTyping={isAnimating} size="sm" />
+      <motion.div
+        className={cn(
+          "px-3 py-2 rounded-2xl rounded-bl-md max-w-[85%]",
+          "bg-card text-foreground text-sm leading-relaxed",
+          "border border-primary/30",
+          "group-hover:bg-card/80 transition-colors"
+        )}
+        animate={{
+          boxShadow: isAnimating
+            ? "0 0 12px hsl(var(--primary) / 0.2)"
+            : "0 0 0 transparent",
+        }}
+      >
+        <TypewriterText
+          text={text}
+          isAnimating={isAnimating}
+          onComplete={onAnimationComplete}
+          speed={18}
+        />
+      </motion.div>
     </motion.button>
   );
 }
 
-// Progress dots
-function ScenarioProgressDots({
-  total,
-  current,
-  onDotClick,
+// Expandable topic cards - larger with descriptions
+function TopicCards({
+  currentScenarioIndex,
+  onCardClick,
 }: {
-  total: number;
-  current: number;
-  onDotClick: (index: number) => void;
+  currentScenarioIndex: number;
+  onCardClick: (index: number) => void;
 }) {
   return (
-    <div className="flex items-center justify-center gap-2">
-      {Array.from({ length: total }, (_, i) => (
-        <button
-          key={i}
-          onClick={() => onDotClick(i)}
-          className={cn(
-            "h-2 rounded-full transition-all duration-300",
-            i === current
-              ? "bg-primary w-6"
-              : "bg-muted-foreground/30 hover:bg-muted-foreground/50 w-2"
-          )}
-          aria-label={`Go to scenario ${i + 1}: ${scenarios[i].title}`}
-        />
-      ))}
-    </div>
-  );
-}
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      {scenarios.map((scenario, index) => {
+        const topic = topics.find((t) => t.id === scenario.topicId)!;
+        const isActive = index === currentScenarioIndex;
+        const Icon = topic.icon;
 
-// Capability chips
-function CapabilityChips() {
-  return (
-    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-      {capabilities.map((cap) => (
-        <div
-          key={cap.label}
-          className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-full",
-            "bg-card border border-border",
-            "text-sm font-medium text-foreground whitespace-nowrap",
-            "flex-shrink-0"
-          )}
-        >
-          <cap.icon className="w-4 h-4 text-primary" />
-          {cap.label}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// Network node positions - chaotic but balanced around center
-const networkNodes = {
-  // Co-owners scattered on left side
-  coOwners: [
-    { id: "marcus", x: 12, y: 18 },
-    { id: "sarah", x: 8, y: 55 },
-    { id: "alex", x: 18, y: 85 },
-  ],
-  // Homi in center
-  homi: { x: 50, y: 50 },
-  // Data nodes scattered around right side and corners
-  data: [
-    { id: "equity", icon: TrendingUp, label: "Equity", x: 85, y: 12 },
-    { id: "legal", icon: FileText, label: "Legal", x: 92, y: 45 },
-    { id: "tax", icon: Calendar, label: "Tax", x: 78, y: 78 },
-    { id: "bills", icon: DollarSign, label: "Bills", x: 88, y: 92 },
-    { id: "tasks", icon: Bell, label: "Tasks", x: 65, y: 15 },
-    { id: "docs", icon: Shield, label: "Docs", x: 72, y: 88 },
-  ],
-};
-
-// All connection paths from nodes to Homi
-const connectionPaths = [
-  // Co-owners to Homi
-  { from: "marcus", path: "M 12 18 Q 30 30 50 50" },
-  { from: "sarah", path: "M 8 55 Q 25 52 50 50" },
-  { from: "alex", path: "M 18 85 Q 35 70 50 50" },
-  // Homi to data nodes
-  { from: "homi", to: "equity", path: "M 50 50 Q 65 25 85 12" },
-  { from: "homi", to: "legal", path: "M 50 50 Q 70 48 92 45" },
-  { from: "homi", to: "tax", path: "M 50 50 Q 65 65 78 78" },
-  { from: "homi", to: "bills", path: "M 50 50 Q 70 75 88 92" },
-  { from: "homi", to: "tasks", path: "M 50 50 Q 58 30 65 15" },
-  { from: "homi", to: "docs", path: "M 50 50 Q 60 72 72 88" },
-];
-
-// Energy pulse component
-function EnergyPulse({ pathD, delay }: { pathD: string; delay: number }) {
-  return (
-    <motion.circle
-      r="3"
-      className="fill-primary"
-      initial={{ opacity: 0 }}
-      animate={{
-        opacity: [0, 1, 1, 0],
-        offsetDistance: ["0%", "30%", "70%", "100%"],
-      }}
-      transition={{
-        duration: 2,
-        repeat: Infinity,
-        ease: "easeInOut",
-        delay,
-        repeatDelay: 1,
-      }}
-      style={{
-        offsetPath: `path('${pathD}')`,
-        filter: "drop-shadow(0 0 6px hsl(var(--primary)))",
-      }}
-    />
-  );
-}
-
-// Network Hub Visual (Desktop only)
-function NetworkHubVisual({ isTyping }: { isTyping: boolean }) {
-  const [activePulses, setActivePulses] = useState<number[]>([0, 3, 6]);
-
-  // Rotate which paths have pulses for randomness
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActivePulses(prev => {
-        const newPulses = [];
-        const available = Array.from({ length: connectionPaths.length }, (_, i) => i);
-        for (let i = 0; i < 4; i++) {
-          const idx = Math.floor(Math.random() * available.length);
-          newPulses.push(available.splice(idx, 1)[0]);
-        }
-        return newPulses;
-      });
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <div className="relative w-full h-full min-h-[350px]">
-      {/* SVG for connections */}
-      <svg
-        className="absolute inset-0 w-full h-full"
-        viewBox="0 0 100 100"
-        preserveAspectRatio="xMidYMid meet"
-      >
-        <defs>
-          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="1" result="coloredBlur"/>
-            <feMerge>
-              <feMergeNode in="coloredBlur"/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-          </filter>
-        </defs>
-
-        {/* Connection lines */}
-        {connectionPaths.map((conn, i) => (
-          <path
-            key={i}
-            d={conn.path}
-            fill="none"
-            stroke="hsl(var(--primary))"
-            strokeWidth="0.4"
-            strokeOpacity="0.3"
-            filter="url(#glow)"
-          />
-        ))}
-
-        {/* Energy pulses - always running on random paths */}
-        {activePulses.map((pathIndex, i) => (
-          <EnergyPulse
-            key={`${pathIndex}-${i}`}
-            pathD={connectionPaths[pathIndex].path}
-            delay={i * 0.5}
-          />
-        ))}
-      </svg>
-
-      {/* Co-owner nodes */}
-      {networkNodes.coOwners.map((pos) => {
-        const coOwner = coOwners.find(c => c.id === pos.id)!;
         return (
-          <motion.div
-            key={pos.id}
-            className="absolute flex items-center gap-1.5"
-            style={{ left: `${pos.x}%`, top: `${pos.y}%`, transform: 'translate(-50%, -50%)' }}
-            animate={{
-              scale: [1, 1.05, 1],
-            }}
-            transition={{ duration: 3, repeat: Infinity, delay: Math.random() * 2 }}
-          >
-            <div className={cn(
-              "w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm",
-              coOwner.color,
-              "shadow-lg"
+          <motion.button
+            key={scenario.id}
+            onClick={() => onCardClick(index)}
+            className={cn(
+              "relative flex flex-col items-start p-4 rounded-xl transition-all duration-300 text-left",
+              "min-h-[100px]",
+              isActive
+                ? "bg-primary text-primary-foreground"
+                : "bg-card border border-border text-foreground hover:border-primary/50"
             )}
-            style={{
-              boxShadow: `0 0 12px hsl(var(--primary) / 0.3)`,
-            }}>
-              {coOwner.name[0]}
+            animate={{
+              boxShadow: isActive
+                ? "0 0 24px hsl(var(--primary) / 0.35)"
+                : "none",
+            }}
+            layout
+          >
+            {/* Icon and label row */}
+            <div className="flex items-center gap-2 mb-2">
+              <div className={cn(
+                "p-1.5 rounded-lg",
+                isActive ? "bg-primary-foreground/20" : "bg-primary/10"
+              )}>
+                <Icon className={cn(
+                  "w-4 h-4",
+                  isActive ? "text-primary-foreground" : "text-primary"
+                )} />
+              </div>
+              <span className="font-semibold text-sm">{topic.label}</span>
             </div>
-            <span className="text-xs font-medium text-foreground bg-background/80 px-1.5 py-0.5 rounded">
-              {coOwner.name}
-            </span>
-          </motion.div>
+
+            {/* Description - always visible but styled differently */}
+            <p className={cn(
+              "text-xs leading-relaxed",
+              isActive ? "text-primary-foreground/90" : "text-muted-foreground"
+            )}>
+              {topic.description}
+            </p>
+
+            {/* Active indicator dot */}
+            {isActive && (
+              <motion.div
+                className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary-foreground"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              />
+            )}
+          </motion.button>
         );
       })}
-
-      {/* Homi center node - larger and more prominent */}
-      <motion.div
-        className="absolute"
-        style={{
-          left: `${networkNodes.homi.x}%`,
-          top: `${networkNodes.homi.y}%`,
-          transform: 'translate(-50%, -50%)'
-        }}
-        animate={{
-          scale: isTyping ? [1, 1.1, 1] : 1,
-        }}
-        transition={{ duration: 1.5, repeat: isTyping ? Infinity : 0 }}
-      >
-        <motion.div
-          className="w-16 h-16 rounded-full bg-primary flex items-center justify-center shadow-xl relative z-10"
-          animate={{
-            boxShadow: [
-              "0 0 20px hsl(var(--primary) / 0.4), 0 0 40px hsl(var(--primary) / 0.2)",
-              "0 0 35px hsl(var(--primary) / 0.6), 0 0 60px hsl(var(--primary) / 0.3)",
-              "0 0 20px hsl(var(--primary) / 0.4), 0 0 40px hsl(var(--primary) / 0.2)",
-            ],
-          }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <Sparkles className="w-8 h-8 text-primary-foreground" />
-        </motion.div>
-        {/* Outer ring pulse */}
-        <motion.div
-          className="absolute inset-0 rounded-full border-2 border-primary"
-          initial={{ scale: 1, opacity: 0.6 }}
-          animate={{ scale: 1.8, opacity: 0 }}
-          transition={{ duration: 2, repeat: Infinity }}
-        />
-      </motion.div>
-
-      {/* Data nodes - scattered */}
-      {networkNodes.data.map((node, i) => (
-        <motion.div
-          key={node.id}
-          className="absolute"
-          style={{
-            left: `${node.x}%`,
-            top: `${node.y}%`,
-            transform: 'translate(-50%, -50%)'
-          }}
-          animate={{
-            y: [0, -3, 0],
-          }}
-          transition={{ duration: 2 + i * 0.3, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <motion.div
-            className={cn(
-              "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full",
-              "bg-card border border-border text-xs font-medium",
-              "shadow-md"
-            )}
-            animate={{
-              boxShadow: [
-                "0 0 8px hsl(var(--primary) / 0.15)",
-                "0 0 16px hsl(var(--primary) / 0.3)",
-                "0 0 8px hsl(var(--primary) / 0.15)",
-              ],
-            }}
-            transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
-          >
-            <node.icon className="w-3.5 h-3.5 text-primary" />
-            <span className="hidden sm:inline">{node.label}</span>
-          </motion.div>
-        </motion.div>
-      ))}
     </div>
   );
 }
@@ -595,72 +388,74 @@ function NetworkHubVisual({ isTyping }: { isTyping: boolean }) {
 // Group chat simulation
 function GroupChatSimulation({
   onOpenChat,
+  onTopicChange,
+  isInView,
 }: {
   onOpenChat: (message: string) => void;
+  onTopicChange: (topicId: string) => void;
+  isInView: boolean;
 }) {
   const [currentScenarioIndex, setCurrentScenarioIndex] = useState(0);
   const [visibleMessages, setVisibleMessages] = useState(0);
-  const [showTypingIndicator, setShowTypingIndicator] = useState(false);
+  const [currentlyAnimating, setCurrentlyAnimating] = useState<number | null>(null);
   const [isPaused, setIsPaused] = useState(false);
-  const [messagePhase, setMessagePhase] = useState<"idle" | "typing" | "revealed">("idle");
-  const { ref, isInView } = useIntersectionObserver({ threshold: 0.2 });
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const currentScenario = scenarios[currentScenarioIndex];
   const currentMessages = currentScenario.messages;
 
-  // Auto-play sequence - simplified state machine
+  // Notify parent of topic change
+  useEffect(() => {
+    onTopicChange(currentScenario.topicId);
+  }, [currentScenario.topicId, onTopicChange]);
+
+  // Clear timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
+  // Main auto-play logic
   useEffect(() => {
     if (!isInView || isPaused) return;
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
-    let timeout: NodeJS.Timeout;
-
-    // Check if we need to show next message
-    if (visibleMessages < currentMessages.length) {
-      const nextMessage = currentMessages[visibleMessages];
-      const isHomiMessage = nextMessage.sender === "homi";
-
-      if (messagePhase === "idle") {
-        if (isHomiMessage) {
-          // For Homi messages, show typing indicator first
-          setShowTypingIndicator(true);
-          setMessagePhase("typing");
-          timeout = setTimeout(() => {
-            setShowTypingIndicator(false);
-            setVisibleMessages(v => v + 1);
-            setMessagePhase("revealed");
-          }, 800);
-        } else {
-          // For co-owner messages, show after brief delay
-          timeout = setTimeout(() => {
-            setVisibleMessages(v => v + 1);
-            setMessagePhase("revealed");
-          }, 600);
-        }
-      } else if (messagePhase === "revealed") {
-        // Wait before next message
-        timeout = setTimeout(() => {
-          setMessagePhase("idle");
-        }, 1500);
-      }
-    } else if (visibleMessages >= currentMessages.length) {
-      // All messages shown, wait then move to next scenario
-      timeout = setTimeout(() => {
-        setCurrentScenarioIndex((i) => (i + 1) % scenarios.length);
-        setVisibleMessages(0);
-        setShowTypingIndicator(false);
-        setMessagePhase("idle");
-      }, 4000);
+    // If no messages visible yet, start showing the first one
+    if (visibleMessages === 0 && currentlyAnimating === null) {
+      timeoutRef.current = setTimeout(() => {
+        setVisibleMessages(1);
+        setCurrentlyAnimating(0);
+      }, 500);
+      return;
     }
 
-    return () => clearTimeout(timeout);
-  }, [isInView, isPaused, visibleMessages, currentMessages, messagePhase]);
+    // If animation is done and we have more messages
+    if (currentlyAnimating === null && visibleMessages > 0 && visibleMessages < currentMessages.length) {
+      timeoutRef.current = setTimeout(() => {
+        setVisibleMessages((v) => v + 1);
+        setCurrentlyAnimating(visibleMessages);
+      }, 600);
+      return;
+    }
+
+    // If all messages shown and animation done, wait then go to next scenario
+    if (currentlyAnimating === null && visibleMessages >= currentMessages.length) {
+      timeoutRef.current = setTimeout(() => {
+        setCurrentScenarioIndex((i) => (i + 1) % scenarios.length);
+      }, 3000);
+    }
+  }, [isInView, isPaused, visibleMessages, currentlyAnimating, currentMessages.length]);
 
   // Reset when scenario changes
   useEffect(() => {
     setVisibleMessages(0);
-    setShowTypingIndicator(false);
-    setMessagePhase("idle");
+    setCurrentlyAnimating(null);
   }, [currentScenarioIndex]);
+
+  const handleAnimationComplete = useCallback(() => {
+    setCurrentlyAnimating(null);
+  }, []);
 
   const handleBubbleClick = useCallback(
     (text: string) => {
@@ -671,30 +466,30 @@ function GroupChatSimulation({
     [onOpenChat]
   );
 
-  const handleDotClick = useCallback((index: number) => {
+  const handleCardClick = useCallback((index: number) => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setIsPaused(true);
     setCurrentScenarioIndex(index);
     setVisibleMessages(0);
-    setShowTypingIndicator(false);
-    setMessagePhase("idle");
-    setTimeout(() => setIsPaused(false), 10000);
+    setCurrentlyAnimating(null);
+    setTimeout(() => setIsPaused(false), 8000);
   }, []);
 
   const getCoOwner = (id: string) => coOwners.find((c) => c.id === id)!;
 
   return (
-    <div ref={ref} className="flex flex-col h-full">
+    <div className="flex flex-col">
       {/* Chat container */}
-      <div className="flex-1 bg-background rounded-2xl border border-border p-4 min-h-[320px] overflow-hidden">
+      <div className="bg-background rounded-2xl border border-border p-4 min-h-[340px] overflow-hidden">
         {/* Header */}
         <div className="flex items-center gap-3 mb-4 pb-3 border-b border-border">
-          <div className="flex -space-x-2">
+          <div className="flex -space-x-1.5">
             {coOwners.map((co) => (
               <CoOwnerAvatar key={co.id} coOwner={co} size="sm" />
             ))}
           </div>
           <div className="flex items-center gap-2">
-            <HomiAvatar isTyping={showTypingIndicator} size="sm" />
+            <HomiAvatar isTyping={currentlyAnimating !== null && currentMessages[currentlyAnimating]?.sender === "homi"} size="sm" />
             <div>
               <p className="text-sm font-semibold text-foreground">Group Chat</p>
               <p className="text-xs text-muted-foreground">3 co-owners + Homi</p>
@@ -708,8 +503,7 @@ function GroupChatSimulation({
             {currentMessages.slice(0, visibleMessages).map((msg, idx) => {
               const isHomi = msg.sender === "homi";
               const coOwner = !isHomi ? getCoOwner(msg.sender) : null;
-              const isLastHomiMessage =
-                isHomi && idx === visibleMessages - 1 && visibleMessages <= currentMessages.length;
+              const isCurrentlyAnimating = currentlyAnimating === idx;
 
               return (
                 <motion.div
@@ -722,48 +516,35 @@ function GroupChatSimulation({
                     <HomiBubble
                       text={msg.text}
                       onClick={() => handleBubbleClick(msg.text)}
-                      isTyping={isLastHomiMessage}
+                      isAnimating={isCurrentlyAnimating}
+                      onAnimationComplete={handleAnimationComplete}
                     />
                   ) : (
                     <CoOwnerBubble
                       coOwner={coOwner!}
                       text={msg.text}
                       onClick={() => handleBubbleClick(msg.text)}
+                      isAnimating={isCurrentlyAnimating}
+                      onAnimationComplete={handleAnimationComplete}
                     />
                   )}
                 </motion.div>
               );
             })}
-
-            {/* Typing indicator */}
-            {showTypingIndicator && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className="flex items-start gap-2"
-              >
-                <HomiAvatar isTyping={true} size="sm" />
-                <div className="bg-card rounded-2xl rounded-tl-md border border-border">
-                  <TypingIndicator />
-                </div>
-              </motion.div>
-            )}
           </AnimatePresence>
         </div>
       </div>
 
-      {/* Progress dots */}
-      <div className="mt-4">
-        <ScenarioProgressDots
-          total={scenarios.length}
-          current={currentScenarioIndex}
-          onDotClick={handleDotClick}
+      {/* Topic cards below chat */}
+      <div className="mt-6">
+        <TopicCards
+          currentScenarioIndex={currentScenarioIndex}
+          onCardClick={handleCardClick}
         />
       </div>
 
       {/* Hint */}
-      <p className="text-center text-xs text-muted-foreground mt-2">
+      <p className="text-center text-xs text-muted-foreground mt-4">
         Tap any message to chat with Homi
       </p>
     </div>
@@ -780,17 +561,21 @@ interface AIConciergeProps {
 
 export function AIConciergeSection({ onOpenChat }: AIConciergeProps) {
   const { ref, isInView } = useIntersectionObserver({ threshold: 0.1 });
-  const [isHomiTyping, setIsHomiTyping] = useState(false);
+  const [, setActiveTopic] = useState("finances");
+
+  const handleTopicChange = useCallback((topicId: string) => {
+    setActiveTopic(topicId);
+  }, []);
 
   return (
     <section ref={ref} className="py-16 md:py-24 lg:py-32 bg-secondary/30">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         {/* Section header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5 }}
-          className="text-center mb-10 md:mb-14"
+          className="text-center mb-8 md:mb-10"
         >
           <p className="text-sm font-semibold text-primary uppercase tracking-wide mb-2">
             Introducing
@@ -798,36 +583,22 @@ export function AIConciergeSection({ onOpenChat }: AIConciergeProps) {
           <h2 className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl mb-4">
             AI-Powered Co-Ownership
           </h2>
-          <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-base md:text-lg">
             One AI assistant that keeps every co-owner informed, aligned, and on track.
           </p>
         </motion.div>
 
-        {/* Main content */}
+        {/* Chat simulation - centered */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.1 }}
         >
-          {/* Desktop: Two columns */}
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
-            {/* Network visual - desktop only */}
-            <div className="hidden lg:block">
-              <div className="bg-background rounded-2xl border border-border p-6 h-full">
-                <NetworkHubVisual isTyping={isHomiTyping} />
-              </div>
-            </div>
-
-            {/* Chat simulation - always visible */}
-            <div>
-              <GroupChatSimulation onOpenChat={onOpenChat} />
-            </div>
-          </div>
-
-          {/* Capability chips */}
-          <div className="mt-8 md:mt-12">
-            <CapabilityChips />
-          </div>
+          <GroupChatSimulation
+            onOpenChat={onOpenChat}
+            onTopicChange={handleTopicChange}
+            isInView={isInView}
+          />
         </motion.div>
       </div>
     </section>

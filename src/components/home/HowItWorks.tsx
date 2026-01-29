@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { motion, useScroll, useTransform, MotionValue } from "framer-motion";
-import { Compass, Users, FileCheck, Home, ChevronDown } from "lucide-react";
+import { Compass, Users, FileCheck, Home, ChevronDown, Key } from "lucide-react";
 import { howItWorksSteps } from "@/content/questions";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ const iconMap: Record<string, React.ElementType> = {
   Users: Users,
   FileCheck: FileCheck,
   Home: Home,
+  Key: Key,
 };
 
 // Step indicator component
@@ -318,11 +319,14 @@ export function HowItWorks({
     ["0%", "100%"]
   );
 
-  // Current step indicator (0-3) - spread across 80% of scroll
+  // Current step indicator - spread across 80% of scroll
+  // Dynamically generate breakpoints based on number of steps
+  const stepBreakpoints = Array.from({ length: totalSteps }, (_, i) => (i / (totalSteps - 1)) * 0.8);
+  const stepValues = Array.from({ length: totalSteps }, (_, i) => i);
   const currentStep = useTransform(
     scrollYProgress,
-    [0, 0.27, 0.53, 0.8],
-    [0, 1, 2, 3]
+    stepBreakpoints,
+    stepValues
   );
 
   // Scroll hint opacity
