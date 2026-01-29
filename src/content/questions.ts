@@ -1,16 +1,16 @@
 export const heroQuestions = [
-  "What is Tomi?",
-  "What if my co-buyer wants to sell early?",
+  "What if someone wants to sell?",
   "How do we split equity fairly?",
-  "Can I co-own with a friend?",
-  "What happens if someone can't pay?",
-  "How do I know if tenants in common is right for me?",
+  "Can I buy a home with a friend?",
+  "What if someone stops paying?",
   "How do we handle disagreements?",
-  "What is a Tenants in Common Agreement?",
-  "How do we find the right co-buyer?",
-  "How do I sell my share of a home?",
-  "What are the tax considerations of joint homeownership?",
-  "How does Tomi make money?",
+  "How much more home could I afford?",
+  "Will this ruin my friendship?",
+  "How do I protect myself legally?",
+  "Who actually does this?",
+  "How does AI make co-buying easier?",
+  "What's the process for co-buying?",
+  "How does Tomi help?",
 ];
 
 export const objectionCards = [
