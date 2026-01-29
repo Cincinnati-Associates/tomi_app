@@ -5,7 +5,7 @@ import { Hero } from "@/components/home/Hero";
 import { UnlockSection } from "@/components/home/UnlockSection";
 import { HowItWorks } from "@/components/home/HowItWorks";
 import { NoCostSection } from "@/components/home/NoCostSection";
-import { ObjectionCards } from "@/components/home/ObjectionCards";
+import { AIConciergeSection } from "@/components/home/AIConciergeSection";
 import { StoryPreview } from "@/components/home/StoryPreview";
 import { TomiDifference } from "@/components/home/TomiDifference";
 import { FinalCta } from "@/components/home/FinalCta";
@@ -32,7 +32,7 @@ export default function Home() {
       <UnlockSection />
       <HowItWorks />
       <NoCostSection />
-      <ObjectionCards />
+      <AIConciergeSection onOpenChat={handleOpenChat} />
       <StoryPreview />
       <TomiDifference />
       <FinalCta onOpenChat={() => handleOpenChat()} />
