@@ -19,6 +19,7 @@ interface Testimonial {
   type: "personal" | "expert";
   title?: string; // For experts
   quoteSize?: "sm" | "md" | "lg"; // Font size for quote (based on length)
+  image?: string; // Photo for personal stories
 }
 
 // Real testimonials from news sources
@@ -33,6 +34,7 @@ const testimonials: Testimonial[] = [
     source: "CNBC Make It",
     type: "personal",
     quoteSize: "sm",
+    image: "/co-owners-infront-of-home.webp",
   },
   {
     id: 2,
@@ -43,6 +45,7 @@ const testimonials: Testimonial[] = [
     source: "NPR",
     type: "personal",
     quoteSize: "md",
+    image: "/eating outside.webp",
   },
   {
     id: 3,
@@ -54,6 +57,7 @@ const testimonials: Testimonial[] = [
     source: "New York Times",
     type: "personal",
     quoteSize: "lg",
+    image: "/co-owners-bbq.webp",
   },
   {
     id: 5,
@@ -65,6 +69,7 @@ const testimonials: Testimonial[] = [
     source: "CNBC",
     type: "personal",
     quoteSize: "sm",
+    image: "/family-eating-outside.webp",
   },
   {
     id: 10,
@@ -75,6 +80,7 @@ const testimonials: Testimonial[] = [
     source: "TIME",
     type: "personal",
     quoteSize: "sm",
+    image: "/co-owners-moving-in.webp",
   },
   {
     id: 11,
@@ -85,6 +91,7 @@ const testimonials: Testimonial[] = [
     source: "TIME",
     type: "personal",
     quoteSize: "md",
+    image: "/hang out living room.webp",
   },
   {
     id: 7,
@@ -183,20 +190,42 @@ export function StoryPreview() {
           className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-card border border-border"
         >
           <div className="grid md:grid-cols-2">
-            {/* Image placeholder - will be replaced with actual photos */}
-            <div className="relative aspect-[4/3] md:aspect-auto md:min-h-[400px] bg-gradient-to-br from-primary/20 via-accent/10 to-secondary">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center px-6">
-                  <div className="text-6xl mb-4">🏠</div>
-                  <p className="text-sm text-muted-foreground">
-                    Photo coming soon
-                  </p>
-                </div>
-              </div>
+            {/* Testimonial image */}
+            <div className="relative aspect-[4/3] md:aspect-auto md:min-h-[400px] bg-gradient-to-br from-primary/20 via-accent/10 to-secondary overflow-hidden">
+              <AnimatePresence mode="wait">
+                {currentTestimonial.image ? (
+                  <motion.div
+                    key={currentTestimonial.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.4 }}
+                    className="absolute inset-0"
+                  >
+                    <Image
+                      src={currentTestimonial.image}
+                      alt={`${currentTestimonial.name} - co-owners`}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                      priority
+                    />
+                  </motion.div>
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center px-6">
+                      <div className="text-6xl mb-4">🏠</div>
+                      <p className="text-sm text-muted-foreground">
+                        Photo coming soon
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </AnimatePresence>
 
               {/* Quote icon overlay */}
-              <div className="absolute top-6 left-6">
-                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+              <div className="absolute top-6 left-6 z-10">
+                <div className="w-12 h-12 rounded-full bg-primary/20 backdrop-blur-sm flex items-center justify-center">
                   <Quote className="w-6 h-6 text-primary" />
                 </div>
               </div>
