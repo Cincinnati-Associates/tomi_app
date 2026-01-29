@@ -1,15 +1,17 @@
 export const heroQuestions = [
-  "What if someone wants to sell?",
-  "How do we split equity fairly?",
+  // Core co-ownership questions first
   "Can I buy a home with a friend?",
+  "How does co-buying work?",
+  "How common is co-ownership?",
+  "How much more home could I afford?",
+  // Risk/fear questions
+  "What if someone wants to sell?",
   "What if someone stops paying?",
   "How do we handle disagreements?",
-  "How much more home could I afford?",
   "Will this ruin my friendship?",
   "How do I protect myself legally?",
-  "Who actually does this?",
+  // Tomi/AI value prop
   "How does AI make co-buying easier?",
-  "What's the process for co-buying?",
   "How does Tomi help?",
 ];
 
