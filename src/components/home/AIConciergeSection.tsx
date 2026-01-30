@@ -477,12 +477,12 @@ function GroupChatSimulation({
 
   const getCoOwner = (id: string) => coOwners.find((c) => c.id === id)!;
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when new messages appear
+  // Auto-scroll within container only (not the page)
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
     }
   }, [visibleMessages]);
 
@@ -507,7 +507,7 @@ function GroupChatSimulation({
         </div>
 
         {/* Messages - scrollable area */}
-        <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+        <div ref={messagesContainerRef} className="flex-1 overflow-y-auto space-y-3 pr-1">
           <AnimatePresence mode="sync">
             {currentMessages.slice(0, visibleMessages).map((msg, idx) => {
               const isHomi = msg.sender === "homi";
@@ -541,7 +541,6 @@ function GroupChatSimulation({
               );
             })}
           </AnimatePresence>
-          <div ref={messagesEndRef} />
         </div>
       </div>
 
