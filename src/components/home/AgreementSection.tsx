@@ -33,12 +33,12 @@ const steps = [
 ];
 
 const coverageItems = [
-  "Exit & buyout rules",
-  "Decision-making process",
-  "Payment responsibilities",
-  "Repairs & improvements",
-  "Dispute resolution",
-  "Guest & rental policies",
+  "How to make decisions",
+  "How to handle disagreements",
+  "Who owns what",
+  "Financial responsibilities",
+  "How to sell",
+  "What the house rules are",
 ];
 
 export function AgreementSection() {
@@ -117,7 +117,7 @@ export function AgreementSection() {
           className="bg-secondary/30 rounded-2xl p-6 md:p-8 mb-8"
         >
           <h3 className="font-heading text-lg font-semibold text-foreground mb-4 text-center">
-            What Your Agreement Covers
+            What Your Tomi Co-Ownership Agreement Covers
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
             {coverageItems.map((item, index) => (
