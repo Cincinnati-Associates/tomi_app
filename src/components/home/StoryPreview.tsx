@@ -177,8 +177,8 @@ export function StoryPreview() {
           <h2 className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl mb-4">
             Real People. Real Stories. Real Homeownership.
           </h2>
-          <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto">
-            More than 1.7 million unmarried Americans are co-buying homes each year.
+          <p className="text-muted-foreground text-base md:text-lg">
+            Join the millions of unmarried Americans co-buying homes together each year.
           </p>
         </motion.div>
 

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { HeroVariant } from "@/components/home/HeroVariant";
+import { ImpactStatement } from "@/components/home/ImpactStatement";
 import { UnlockSection } from "@/components/home/UnlockSection";
 import { HowItWorks } from "@/components/home/HowItWorks";
 import { AIChatSimulation } from "@/components/home/AIChatSimulation";
@@ -35,18 +36,12 @@ export default function Homepage1() {
       <HeroVariant
         headline={
           <>
-            AI-Powered
+            How Do You Buy a Home
             <br />
-            <span className="text-primary">Home Co-Ownership</span>
+            <span className="text-primary">You Can&apos;t Afford?</span>
           </>
         }
-        subheadline={
-          <>
-            The easiest, most affordable, and rewarding way to own a home
-            <br className="hidden sm:block" />
-            with someone you aren&apos;t married to.
-          </>
-        }
+        subheadline="Tomi helps people co-buy and manage homes together."
         primaryCta={{
           text: "Run the Numbers",
           href: "/calc",
@@ -54,7 +49,11 @@ export default function Homepage1() {
         onOpenChat={handleOpenChat}
         showTypewriter
       />
-      <UnlockSection />
+      <ImpactStatement header="Every year, more than 1.7 million Americans buy a home with family or friends." />
+      <UnlockSection
+        header={<>What if your barrier to homeownership wasn't cost<br />— but instead coordination?</>}
+        subheader=""
+      />
       <HowItWorks />
       <AIChatSimulation onOpenChat={handleOpenChat} />
       <StoryPreview />

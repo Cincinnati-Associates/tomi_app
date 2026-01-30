@@ -159,12 +159,12 @@ function CoBuyerToggle({
 }
 
 interface UnlockSectionProps {
-  header?: string;
+  header?: React.ReactNode;
   subheader?: string;
 }
 
 export function UnlockSection({
-  header = "How Does Co-Buying Impact My Buying Power?",
+  header = "Who's Ready for Some Non-Trad Homeownership?",
   subheader = "Pooling resources with trusted people gives you access to nicer homes in better neighborhoods—without stretching your budget to the breaking point.",
 }: UnlockSectionProps) {
   const containerRef = useRef<HTMLDivElement>(null);
