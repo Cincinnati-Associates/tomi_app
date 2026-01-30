@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
-import { Sparkles, DollarSign, Hammer, CalendarClock, Scale } from "lucide-react";
+import { Sparkles, DollarSign, CalendarClock, Scale, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // ============================================
@@ -48,16 +48,16 @@ const topics: Topic[] = [
     icon: DollarSign
   },
   {
-    id: "improvements",
-    label: "Improvements",
-    description: "Analyze ROI on upgrades and coordinate home improvement projects",
-    icon: Hammer
+    id: "scheduling",
+    label: "Scheduling",
+    description: "Track usage, coordinate calendars, and manage short-term rental bookings",
+    icon: CalendarClock
   },
   {
     id: "planning",
     label: "Planning",
     description: "Model buyouts, exits, and changes to your ownership structure",
-    icon: CalendarClock
+    icon: TrendingUp
   },
   {
     id: "disagreements",
@@ -79,13 +79,13 @@ const scenarios: Scenario[] = [
     ],
   },
   {
-    id: "backyard",
-    topicId: "improvements",
+    id: "calendar",
+    topicId: "scheduling",
     messages: [
-      { sender: "alex", text: "I got a quote for the backyard patio. $12,000." },
-      { sender: "homi", text: "Nice! Want me to put together a cost-benefit analysis? I can estimate the ROI based on comparable home values in your area." },
-      { sender: "marcus", text: "Yes please. How long would that take?" },
-      { sender: "homi", text: "Give me 30 seconds. I'll pull recent sales data, calculate the likely value add, and model your payback period." },
+      { sender: "sarah", text: "How many nights was I at the house last month?" },
+      { sender: "homi", text: "You were there 12 nights in January. Marcus had 8 and Alex had 6. Want me to pull up the full usage breakdown?" },
+      { sender: "alex", text: "Any upcoming bookings I should know about?" },
+      { sender: "homi", text: "Heads up—there's a short-term rental guest checking in on the 15th for 4 nights. I'll send everyone a reminder the day before." },
     ],
   },
   {

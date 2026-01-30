@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Hero } from "@/components/home/Hero";
+import { HeroVariant } from "@/components/home/HeroVariant";
+import { ImpactStatement } from "@/components/home/ImpactStatement";
 import { UnlockSection } from "@/components/home/UnlockSection";
 import { HowItWorks } from "@/components/home/HowItWorks";
 import { NoCostSection } from "@/components/home/NoCostSection";
@@ -29,10 +30,29 @@ export default function Home() {
 
   return (
     <>
-      <Hero onOpenChat={handleOpenChat} />
-      <UnlockSection />
-      <HowItWorks header="Your partner at every stage" />
-      <NoCostSection />
+      <HeroVariant
+        headline={
+          <>
+            How Do You Buy a Home
+            <br />
+            <span className="text-primary">You Can&apos;t Afford?</span>
+          </>
+        }
+        subheadline="Tomi helps people co-buy and manage homes together."
+        primaryCta={{
+          text: "Run the Numbers",
+          href: "/calc",
+        }}
+        onOpenChat={handleOpenChat}
+        showTypewriter
+      />
+      <UnlockSection
+        header={<>What if your barrier to homeownership wasn&apos;t cost<br />but instead coordination?</>}
+        subheader=""
+      />
+      <ImpactStatement header="Every year, more than 1.7 million Americans buy a home with family or friends." />
+      <HowItWorks header="works" subheader="Your shared home concierge, with you every step of the way." />
+      <NoCostSection onOpenChat={handleOpenChat} />
       <AIConciergeSection onOpenChat={handleOpenChat} />
       <AgreementSection />
       <StoryPreview />

@@ -5,7 +5,7 @@ import { HeroVariant } from "@/components/home/HeroVariant";
 import { ImpactStatement } from "@/components/home/ImpactStatement";
 import { UnlockSection } from "@/components/home/UnlockSection";
 import { HowItWorks } from "@/components/home/HowItWorks";
-import { AIChatSimulation } from "@/components/home/AIChatSimulation";
+import { AIConciergeSection } from "@/components/home/AIConciergeSection";
 import { StoryPreview } from "@/components/home/StoryPreview";
 import { TomiDifference } from "@/components/home/TomiDifference";
 import { FinalCta } from "@/components/home/FinalCta";
@@ -49,13 +49,13 @@ export default function Homepage1() {
         onOpenChat={handleOpenChat}
         showTypewriter
       />
-      <ImpactStatement header="Every year, more than 1.7 million Americans buy a home with family or friends." />
       <UnlockSection
-        header={<>What if your barrier to homeownership wasn't cost<br />— but instead coordination?</>}
+        header={<>What if your barrier to homeownership wasn&apos;t cost<br />but instead coordination?</>}
         subheader=""
       />
+      <ImpactStatement header="Every year, more than 1.7 million Americans buy a home with family or friends." />
       <HowItWorks />
-      <AIChatSimulation onOpenChat={handleOpenChat} />
+      <AIConciergeSection onOpenChat={handleOpenChat} />
       <StoryPreview />
       <TomiDifference />
       <FinalCta onOpenChat={() => handleOpenChat()} />
