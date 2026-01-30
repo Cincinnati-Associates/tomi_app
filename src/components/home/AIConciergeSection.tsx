@@ -477,12 +477,21 @@ function GroupChatSimulation({
 
   const getCoOwner = (id: string) => coOwners.find((c) => c.id === id)!;
 
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when new messages appear
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [visibleMessages]);
+
   return (
     <div className="flex flex-col">
-      {/* Chat container */}
-      <div className="bg-background rounded-2xl border border-border p-4 min-h-[340px] overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-4 pb-3 border-b border-border">
+      {/* Chat container - fixed height with scroll */}
+      <div className="bg-background rounded-2xl border border-border p-4 h-[340px] flex flex-col">
+        {/* Header - fixed at top */}
+        <div className="flex items-center gap-3 mb-4 pb-3 border-b border-border flex-shrink-0">
           <div className="flex -space-x-1.5">
             {coOwners.map((co) => (
               <CoOwnerAvatar key={co.id} coOwner={co} size="sm" />
@@ -497,8 +506,8 @@ function GroupChatSimulation({
           </div>
         </div>
 
-        {/* Messages */}
-        <div className="space-y-3">
+        {/* Messages - scrollable area */}
+        <div className="flex-1 overflow-y-auto space-y-3 pr-1">
           <AnimatePresence mode="sync">
             {currentMessages.slice(0, visibleMessages).map((msg, idx) => {
               const isHomi = msg.sender === "homi";
@@ -532,6 +541,7 @@ function GroupChatSimulation({
               );
             })}
           </AnimatePresence>
+          <div ref={messagesEndRef} />
         </div>
       </div>
 
@@ -580,8 +590,8 @@ export function AIConciergeSection({ onOpenChat }: AIConciergeProps) {
           <p className="text-sm font-semibold text-primary uppercase tracking-wide mb-2">
             Introducing
           </p>
-          <h2 className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl mb-4">
-            AI-Powered Co-Ownership
+          <h2 className="font-heading text-[1.4rem] font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl mb-4 whitespace-nowrap">
+            AI-Powered <span className="inline-block">🏡</span> Co-Ownership
           </h2>
           <p className="text-muted-foreground text-base md:text-lg">
             One AI assistant that keeps every co-owner informed, aligned, and on track.
