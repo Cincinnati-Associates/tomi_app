@@ -286,3 +286,66 @@
 .dark .chat-glow-outer {
   animation: chat-border-glow-dark 2s ease-in-out infinite;
 }
+
+/* Blog prose styles */
+@layer components {
+  .prose-tomi {
+    @apply max-w-none;
+  }
+
+  .prose-tomi > *:first-child {
+    @apply mt-0;
+  }
+
+  .prose-tomi > *:last-child {
+    @apply mb-0;
+  }
+
+  /* Headings with anchor styling */
+  .prose-tomi h2 {
+    @apply scroll-mt-20;
+  }
+
+  .prose-tomi h3 {
+    @apply scroll-mt-20;
+  }
+
+  /* Enhanced blockquote with left border accent */
+  .prose-tomi blockquote p {
+    @apply mb-0;
+  }
+
+  /* Table styles for blog posts */
+  .prose-tomi table {
+    @apply my-6 w-full border-collapse overflow-hidden rounded-lg border border-border;
+  }
+
+  .prose-tomi thead {
+    @apply bg-muted;
+  }
+
+  .prose-tomi th {
+    @apply border-b border-border px-4 py-3 text-left text-sm font-semibold text-foreground;
+  }
+
+  .prose-tomi td {
+    @apply border-b border-border px-4 py-3 text-sm text-foreground/90;
+  }
+
+  .prose-tomi tr:last-child td {
+    @apply border-b-0;
+  }
+
+  /* Callout/highlight boxes */
+  .prose-tomi .callout {
+    @apply my-6 rounded-lg border-l-4 border-primary bg-primary/5 p-4;
+  }
+
+  .prose-tomi .callout-warning {
+    @apply border-amber-500 bg-amber-500/5;
+  }
+
+  .prose-tomi .callout-info {
+    @apply border-blue-500 bg-blue-500/5;
+  }
+}
