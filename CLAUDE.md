@@ -28,6 +28,8 @@ npm run db:studio    # Open Drizzle Studio GUI
 - `/db-migrate` - Run the full database migration workflow with safety checks
 - `/db-migrate --dry-run` - Preview migration without applying
 - `/db-migrate --studio` - Migrate and open Drizzle Studio
+- `/blog` - Create a new blog post (interactive prompts for title, tags, etc.)
+- `/blog "Post Title"` - Create a new blog post with the given title
 
 ## Architecture
 
@@ -59,6 +61,8 @@ npm run db:studio    # Open Drizzle Studio GUI
 Provider is controlled by `AI_PROVIDER` env var (google/openai/anthropic). See `lib/ai-provider.ts`.
 
 **Content Data:** Static content lives in `src/content/questions.ts` (heroQuestions, objectionCards, howItWorksSteps, tomiDifferenceFeatures).
+
+**Blog System:** Markdown-based blog at `/blog`. Posts are stored as `.md` files in `src/content/blog/posts/` with metadata in `src/content/blog/index.ts`. Use `/blog` command to create new posts. Full documentation in `docs/BLOG.md`.
 
 **Hooks:**
 - `useHomiChat` - Chat with streaming, wraps Vercel AI SDK's `useChat`
