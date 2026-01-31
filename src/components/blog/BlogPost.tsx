@@ -36,7 +36,7 @@ export function BlogPost({ post, content }: BlogPostProps) {
     <article className="min-h-screen">
       {/* Hero section */}
       <div className="relative bg-secondary/30">
-        <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-4xl px-4 pt-24 pb-12 sm:px-6 lg:px-8 md:pt-28">
           {/* Back link */}
           <motion.div
             initial={{ opacity: 0, x: -10 }}
