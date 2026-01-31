@@ -20,11 +20,12 @@ export function Logo({ className, variant = "yellow" }: LogoProps) {
   }, []);
 
   // Determine actual variant based on theme for "auto" mode
+  // Use yellow as default until we know the theme, then switch to primary only in light mode
   const actualVariant =
     variant === "auto"
-      ? mounted && resolvedTheme === "dark"
-        ? "yellow"
-        : "primary"
+      ? mounted && resolvedTheme === "light"
+        ? "primary"
+        : "yellow"
       : variant;
 
   // Yellow variant uses the actual PNG logo (no filter)
