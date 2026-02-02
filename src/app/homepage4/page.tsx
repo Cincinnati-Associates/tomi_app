@@ -72,7 +72,7 @@ export default function Homepage4() {
 
       {/* Calculator comparison: The proof */}
       <UnlockSection
-        header={<>What if your barrier to homeownership wasn't cost<br />— but instead coordination?</>}
+        header={<>What if your barrier to homeownership wasn&apos;t cost<br />— but instead coordination?</>}
         subheader=""
       />
 
@@ -83,7 +83,7 @@ export default function Homepage4() {
       {/* Second Hero: The next question */}
       <SecondHero
         header="How do you own a home with someone you aren't married to?"
-        subheader={<>Pooling money is simple. Staying aligned for 10+ years?<br />That's where Tomi comes in.</>}
+        subheader={<>Pooling money is simple. Keeping expectations, goals, priorities... life aligned for years to come?<br />We&apos;ve got AI for that.</>}
       />
 
       {/* How Tomi Works: The journey */}
@@ -92,14 +92,14 @@ export default function Homepage4() {
         subheader="Your shared home concierge, with you every step of the way."
       />
 
+      {/* No Cost: The business model */}
+      <NoCostSection onOpenChat={handleOpenChat} />
+
       {/* AI Concierge: The product */}
       <AIConciergeSection onOpenChat={handleOpenChat} />
 
       {/* Agreement Section: The legal piece */}
       <AgreementSection />
-
-      {/* No Cost: The business model */}
-      <NoCostSection />
 
       {/* Stories: Social proof */}
       <StoryPreview />
