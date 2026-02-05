@@ -213,7 +213,7 @@ export function Frame7YourTurn({
           animate={{ opacity: 1 }}
           transition={{ delay: 0.9 }}
         >
-          {/* Talk to Homi */}
+          {/* Talk to a Homi */}
           <Button
             variant="outline"
             size="lg"
@@ -221,7 +221,7 @@ export function Frame7YourTurn({
             onClick={onOpenChat}
           >
             <MessageCircle className="mr-2 h-5 w-5" />
-            Talk to Homi
+            Talk to a Homi
           </Button>
 
           {/* Restart */}

@@ -61,7 +61,7 @@ export function AgreementSection() {
             How Much Does a Co-Ownership Agreement Cost?
           </h2>
           <p className="mt-4 text-muted-foreground text-base md:text-lg max-w-3xl mx-auto">
-            Traditional TIC agreements cost $3,000–$8,000 in legal fees. We&apos;ve trained AI on thousands of co-ownership contracts and legal filings to help you navigate the hard conversations—and draft your agreement—for free.
+            Most co-buyers pay $4,000–$8,000 for a lawyer to walk them through a TIC agreement. Our AI—trained on thousands of real contracts—helps you have those conversations yourselves and draft your agreement for free.
           </p>
         </motion.div>
 

@@ -6,13 +6,17 @@ import { Sparkles, FileText, TrendingUp, Shield, ArrowRight } from "lucide-react
 import Link from "next/link";
 
 const whatYouGet = [
-  { icon: Sparkles, label: "AI-powered guidance" },
-  { icon: FileText, label: "Legal agreements" },
-  { icon: Shield, label: "Ongoing support" },
-  { icon: TrendingUp, label: "Equity tracking" },
+  { icon: Sparkles, label: "AI-powered guidance", question: "How does Tomi's AI help me through the co-buying process?" },
+  { icon: FileText, label: "Legal agreements", question: "What legal agreements do I need for co-ownership?" },
+  { icon: Shield, label: "Ongoing support", question: "What kind of ongoing support does Tomi provide after we buy?" },
+  { icon: TrendingUp, label: "Equity tracking", question: "How does equity tracking work with co-ownership?" },
 ];
 
-export function NoCostSection() {
+interface NoCostSectionProps {
+  onOpenChat?: (message: string) => void;
+}
+
+export function NoCostSection({ onOpenChat }: NoCostSectionProps) {
   const { ref, isInView } = useIntersectionObserver({ threshold: 0.2 });
 
   return (
@@ -54,16 +58,17 @@ export function NoCostSection() {
             className="flex flex-wrap justify-center gap-3 md:gap-4 mb-8"
           >
             {whatYouGet.map((item, index) => (
-              <motion.div
+              <motion.button
                 key={item.label}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={isInView ? { opacity: 1, scale: 1 } : {}}
                 transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
-                className="flex items-center gap-2 px-4 py-2 bg-card rounded-full border border-border"
+                onClick={() => onOpenChat?.(item.question)}
+                className="flex items-center gap-2 px-4 py-2 bg-card rounded-full border border-border hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer"
               >
                 <item.icon className="w-4 h-4 text-primary" />
                 <span className="text-sm font-medium text-foreground">{item.label}</span>
-              </motion.div>
+              </motion.button>
             ))}
           </motion.div>
 

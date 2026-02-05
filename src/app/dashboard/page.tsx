@@ -20,8 +20,8 @@ export default function DashboardPage() {
   const displayName = profile?.full_name || profile?.email?.split('@')[0] || 'there';
 
   return (
-    <div className="min-h-screen pt-24 pb-16">
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+    <div className="pb-16">
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 pt-8">
         {/* Welcome Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

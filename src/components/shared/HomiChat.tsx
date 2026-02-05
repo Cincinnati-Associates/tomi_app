@@ -29,7 +29,9 @@ export function HomiChat({ isOpen, onClose, initialMessage }: HomiChatProps) {
     userContext: getContextForAPI(),
   });
   const [inputValue, setInputValue] = useState("");
+  const [userHasScrolled, setUserHasScrolled] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const hasInitialized = useRef(false);
 
@@ -41,17 +43,34 @@ export function HomiChat({ isOpen, onClose, initialMessage }: HomiChatProps) {
     }
   }, [isOpen, initialMessage, sendMessage, messages.length]);
 
-  // Reset initialization flag when closed
+  // Reset initialization flag and scroll state when closed
   useEffect(() => {
     if (!isOpen) {
       hasInitialized.current = false;
+      setUserHasScrolled(false);
     }
   }, [isOpen]);
 
-  // Scroll to bottom on new messages
+  // Scroll to bottom on new messages - only if user hasn't scrolled up
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!userHasScrolled) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, userHasScrolled]);
+
+  // Reset userHasScrolled when a new user message is sent
+  useEffect(() => {
+    if (messages.length > 0 && messages[messages.length - 1]?.role === "user") {
+      setUserHasScrolled(false);
+    }
   }, [messages]);
+
+  // Detect when user scrolls up in the messages area
+  const handleMessagesScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    const isAtBottom = target.scrollHeight - target.scrollTop - target.clientHeight < 50;
+    setUserHasScrolled(!isAtBottom);
+  };
 
   // Focus textarea when opened
   useEffect(() => {
@@ -60,16 +79,33 @@ export function HomiChat({ isOpen, onClose, initialMessage }: HomiChatProps) {
     }
   }, [isOpen]);
 
-  // Lock body scroll when open
+  // Lock body scroll when open - comprehensive mobile fix
   useEffect(() => {
     if (isOpen) {
+      // Save current scroll position
+      const scrollY = window.scrollY;
+
+      // Lock body scroll with multiple approaches for cross-browser support
       document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = "0";
+      document.body.style.right = "0";
+      document.body.style.width = "100%";
+      document.documentElement.style.overflow = "hidden";
+
+      return () => {
+        // Restore scroll position
+        document.body.style.overflow = "";
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.left = "";
+        document.body.style.right = "";
+        document.body.style.width = "";
+        document.documentElement.style.overflow = "";
+        window.scrollTo(0, scrollY);
+      };
     }
-    return () => {
-      document.body.style.overflow = "";
-    };
   }, [isOpen]);
 
   // Close on Escape key
@@ -151,7 +187,7 @@ export function HomiChat({ isOpen, onClose, initialMessage }: HomiChatProps) {
       </div>
 
       {/* Messages area */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto p-6 overscroll-contain" onScroll={handleMessagesScroll}>
         {/* Empty state with suggested prompts */}
         {messages.length === 0 && !isLoading && (
           <div className="flex flex-col items-center justify-center h-full text-center">
@@ -299,14 +335,11 @@ export function HomiChat({ isOpen, onClose, initialMessage }: HomiChatProps) {
               damping: 30,
               stiffness: 400,
             }}
-            className="fixed inset-0 z-50 md:hidden"
+            className="fixed inset-0 z-50 md:hidden touch-none"
+            style={{ height: "100dvh" }} // Use dynamic viewport height for mobile
           >
-            {/* Theme-aware glowing border - uses CSS variables (green in light, yellow in dark) */}
-            <div className="absolute inset-0 rounded-[20px] m-1 chat-glow-border" />
-            {/* Outer glow effect - theme aware */}
-            <div className="absolute inset-0 rounded-[20px] m-1 chat-glow-outer" />
-            {/* Inner content container */}
-            <div className="absolute inset-[5px] rounded-[16px] bg-background flex flex-col overflow-hidden">
+            {/* Full screen background with safe area padding */}
+            <div className="absolute inset-0 bg-background flex flex-col overflow-hidden pt-[env(safe-area-inset-top)]">
               {/* Drag handle area - only this area is draggable for swipe-to-dismiss */}
               <motion.div
                 drag="y"
@@ -317,7 +350,7 @@ export function HomiChat({ isOpen, onClose, initialMessage }: HomiChatProps) {
                     handleClose();
                   }
                 }}
-                className="flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing touch-pan-y"
+                className="flex justify-center pt-2 pb-1 cursor-grab active:cursor-grabbing touch-pan-y"
               >
                 <div className="w-10 h-1 bg-muted-foreground/30 rounded-full" />
               </motion.div>
@@ -347,7 +380,11 @@ export function HomiChat({ isOpen, onClose, initialMessage }: HomiChatProps) {
               </div>
 
               {/* Mobile Messages area */}
-              <div className="flex-1 overflow-y-auto px-4 py-4">
+              <div
+                ref={messagesContainerRef}
+                onScroll={handleMessagesScroll}
+                className="flex-1 overflow-y-auto px-4 py-4 overscroll-contain touch-pan-y"
+              >
                 {/* Empty state with suggested prompts */}
                 {messages.length === 0 && !isLoading && (
                   <div className="flex flex-col items-center justify-center h-full text-center">

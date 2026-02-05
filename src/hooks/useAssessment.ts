@@ -276,7 +276,7 @@ function calculateResult(totalScore: number): AssessmentResult {
         type: "invite_coowner",
       },
       secondaryCta: {
-        text: "Talk to Homi",
+        text: "Talk to a Homi",
         type: "talk_to_homi",
         action: "open_chat",
       },
@@ -291,7 +291,7 @@ function calculateResult(totalScore: number): AssessmentResult {
       message:
         "You're on the right track! A few more conversations and decisions will get you ready. Homi can help you think through the details.",
       primaryCta: {
-        text: "Talk to Homi",
+        text: "Talk to a Homi",
         href: "#",
         type: "talk_to_homi",
       },
@@ -316,7 +316,7 @@ function calculateResult(totalScore: number): AssessmentResult {
         type: "learn_more",
       },
       secondaryCta: {
-        text: "Talk to Homi",
+        text: "Talk to a Homi",
         type: "talk_to_homi",
         action: "open_chat",
       },
@@ -336,7 +336,7 @@ function calculateResult(totalScore: number): AssessmentResult {
         type: "learn_more",
       },
       secondaryCta: {
-        text: "Talk to Homi",
+        text: "Talk to a Homi",
         type: "talk_to_homi",
         action: "open_chat",
       },

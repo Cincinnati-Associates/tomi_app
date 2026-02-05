@@ -1,0 +1,17 @@
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Cursive lowercase 't' -->
+  <path
+    d="M4 36
+       C8 36 12 34 14 28
+       L18 4
+       M14 28
+       C14 34 18 38 26 36
+       C32 34 36 30 38 24
+       M4 16 L30 16"
+    stroke="currentColor"
+    stroke-width="4"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
+</svg>

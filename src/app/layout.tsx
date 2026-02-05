@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
+import { ConditionalNavbar, ConditionalFooter } from "@/components/layout/ConditionalLayout";
 import { PostHogProvider } from "@/providers/PostHogProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { AuthProvider } from "@/providers/AuthProvider";
+import { LayoutProvider } from "@/providers/LayoutProvider";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://livetomi.com"),
@@ -83,9 +83,11 @@ export default function RootLayout({
         >
           <PostHogProvider>
             <AuthProvider>
-              <Navbar />
-              <main>{children}</main>
-              <Footer />
+              <LayoutProvider>
+                <ConditionalNavbar />
+                <main>{children}</main>
+                <ConditionalFooter />
+              </LayoutProvider>
             </AuthProvider>
           </PostHogProvider>
         </ThemeProvider>

@@ -109,61 +109,69 @@ export function Navbar() {
               {isLoading ? (
                 <div className="h-9 w-20 animate-pulse rounded-md bg-muted" />
               ) : isAuthenticated ? (
-                <div className="relative" data-user-menu>
-                  <button
-                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted transition-colors"
-                  >
-                    {profile?.avatar_url ? (
-                      <img
-                        src={profile.avatar_url}
-                        alt="Avatar"
-                        className="h-6 w-6 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                        {initials}
+                <>
+                  <Link href="/dashboard">
+                    <Button variant="default" size="sm">
+                      <Home className="h-4 w-4 mr-2" />
+                      Dashboard
+                    </Button>
+                  </Link>
+
+                  <div className="relative" data-user-menu>
+                    <button
+                      onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                      className="flex items-center gap-1 rounded-full border border-border bg-card p-1.5 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+                    >
+                      {profile?.avatar_url ? (
+                        <img
+                          src={profile.avatar_url}
+                          alt="Avatar"
+                          className="h-7 w-7 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                          {initials}
+                        </div>
+                      )}
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {isUserMenuOpen && (
+                      <div className="absolute right-0 mt-2 w-48 rounded-lg border border-border bg-card shadow-lg">
+                        <div className="p-1">
+                          <div className="px-3 py-2 border-b border-border mb-1">
+                            <p className="text-sm font-medium text-foreground truncate">{displayName}</p>
+                            <p className="text-xs text-muted-foreground truncate">{profile?.email}</p>
+                          </div>
+                          <Link
+                            href="/dashboard"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                          >
+                            <Home className="h-4 w-4" />
+                            Dashboard
+                          </Link>
+                          <Link
+                            href="/settings/profile"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                          >
+                            <Settings className="h-4 w-4" />
+                            Settings
+                          </Link>
+                          <hr className="my-1 border-border" />
+                          <button
+                            onClick={handleSignOut}
+                            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-500 hover:bg-red-500/10 transition-colors"
+                          >
+                            <LogOut className="h-4 w-4" />
+                            Sign out
+                          </button>
+                        </div>
                       </div>
                     )}
-                    <span className="max-w-[100px] truncate">{displayName}</span>
-                    <ChevronDown className={cn(
-                      "h-4 w-4 text-muted-foreground transition-transform",
-                      isUserMenuOpen && "rotate-180"
-                    )} />
-                  </button>
-
-                  {/* Dropdown Menu */}
-                  {isUserMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 rounded-lg border border-border bg-card shadow-lg">
-                      <div className="p-2">
-                        <Link
-                          href="/dashboard"
-                          onClick={() => setIsUserMenuOpen(false)}
-                          className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
-                        >
-                          <Home className="h-4 w-4" />
-                          Dashboard
-                        </Link>
-                        <Link
-                          href="/settings/profile"
-                          onClick={() => setIsUserMenuOpen(false)}
-                          className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
-                        >
-                          <Settings className="h-4 w-4" />
-                          Settings
-                        </Link>
-                        <hr className="my-2 border-border" />
-                        <button
-                          onClick={handleSignOut}
-                          className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-500 hover:bg-red-500/10 transition-colors"
-                        >
-                          <LogOut className="h-4 w-4" />
-                          Sign out
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                  </div>
+                </>
               ) : (
                 <Button
                   variant="outline"

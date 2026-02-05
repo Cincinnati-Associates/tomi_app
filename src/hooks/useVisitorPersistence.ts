@@ -3,6 +3,7 @@
 import { useCallback, useRef } from "react";
 import type { AnonymousUserContext } from "@/lib/user-context";
 import type { UpdateVisitorSessionInput } from "@/types/user";
+import { getStoredAssessment } from "@/lib/assessment-context";
 
 /**
  * Hook for persisting visitor session data to Supabase
@@ -92,14 +93,29 @@ export function useVisitorPersistence() {
   );
 
   /**
-   * Link visitor to user after signup
+   * Link visitor to user after signup.
+   * Includes assessment data from sessionStorage if available,
+   * so the merge function can seed the user's readiness score.
    */
   const linkToUser = useCallback(async (visitorId: string) => {
     try {
+      // Read assessment from sessionStorage before it gets cleared
+      const assessment = getStoredAssessment();
+      const assessmentData = assessment
+        ? {
+            grade: assessment.grade,
+            score: assessment.score,
+            answers: assessment.answers,
+          }
+        : null;
+
       const response = await fetch("/api/visitor/link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ visitor_id: visitorId }),
+        body: JSON.stringify({
+          visitor_id: visitorId,
+          assessment_data: assessmentData,
+        }),
       });
 
       if (!response.ok) {

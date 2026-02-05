@@ -6,11 +6,13 @@ import {
 
 /**
  * POST /api/visitor/link
- * Link an anonymous visitor to an authenticated user (called on signup)
+ * Link an anonymous visitor to an authenticated user (called on signup).
+ * Optionally accepts assessment_data to persist in the merged context
+ * and seed the user's readiness score.
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createServerSupabaseClient();
+    const supabase = createServerSupabaseClient();
 
     // Check authentication
     const {
@@ -22,7 +24,14 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { visitor_id } = body as { visitor_id: string };
+    const { visitor_id, assessment_data } = body as {
+      visitor_id: string;
+      assessment_data?: {
+        grade: string;
+        score: number;
+        answers: unknown[];
+      } | null;
+    };
 
     if (!visitor_id) {
       return NextResponse.json(
@@ -37,6 +46,7 @@ export async function POST(request: NextRequest) {
     const { error } = await serviceClient.rpc("merge_visitor_to_user", {
       p_visitor_id: visitor_id,
       p_user_id: user.id,
+      p_assessment_data: assessment_data || null,
     });
 
     if (error) throw error;

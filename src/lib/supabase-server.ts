@@ -1,4 +1,5 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 
 export function createServerSupabaseClient() {
@@ -34,20 +35,17 @@ export function createServerSupabaseClient() {
   )
 }
 
-// For use in API routes where we need the service role
+// For use in API routes where we need the service role.
+// Uses createClient from @supabase/supabase-js (not @supabase/ssr)
+// to ensure the service role key properly bypasses RLS.
 export function createServiceRoleClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-key'
 
-  return createServerClient(
-    supabaseUrl,
-    serviceRoleKey,
-    {
-      cookies: {
-        get() { return undefined },
-        set() {},
-        remove() {},
-      },
-    }
-  )
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  })
 }

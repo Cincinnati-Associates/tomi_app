@@ -339,6 +339,7 @@ end;
 $$ language plpgsql security definer;
 
 -- ============================================
+
 -- INDEXES
 -- ============================================
 create index idx_profiles_email on public.profiles(email);

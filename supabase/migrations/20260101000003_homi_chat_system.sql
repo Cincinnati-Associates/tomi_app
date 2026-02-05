@@ -3,6 +3,9 @@
 -- Visitor tracking, chat history, and user linking
 -- ============================================
 
+-- Enable pgvector extension for embeddings
+create extension if not exists vector with schema extensions;
+
 -- ============================================
 -- VISITOR SESSIONS (Anonymous pre-signup users)
 -- Stores summarized context, NOT full transcripts
@@ -10,7 +13,7 @@
 create type public.visitor_stage as enum ('explorer', 'evaluator', 'ready', 'calculated');
 
 create table public.visitor_sessions (
-  id uuid default uuid_generate_v4() primary key,
+  id uuid default gen_random_uuid() primary key,
 
   -- Identifiers (from localStorage visitor context)
   visitor_id uuid not null,  -- Persistent across sessions
@@ -61,7 +64,7 @@ create index idx_visitor_sessions_last_seen on public.visitor_sessions(last_seen
 -- Full transcript storage with embeddings support
 -- ============================================
 create table public.chat_conversations (
-  id uuid default uuid_generate_v4() primary key,
+  id uuid default gen_random_uuid() primary key,
 
   -- Owner (authenticated user)
   user_id uuid references public.profiles(id) on delete cascade not null,
@@ -81,7 +84,7 @@ create table public.chat_conversations (
 
   -- Summarized context for embeddings/RAG
   summary text,
-  summary_embedding vector(1536),  -- OpenAI ada-002 embedding dimension
+  summary_embedding extensions.vector(1536),  -- OpenAI ada-002 embedding dimension
 
   -- Status
   is_archived boolean default false not null,
@@ -116,7 +119,7 @@ create index idx_chat_conversations_last_message on public.chat_conversations(la
 create type public.chat_role as enum ('user', 'assistant', 'system');
 
 create table public.chat_messages (
-  id uuid default uuid_generate_v4() primary key,
+  id uuid default gen_random_uuid() primary key,
 
   conversation_id uuid references public.chat_conversations(id) on delete cascade not null,
 
@@ -157,7 +160,7 @@ create index idx_chat_messages_created_at on public.chat_messages(created_at);
 -- Track which anonymous visitors became users
 -- ============================================
 create table public.visitor_user_links (
-  id uuid default uuid_generate_v4() primary key,
+  id uuid default gen_random_uuid() primary key,
 
   visitor_id uuid not null,  -- From visitor_sessions.visitor_id
   user_id uuid references public.profiles(id) on delete cascade not null,

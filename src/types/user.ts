@@ -8,6 +8,7 @@ export interface Profile {
   phone: string | null
   full_name: string | null
   avatar_url: string | null
+  timezone: string | null
   onboarding_completed: boolean
   created_at: string
   updated_at: string

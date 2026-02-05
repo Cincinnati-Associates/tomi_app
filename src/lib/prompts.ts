@@ -231,14 +231,19 @@ A short intake to understand your group, goals, and readiness, followed by a con
  */
 export interface BuildSystemPromptOptions {
   calculatorContext?: string;
+  /** Pre-formatted knowledge section from UserKnowledge assembler */
+  knowledgeSection?: string;
+  /** @deprecated Use knowledgeSection instead. Kept for backward compatibility. */
   userContext?: AnonymousUserContext;
+  /** @deprecated Included in knowledgeSection. Kept for backward compatibility. */
+  assessmentContext?: string;
 }
 
 /**
- * Build a system prompt with resources, user context, and optional calculator context.
+ * Build a system prompt with resources, user knowledge, and calculator context.
  */
 export function buildSystemPrompt(options: BuildSystemPromptOptions = {}): string {
-  const { calculatorContext, userContext } = options;
+  const { calculatorContext, knowledgeSection, userContext, assessmentContext } = options;
 
   // Always include the resources catalog
   const resourcesSection = formatResourcesForPrompt();
@@ -247,15 +252,17 @@ export function buildSystemPrompt(options: BuildSystemPromptOptions = {}): strin
 
 ${resourcesSection}`;
 
-  // Add user context if available
-  if (userContext) {
+  // Prefer the new knowledgeSection if provided
+  if (knowledgeSection) {
+    prompt += `\n${knowledgeSection}`;
+  } else if (userContext) {
+    // Legacy path: build context inline from raw AnonymousUserContext
     prompt += `
 ## Session Context
 Use this to personalize your responses. Don't recite back everything you know - use it naturally.
 
 `;
 
-    // Identity
     if (userContext.identity?.firstName) {
       prompt += `- **User's name**: ${userContext.identity.firstName}`;
       if (!userContext.identity.confirmedIdentity && userContext.behavior?.sessionCount > 1) {
@@ -264,10 +271,8 @@ Use this to personalize your responses. Don't recite back everything you know - 
       prompt += `\n`;
     }
 
-    // Stage
     prompt += `- **Stage**: ${userContext.stage || "explorer"}\n`;
 
-    // Volunteered info
     if (userContext.volunteered) {
       const v = userContext.volunteered;
       if (v.metroArea) prompt += `- **Looking in**: ${v.metroArea}\n`;
@@ -279,7 +284,6 @@ Use this to personalize your responses. Don't recite back everything you know - 
       }
     }
 
-    // Behavioral context
     if (userContext.behavior) {
       const b = userContext.behavior;
       if (b.calculatorCompleted) {
@@ -301,6 +305,19 @@ Use this to personalize your responses. Don't recite back everything you know - 
 The user has completed their co-ownership calculation. Use this data to provide specific, personalized answers:
 
 ${calculatorContext}`;
+  }
+
+  // Legacy assessment context (only used if knowledgeSection is not provided)
+  if (assessmentContext && !knowledgeSection) {
+    prompt += `
+## Assessment Results
+${assessmentContext}
+
+Use this assessment data to:
+- Ask follow-up questions about areas where they seem uncertain or scored lower
+- Acknowledge their readiness level and tailor your guidance accordingly
+- Reference specific answers they gave when relevant to the conversation
+- Help them understand their next steps based on their grade`;
   }
 
   return prompt;

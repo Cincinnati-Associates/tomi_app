@@ -1,26 +1,57 @@
 "use client";
 
 import { useChat } from "ai/react";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useEffect, useState } from "react";
 import type { ChatMessage } from "@/types";
 import type { AnonymousUserContext } from "@/lib/user-context";
+import { getStoredAssessment, buildAssessmentContextForHomi, type StoredAssessment } from "@/lib/assessment-context";
 
 interface UseHomiChatOptions {
   userContext?: AnonymousUserContext | null;
+  /** When true, skip sending userContext in the body (server fetches it from DB) */
+  isAuthenticated?: boolean;
 }
 
 /**
  * Hook for Homi chat functionality with streaming support.
  * Wraps Vercel AI SDK's useChat to maintain backward-compatible API.
+ *
+ * For authenticated users, the server-side chat route fetches UserKnowledge
+ * from the database directly, so we don't send userContext in the body.
+ * For anonymous users, we send the client-side context as before.
  */
 export function useHomiChat(options: UseHomiChatOptions = {}) {
-  const { userContext } = options;
+  const { userContext, isAuthenticated = false } = options;
+  const [assessmentContext, setAssessmentContext] = useState<StoredAssessment | null>(null);
+
+  // Load assessment context on mount
+  useEffect(() => {
+    const stored = getStoredAssessment();
+    if (stored) {
+      setAssessmentContext(stored);
+    }
+  }, []);
 
   // Memoize the body to avoid re-renders
-  const body = useMemo(
-    () => (userContext ? { userContext } : undefined),
-    [userContext]
-  );
+  const body = useMemo(() => {
+    const bodyData: Record<string, unknown> = {};
+
+    if (!isAuthenticated && userContext) {
+      // Anonymous: send context from client
+      bodyData.userContext = userContext;
+    }
+
+    if (assessmentContext) {
+      if (!isAuthenticated) {
+        // Anonymous: send both the formatted text and raw data
+        bodyData.assessmentContext = buildAssessmentContextForHomi(assessmentContext);
+        bodyData.assessmentData = assessmentContext;
+      }
+      // Authenticated: server has assessment data via visitor_user_links.merged_context
+    }
+
+    return Object.keys(bodyData).length > 0 ? bodyData : undefined;
+  }, [userContext, assessmentContext, isAuthenticated]);
 
   const {
     messages: aiMessages,

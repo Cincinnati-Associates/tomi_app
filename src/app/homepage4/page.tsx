@@ -55,7 +55,7 @@ export default function Homepage4() {
             <span className="text-primary">You Can&apos;t Afford?</span>
           </>
         }
-        subheadline="Tomi helps people co-buy and manage homes together."
+        subheadline="Tomi helps unmarried people co-buy and own homes together."
         primaryCta={{
           text: "Run the Numbers",
           href: "/calc",

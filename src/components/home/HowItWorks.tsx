@@ -99,19 +99,26 @@ function StepPanel({
   const directionOffset = getDirectionTransform(step.imageDirection);
 
   // Calculate timing for this card
-  // All cards animate within 0-80% of scroll, last 20% holds the final state
-  const scrollRange = 0.8;
-  const cardStart = (index / totalSteps) * scrollRange;
-  const cardEnd = ((index + 1) / totalSteps) * scrollRange;
-  const cardMid = (cardStart + cardEnd) / 2;
+  // All cards animate within 0-85% of scroll, last 15% holds the final state
+  const scrollRange = 0.85;
+  // Add overlap - each card starts 25% before its "slot" ends
+  const overlap = 0.25;
+  const slotSize = scrollRange / totalSteps;
+  const cardStart = Math.max(0, (index * slotSize) - (index > 0 ? slotSize * overlap : 0));
+  const cardEnd = ((index + 1) * slotSize) + (index < totalSteps - 1 ? slotSize * overlap : 0);
+  // cardMid is when the card is fully visible and centered
+  // cardFadeStart is when fade-out begins (pushed to 75% of the card's range)
+  const cardMid = cardStart + (cardEnd - cardStart) * 0.35;
+  const cardFadeStart = cardStart + (cardEnd - cardStart) * 0.75;
   const isLast = index === totalSteps - 1;
 
   // Image animations - directional slide + fade
+  // Fade in quickly, stay visible until cardFadeStart, then fade out
   const imageOpacity = useTransform(
     scrollYProgress,
     isLast
-      ? [cardStart, cardMid - 0.05, cardMid]
-      : [cardStart, cardMid - 0.05, cardMid, cardMid + 0.05, cardEnd],
+      ? [cardStart, cardMid - 0.02, cardMid]
+      : [cardStart, cardMid - 0.02, cardMid, cardFadeStart, cardEnd],
     isLast
       ? [0, 1, 1]
       : [0, 1, 1, 1, 0]
@@ -140,8 +147,8 @@ function StepPanel({
   const _iconOpacity = useTransform(
     scrollYProgress,
     isLast
-      ? [cardStart, cardMid - 0.05, cardMid]
-      : [cardStart, cardMid - 0.05, cardMid, cardMid + 0.05, cardEnd],
+      ? [cardStart, cardMid - 0.02, cardMid]
+      : [cardStart, cardMid - 0.02, cardMid, cardFadeStart, cardEnd],
     isLast
       ? [0, 1, 1]
       : [0, 1, 1, 1, 0]
@@ -160,8 +167,8 @@ function StepPanel({
   const contentOpacity = useTransform(
     scrollYProgress,
     isLast
-      ? [cardStart + 0.02, cardMid - 0.03, cardMid]
-      : [cardStart + 0.02, cardMid - 0.03, cardMid, cardMid + 0.03, cardEnd - 0.02],
+      ? [cardStart + 0.01, cardMid - 0.02, cardMid]
+      : [cardStart + 0.01, cardMid - 0.02, cardMid, cardFadeStart, cardEnd - 0.01],
     isLast
       ? [0, 1, 1]
       : [0, 1, 1, 1, 0]
@@ -180,8 +187,8 @@ function StepPanel({
   const ctaOpacity = useTransform(
     scrollYProgress,
     isLast
-      ? [cardStart + 0.04, cardMid - 0.01, cardMid]
-      : [cardStart + 0.04, cardMid - 0.01, cardMid, cardMid + 0.01, cardEnd - 0.04],
+      ? [cardStart + 0.02, cardMid - 0.01, cardMid]
+      : [cardStart + 0.02, cardMid - 0.01, cardMid, cardFadeStart, cardEnd - 0.01],
     isLast
       ? [0, 1, 1]
       : [0, 1, 1, 1, 0]
@@ -288,10 +295,12 @@ function StepPanel({
 
 interface HowItWorksProps {
   header?: string;
+  subheader?: string;
 }
 
 export function HowItWorks({
-  header = "How Tomi works",
+  header = "works",
+  subheader,
 }: HowItWorksProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const totalSteps = howItWorksSteps.length;
@@ -304,24 +313,24 @@ export function HowItWorks({
 
   // Horizontal translation with initial right offset
   // Start at 33% (first step enters from right side of screen)
-  // End at -300% (moves 4 panels left), stop at 80% scroll for last card display time
+  // End at -400% (moves 5 panels left), stop at 85% scroll for last card display time
   const initialOffset = 33; // First step starts right-of-center
   const x = useTransform(
     scrollYProgress,
-    [0, 0.8],
+    [0, 0.85],
     [`${initialOffset}%`, `-${(totalSteps - 1) * 100}%`]
   );
 
-  // Progress bar width - complete by 80%
+  // Progress bar width - complete by 85%
   const progressWidth = useTransform(
     scrollYProgress,
-    [0, 0.8],
+    [0, 0.85],
     ["0%", "100%"]
   );
 
-  // Current step indicator - spread across 80% of scroll
+  // Current step indicator - spread across 85% of scroll
   // Dynamically generate breakpoints based on number of steps
-  const stepBreakpoints = Array.from({ length: totalSteps }, (_, i) => (i / (totalSteps - 1)) * 0.8);
+  const stepBreakpoints = Array.from({ length: totalSteps }, (_, i) => (i / (totalSteps - 1)) * 0.85);
   const stepValues = Array.from({ length: totalSteps }, (_, i) => i);
   const currentStep = useTransform(
     scrollYProgress,
@@ -342,8 +351,11 @@ export function HowItWorks({
       <div
         ref={containerRef}
         className="relative bg-secondary/30 hidden md:block"
-        style={{ height: `${(totalSteps + 1) * 100}vh` }}
+        style={{ height: `${totalSteps * 100 + 50}vh` }}
       >
+        {/* Yellow glow - transition from section above */}
+        <div className="absolute -top-40 -left-40 h-80 w-80 rounded-full bg-primary/10 blur-3xl z-0" />
+
         {/* Sticky viewport that stays pinned */}
         <div className="sticky top-0 h-screen overflow-hidden">
           {/* Header */}
@@ -352,10 +364,29 @@ export function HowItWorks({
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl"
+              className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl flex items-center justify-center gap-2"
             >
+              <span className="font-normal">how</span>
+              <Image
+                src="/logo.png"
+                alt="Tomi"
+                width={100}
+                height={32}
+                className="h-8 w-auto inline-block"
+              />
               {header}
             </motion.h2>
+            {subheader && (
+              <motion.h3
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+                className="text-muted-foreground text-base md:text-lg mt-2"
+              >
+                {subheader}
+              </motion.h3>
+            )}
 
             {/* Progress bar */}
             <div className="mt-6 mx-auto max-w-md px-8">
@@ -412,21 +443,34 @@ export function HowItWorks({
       {/* Mobile: horizontal scroll cards */}
       <div className="md:hidden py-16 bg-secondary/30">
         <div className="text-center mb-8 px-4">
-          <h2 className="font-heading text-2xl font-bold tracking-tight text-foreground">
+          <h2 className="font-heading text-2xl font-bold tracking-tight text-foreground flex items-center justify-center gap-2 flex-wrap">
+            <span className="font-normal">how</span>
+            <Image
+              src="/logo.png"
+              alt="Tomi"
+              width={80}
+              height={26}
+              className="h-6 w-auto inline-block"
+            />
             {header}
           </h2>
+          {subheader && (
+            <h3 className="text-muted-foreground text-sm mt-2">
+              {subheader}
+            </h3>
+          )}
         </div>
-        <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory px-4">
+        <div className="flex gap-4 overflow-x-auto overflow-y-hidden pb-4 snap-x snap-mandatory px-4">
           {howItWorksSteps.map((step, index) => {
             const Icon = iconMap[step.icon];
             return (
               <motion.div
                 key={step.number}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="flex-shrink-0 w-[280px] snap-center"
+                className="flex-shrink-0 w-[280px] h-[420px] snap-center"
               >
                 <div className="bg-card rounded-2xl p-5 h-full border border-border flex flex-col">
                   {/* Image */}

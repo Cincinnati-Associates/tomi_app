@@ -16,6 +16,8 @@ interface AuthState {
 interface AuthActions {
   signInWithEmail: (email: string) => Promise<{ error: Error | null }>;
   signInWithPhone: (phone: string) => Promise<{ error: Error | null }>;
+  signInWithPassword: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signUpWithPassword: (email: string, password: string, fullName?: string) => Promise<{ error: Error | null; requiresConfirmation?: boolean }>;
   verifyOtp: (phone: string, token: string) => Promise<{ error: Error | null }>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -30,8 +32,9 @@ export function useAuth(): AuthState & AuthActions {
 
   const supabase = useMemo(() => createClient(), []);
 
-  // Fetch profile data
-  const fetchProfile = useCallback(async (userId: string) => {
+  // Fetch profile data (creates one if missing)
+  const fetchProfile = useCallback(async (userId: string, userEmail?: string | null, userName?: string | null) => {
+    console.log('[useAuth] fetchProfile called for:', userId);
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -39,14 +42,36 @@ export function useAuth(): AuthState & AuthActions {
         .eq('id', userId)
         .single();
 
+      console.log('[useAuth] Profile query result:', { data, error });
+
       if (error) {
-        console.error('Error fetching profile:', error);
+        // Profile doesn't exist - try to create one
+        if (error.code === 'PGRST116') {
+          console.log('[useAuth] Profile not found, creating one...');
+          const { data: newProfile, error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              id: userId,
+              email: userEmail || null,
+              full_name: userName || null,
+            })
+            .select()
+            .single();
+
+          if (insertError) {
+            console.error('[useAuth] Error creating profile:', insertError);
+            return null;
+          }
+          console.log('[useAuth] Created new profile:', newProfile);
+          return newProfile as Profile;
+        }
+        console.error('[useAuth] Error fetching profile:', error);
         return null;
       }
 
       return data as Profile;
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('[useAuth] Exception fetching profile:', error);
       return null;
     }
   }, [supabase]);
@@ -61,18 +86,34 @@ export function useAuth(): AuthState & AuthActions {
   useEffect(() => {
     // Get initial session
     const getSession = async () => {
+      console.log('[useAuth] Getting session...');
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+        if (sessionError) {
+          console.error('[useAuth] Session error:', sessionError);
+          setIsLoading(false);
+          return;
+        }
+
+        console.log('[useAuth] Session:', session ? 'exists' : 'null');
         setSession(session);
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          const profileData = await fetchProfile(session.user.id);
+          console.log('[useAuth] Fetching profile for user:', session.user.id);
+          const profileData = await fetchProfile(
+            session.user.id,
+            session.user.email,
+            session.user.user_metadata?.full_name || session.user.user_metadata?.name
+          );
+          console.log('[useAuth] Profile:', profileData);
           setProfile(profileData);
         }
       } catch (error) {
-        console.error('Error getting session:', error);
+        console.error('[useAuth] Error getting session:', error);
       } finally {
+        console.log('[useAuth] Setting isLoading to false');
         setIsLoading(false);
       }
     };
@@ -90,7 +131,11 @@ export function useAuth(): AuthState & AuthActions {
           if (event === 'SIGNED_IN') {
             await new Promise(resolve => setTimeout(resolve, 500));
           }
-          const profileData = await fetchProfile(session.user.id);
+          const profileData = await fetchProfile(
+            session.user.id,
+            session.user.email,
+            session.user.user_metadata?.full_name || session.user.user_metadata?.name
+          );
           setProfile(profileData);
         } else {
           setProfile(null);
@@ -116,6 +161,38 @@ export function useAuth(): AuthState & AuthActions {
       return { error: error as Error | null };
     } catch (error) {
       return { error: error as Error };
+    }
+  }, [supabase]);
+
+  const signInWithPassword = useCallback(async (email: string, password: string) => {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      return { error: error as Error | null };
+    } catch (error) {
+      return { error: error as Error };
+    }
+  }, [supabase]);
+
+  const signUpWithPassword = useCallback(async (email: string, password: string, fullName?: string) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          data: fullName ? { full_name: fullName } : undefined,
+        },
+      });
+
+      // Check if email confirmation is required
+      const requiresConfirmation = data.user && !data.session;
+
+      return { error: error as Error | null, requiresConfirmation };
+    } catch (error) {
+      return { error: error as Error, requiresConfirmation: false };
     }
   }, [supabase]);
 
@@ -169,6 +246,8 @@ export function useAuth(): AuthState & AuthActions {
     isLoading,
     isAuthenticated: !!user,
     signInWithEmail,
+    signInWithPassword,
+    signUpWithPassword,
     signInWithPhone,
     verifyOtp,
     signInWithGoogle,

@@ -2,12 +2,15 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Phone, ArrowRight, Check, Loader2, X } from 'lucide-react';
+import { Mail, Phone, ArrowRight, Check, Loader2, X, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthContext } from '@/providers/AuthProvider';
+import { PasswordInput } from './PasswordInput';
+import { PasswordStrengthMeter } from './PasswordStrengthMeter';
 
-type AuthMethod = 'email' | 'phone';
+type AuthMethod = 'email' | 'phone' | 'password';
 type Step = 'input' | 'verify' | 'success';
+type PasswordMode = 'login' | 'register';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -18,6 +21,8 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [method, setMethod] = useState<AuthMethod>('email');
   const [step, setStep] = useState<Step>('input');
   const [inputValue, setInputValue] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordMode, setPasswordMode] = useState<PasswordMode>('login');
   const [otpCode, setOtpCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,6 +42,29 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             setError(error.message);
           } else {
             setStep('success');
+          }
+        } else if (method === 'password') {
+          // Handle email/password auth
+          const endpoint = passwordMode === 'register' ? '/api/auth/register' : '/api/auth/login';
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: inputValue, password }),
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            setError(data.error || 'Authentication failed');
+          } else if (data.requiresConfirmation) {
+            // Registration successful, email confirmation needed
+            setStep('success');
+          } else {
+            // Login successful or registration without confirmation
+            onClose();
+            resetForm();
+            // Force a page reload to refresh auth state
+            window.location.reload();
           }
         } else {
           const { error } = await signInWithPhone(inputValue);
@@ -73,6 +101,8 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const resetForm = () => {
     setStep('input');
     setInputValue('');
+    setPassword('');
+    setPasswordMode('login');
     setOtpCode('');
     setError(null);
   };
@@ -172,7 +202,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 <div className="flex gap-2 p-1 bg-muted rounded-lg mb-4">
                   <button
                     type="button"
-                    onClick={() => { setMethod('email'); setError(null); }}
+                    onClick={() => { setMethod('email'); setError(null); setPassword(''); }}
                     className={cn(
                       "flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all",
                       method === 'email'
@@ -181,11 +211,24 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     )}
                   >
                     <Mail className="w-4 h-4" />
-                    Email
+                    Magic Link
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setMethod('phone'); setError(null); }}
+                    onClick={() => { setMethod('password'); setError(null); }}
+                    className={cn(
+                      "flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all",
+                      method === 'password'
+                        ? "bg-card text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Lock className="w-4 h-4" />
+                    Password
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setMethod('phone'); setError(null); setPassword(''); }}
                     disabled // SMS not configured yet
                     className={cn(
                       "flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all opacity-50 cursor-not-allowed",
@@ -203,16 +246,50 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 {/* Input Form */}
                 <form onSubmit={handleSubmit}>
                   <div className="space-y-4">
+                    {/* Email input */}
                     <div>
                       <input
-                        type={method === 'email' ? 'email' : 'tel'}
+                        type={method === 'phone' ? 'tel' : 'email'}
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
-                        placeholder={method === 'email' ? 'you@example.com' : '+1 (555) 000-0000'}
+                        placeholder={method === 'phone' ? '+1 (555) 000-0000' : 'you@example.com'}
                         className="w-full px-4 py-3 rounded-lg bg-muted border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                         required
                       />
                     </div>
+
+                    {/* Password fields for password method */}
+                    {method === 'password' && (
+                      <>
+                        <div>
+                          <PasswordInput
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Enter your password"
+                            required
+                          />
+                        </div>
+
+                        {/* Show strength meter only for registration */}
+                        {passwordMode === 'register' && (
+                          <PasswordStrengthMeter password={password} showRequirements />
+                        )}
+
+                        {/* Toggle between login and register */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPasswordMode(passwordMode === 'login' ? 'register' : 'login');
+                            setError(null);
+                          }}
+                          className="text-sm text-primary hover:underline"
+                        >
+                          {passwordMode === 'login'
+                            ? "Don't have an account? Sign up"
+                            : "Already have an account? Sign in"}
+                        </button>
+                      </>
+                    )}
 
                     {error && (
                       <p className="text-sm text-red-500">{error}</p>
@@ -220,18 +297,32 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
                     <button
                       type="submit"
-                      disabled={isSubmitting || !inputValue}
+                      disabled={isSubmitting || !inputValue || (method === 'password' && !password)}
                       className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isSubmitting ? (
                         <Loader2 className="w-5 h-5 animate-spin" />
                       ) : (
                         <>
-                          {method === 'email' ? 'Send Magic Link' : 'Send Code'}
+                          {method === 'email'
+                            ? 'Send Magic Link'
+                            : method === 'password'
+                              ? (passwordMode === 'login' ? 'Sign In' : 'Create Account')
+                              : 'Send Code'}
                           <ArrowRight className="w-4 h-4" />
                         </>
                       )}
                     </button>
+
+                    {/* Forgot password link for password mode */}
+                    {method === 'password' && passwordMode === 'login' && (
+                      <a
+                        href="/auth/forgot-password"
+                        className="block text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        Forgot your password?
+                      </a>
+                    )}
                   </div>
                 </form>
 
@@ -295,7 +386,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
               </motion.div>
             )}
 
-            {step === 'success' && method === 'email' && (
+            {step === 'success' && (method === 'email' || method === 'password') && (
               <motion.div
                 key="success"
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -309,8 +400,17 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   Check your email
                 </h4>
                 <p className="text-sm text-muted-foreground mb-4">
-                  We sent a magic link to <strong>{inputValue}</strong>.
-                  <br />Click it to sign in.
+                  {method === 'password' ? (
+                    <>
+                      We sent a verification link to <strong>{inputValue}</strong>.
+                      <br />Click it to verify your account.
+                    </>
+                  ) : (
+                    <>
+                      We sent a magic link to <strong>{inputValue}</strong>.
+                      <br />Click it to sign in.
+                    </>
+                  )}
                 </p>
                 <button
                   onClick={handleClose}

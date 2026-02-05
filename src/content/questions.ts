@@ -85,7 +85,7 @@ export const howItWorksSteps = [
     description:
       "Buy your home with confidence. We coordinate with lenders, agents, and attorneys to get you to the finish line.",
     icon: "Key",
-    cta: { text: "Calculate Your Numbers", href: "/calc" },
+    cta: { text: "Run the Numbers", href: "/calc" },
     imageDirection: "bottom" as const,
     image: "/living-room-lake-view.webp",
   },

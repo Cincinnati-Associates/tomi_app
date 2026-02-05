@@ -53,7 +53,7 @@ export function FinalCta({ onOpenChat }: FinalCtaProps) {
               onClick={onOpenChat}
             >
               <MessageCircle className="mr-2 h-5 w-5" />
-              Talk to Homi
+              Talk to a Homi
             </Button>
           </div>
         </motion.div>

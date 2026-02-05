@@ -68,6 +68,8 @@ export function AssessmentPage() {
     isComplete,
     showPreResultsGate,
     result,
+    totalScore,
+    projectedGrade,
     selectAnswer,
     completeAssessment,
     nextQuestion,
@@ -142,7 +144,12 @@ export function AssessmentPage() {
                   exit={{ opacity: 0 }}
                   className="flex-1 flex flex-col justify-center"
                 >
-                  <PreResultsGate onContinue={completeAssessment} />
+                  <PreResultsGate
+                    onContinue={completeAssessment}
+                    projectedGrade={projectedGrade}
+                    totalScore={totalScore}
+                    answers={answers}
+                  />
                 </motion.div>
               ) : !isComplete ? (
                 /* Questions */
