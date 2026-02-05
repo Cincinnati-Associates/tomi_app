@@ -85,7 +85,6 @@ export default function ContextPage() {
       >
         <QuickContextForm
           onChange={handleFormChange}
-          isSubmitting={isSubmitting}
         />
       </motion.div>
 

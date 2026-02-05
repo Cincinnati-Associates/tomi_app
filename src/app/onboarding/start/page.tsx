@@ -24,7 +24,7 @@ export default function StartPage() {
 
     try {
       // Mark onboarding as complete
-      const response = await fetch('/api/users/me', {
+      await fetch('/api/users/me', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

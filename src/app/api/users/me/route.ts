@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase-server'
 import { updateProfileSchema, formatZodErrors } from '@/lib/validators/auth-schemas'
 
@@ -8,7 +9,7 @@ import { updateProfileSchema, formatZodErrors } from '@/lib/validators/auth-sche
  * Get current authenticated user's profile.
  * Auto-creates the profile if it doesn't exist.
  */
-export async function GET(_request: NextRequest) {
+export async function GET() {
   try {
     const supabase = createServerSupabaseClient()
     const {

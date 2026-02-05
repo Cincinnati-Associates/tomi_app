@@ -7,7 +7,6 @@ import { Check } from 'lucide-react'
 
 interface QuickContextFormProps {
   onChange: (data: QuickContextData) => void
-  isSubmitting?: boolean
 }
 
 export interface QuickContextData {
@@ -29,7 +28,7 @@ const coBuyerOptions = [
   { value: 'open', label: 'Open to either', description: 'Flexible on finding partners' },
 ]
 
-export function QuickContextForm({ onChange, isSubmitting }: QuickContextFormProps) {
+export function QuickContextForm({ onChange }: QuickContextFormProps) {
   const [targetTimeline, setTargetTimeline] = useState<string>('')
   const [coBuyerStatus, setCoBuyerStatus] = useState<string>('')
 

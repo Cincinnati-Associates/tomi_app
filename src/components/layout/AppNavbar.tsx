@@ -21,7 +21,7 @@ export function AppNavbar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const { isAuthenticated, profile, signOut } = useAuthContext();
+  const { profile, signOut } = useAuthContext();
   const router = useRouter();
   const pathname = usePathname();
 

@@ -7,20 +7,6 @@ import { useAuthContext } from "./AuthProvider";
 // Routes that are part of the authenticated app experience
 const APP_ROUTES = ["/dashboard", "/settings", "/parties"];
 
-// Routes that are marketing/public pages
-const MARKETING_ROUTES = [
-  "/",
-  "/how-it-works",
-  "/co-ownership-history",
-  "/assessment",
-  "/calc",
-  "/calculator",
-  "/homepage",
-  "/homepage2",
-  "/homepage3",
-  "/homepage4",
-];
-
 type LayoutMode = "marketing" | "app";
 
 interface LayoutContextType {

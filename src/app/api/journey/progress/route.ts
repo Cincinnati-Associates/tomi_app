@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { db, userJourneys, userExerciseResponses, exerciseTemplates } from '@/db'
-import { eq, and } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 
 interface ExerciseProgress {
   slug: string
@@ -25,7 +25,7 @@ interface JourneyProgress {
  *
  * Get user's journey progress summary including exercise completion status
  */
-export async function GET(_request: NextRequest) {
+export async function GET() {
   try {
     const supabase = createServerSupabaseClient()
     const {

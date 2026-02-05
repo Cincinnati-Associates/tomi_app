@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { db, userJourneys } from '@/db'
 import { eq } from 'drizzle-orm'
@@ -19,7 +20,7 @@ const updateJourneySchema = z.object({
  *
  * Get current authenticated user's journey data
  */
-export async function GET(_request: NextRequest) {
+export async function GET() {
   try {
     const supabase = createServerSupabaseClient()
     const {
@@ -124,7 +125,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Update journey (or create if doesn't exist)
-    let journey = await db.query.userJourneys.findFirst({
+    const journey = await db.query.userJourneys.findFirst({
       where: eq(userJourneys.userId, user.id),
     })
 

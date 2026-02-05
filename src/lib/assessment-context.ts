@@ -1,4 +1,4 @@
-import type { Grade, AnswerData, ASSESSMENT_QUESTIONS } from "@/hooks/useAssessment";
+import type { Grade, AnswerData } from "@/hooks/useAssessment";
 
 export interface StoredAssessment {
   grade: Grade;

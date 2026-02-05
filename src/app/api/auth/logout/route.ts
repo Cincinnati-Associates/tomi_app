@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { logLogout } from '@/lib/auth/audit-logger'
 
@@ -7,7 +7,7 @@ import { logLogout } from '@/lib/auth/audit-logger'
  *
  * Sign out the current user and invalidate their session.
  */
-export async function POST(_request: NextRequest) {
+export async function POST() {
   try {
     const supabase = createServerSupabaseClient()
 
