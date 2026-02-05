@@ -1,5 +1,9 @@
 export const heroQuestions = [
-  // Core co-ownership questions first
+  // Introductory / educational questions first
+  "What is home co-ownership?",
+  "How much home can I afford if I co-buy?",
+  "What is tenants in common?",
+  // Core co-ownership questions
   "Can I buy a home with a friend?",
   "How does co-buying work?",
   "How common is co-ownership?",

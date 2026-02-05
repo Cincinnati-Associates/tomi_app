@@ -10,6 +10,7 @@ import ShareModal from './ShareModal';
 import { GatedSection } from './GatedSection';
 import { HomiChat } from '@/components/shared/HomiChat';
 import { HomiChatTrigger } from '@/components/shared/HomiChatTrigger';
+import { PageIntro } from '@/components/shared/PageIntro';
 import { calculateMonthlyPayment, calculateRemainingBalance } from '@/services/calculatorService';
 import { getStateFromUrl, generateShareUrl, updateUrlWithState } from '@/lib/calculatorState';
 
@@ -168,6 +169,18 @@ const CalculatorPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background pt-20">
+      <PageIntro
+        pageId="calculator"
+        title="Co-Buying Power Calculator"
+        description="See exactly how much more home you could afford by co-buying with friends or family."
+        bullets={[
+          "Enter your financials",
+          "Add co-buyers to compare",
+          "See the real numbers",
+        ]}
+        ctaText="Run the Numbers"
+      />
+
       {/* Calculator Nav (sticky action buttons on right side) */}
       <CalculatorNav onShare={handleShare} />
 
