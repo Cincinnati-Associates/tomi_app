@@ -8,6 +8,7 @@ import { StoryChat } from "./StoryChat";
 import { CHAPTER_TITLES } from "@/content/story-steps";
 import { cn } from "@/lib/utils";
 import { HomiChat } from "@/components/shared/HomiChat";
+import { PageIntro } from "@/components/shared/PageIntro";
 
 export function HowItWorksPage() {
   const storyProgress = useStoryProgress();
@@ -20,6 +21,18 @@ export function HowItWorksPage() {
 
   return (
     <>
+      <PageIntro
+        pageId="how-it-works"
+        title="How Tomi Works"
+        description="An interactive walkthrough of the co-ownership journey — from exploring to owning."
+        bullets={[
+          "5 chapters to explore",
+          "Chat with Homi along the way",
+          "Takes about 5 minutes",
+        ]}
+        ctaText="Let's Go"
+      />
+
       <div className="min-h-screen bg-background pt-16 md:pt-20">
         {/* Desktop: Split-screen layout */}
         <div className="hidden md:block h-[calc(100vh-80px)]">

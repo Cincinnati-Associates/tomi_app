@@ -13,10 +13,12 @@ import { TomiDifference } from "@/components/home/TomiDifference";
 import { FinalCta } from "@/components/home/FinalCta";
 import { HomiChat } from "@/components/shared/HomiChat";
 import { HomiChatTrigger } from "@/components/shared/HomiChatTrigger";
+import { AuthModal } from "@/components/auth/AuthModal";
 
 export default function Home() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [initialChatMessage, setInitialChatMessage] = useState<string | undefined>();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const handleOpenChat = (message?: string) => {
     setInitialChatMessage(message);
@@ -38,10 +40,10 @@ export default function Home() {
             <span className="text-primary">You Can&apos;t Afford?</span>
           </>
         }
-        subheadline="Tomi helps people co-buy and manage homes together."
+        subheadline={<>Introducing the easiest, most affordable, and rewarding way to<br className="hidden md:inline" /> own a home with someone you aren&apos;t married to.</>}
         primaryCta={{
-          text: "Run the Numbers",
-          href: "/calc",
+          text: "See if You Qualify",
+          href: "/assessment",
         }}
         onOpenChat={handleOpenChat}
         showTypewriter
@@ -67,6 +69,11 @@ export default function Home() {
         isOpen={isChatOpen}
         onClose={handleCloseChat}
         initialMessage={initialChatMessage}
+      />
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
       />
     </>
   );

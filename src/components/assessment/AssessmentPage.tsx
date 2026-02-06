@@ -9,6 +9,7 @@ import { AssessmentResult } from "./AssessmentResult";
 import { SectionedProgress } from "./SectionedProgress";
 import { PreResultsGate } from "./PreResultsGate";
 import { HomiChat } from "@/components/shared/HomiChat";
+import { PageIntro } from "@/components/shared/PageIntro";
 import { cn } from "@/lib/utils";
 
 // Inline Homi prompt button - contextual based on question, yellow fill with glow
@@ -109,6 +110,18 @@ export function AssessmentPage() {
 
   return (
     <>
+      <PageIntro
+        pageId="assessment"
+        title="Co-Ownership Readiness Assessment"
+        description="Answer 12 quick questions to discover if co-ownership is right for you, right now."
+        bullets={[
+          "Takes about 2 minutes",
+          "No account required",
+          "Get a personalized readiness grade",
+        ]}
+        ctaText="Start Assessment"
+      />
+
       {/* Full viewport container for mobile */}
       <div className="min-h-screen bg-background pt-14 sm:pt-16 md:pt-20 flex flex-col">
         {/* Compact header with title + progress */}

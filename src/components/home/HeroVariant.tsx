@@ -12,7 +12,8 @@ export interface HeroVariantProps {
   subheadline: React.ReactNode;
   primaryCta: {
     text: string;
-    href: string;
+    href?: string;
+    onClick?: () => void;
   };
   secondaryCta?: {
     text: string;
@@ -68,7 +69,7 @@ export function HeroVariant({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="mx-auto mt-6 max-w-3xl text-base text-muted-foreground sm:text-lg md:text-xl"
+          className="mx-auto mt-6 max-w-3xl text-base sm:text-lg md:text-xl text-shimmer"
         >
           {subheadline}
         </motion.p>
@@ -81,9 +82,15 @@ export function HeroVariant({
           className="mt-8 flex flex-col items-center gap-4 sm:mt-10"
         >
           {/* Primary CTA */}
-          <Button size="lg" className="rounded-full px-8 text-base" asChild>
-            <Link href={primaryCta.href}>{primaryCta.text}</Link>
-          </Button>
+          {primaryCta.onClick ? (
+            <Button size="lg" className="rounded-full px-8 text-base" onClick={primaryCta.onClick}>
+              {primaryCta.text}
+            </Button>
+          ) : (
+            <Button size="lg" className="rounded-full px-8 text-base" asChild>
+              <Link href={primaryCta.href!}>{primaryCta.text}</Link>
+            </Button>
+          )}
 
           {/* Secondary CTA */}
           {secondaryCta && (

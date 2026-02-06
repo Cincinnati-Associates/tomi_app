@@ -5,6 +5,7 @@ import { motion, useScroll, useTransform, MotionValue } from "framer-motion";
 import posthog from "posthog-js";
 import { cn } from "@/lib/utils";
 import { HomiChat } from "@/components/shared/HomiChat";
+import { PageIntro } from "@/components/shared/PageIntro";
 
 // Frame components
 import { Frame1Together } from "./frames/Frame1Together";
@@ -203,6 +204,18 @@ export function CoOwnershipHistoryPage() {
 
   return (
     <>
+      <PageIntro
+        pageId="co-ownership-history"
+        title="The Story of Co-Ownership"
+        description="An interactive visual journey through 300,000 years of humans owning homes together."
+        bullets={[
+          "7 illustrated chapters",
+          "Scroll to explore",
+          "See how we got here",
+        ]}
+        ctaText="Begin the Story"
+      />
+
       {/* Desktop progress indicator */}
       <FrameProgress
         currentFrame={currentFrame}
