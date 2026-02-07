@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 
 export default function OnboardingPage() {
-  // Redirect to welcome as the first step
-  redirect('/onboarding/welcome')
+  // Redirect to the journey page (replaces old onboarding flow)
+  redirect('/journey')
 }

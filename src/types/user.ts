@@ -2,6 +2,8 @@
 // USER & PROFILE TYPES
 // ============================================
 
+export type UserRole = 'user' | 'admin' | 'superadmin'
+
 export interface Profile {
   id: string
   email: string | null
@@ -10,6 +12,7 @@ export interface Profile {
   avatar_url: string | null
   timezone: string | null
   onboarding_completed: boolean
+  role: UserRole
   created_at: string
   updated_at: string
 }

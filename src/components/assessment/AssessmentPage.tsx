@@ -9,6 +9,7 @@ import { AssessmentResult } from "./AssessmentResult";
 import { SectionedProgress } from "./SectionedProgress";
 import { PreResultsGate } from "./PreResultsGate";
 import { HomiChat } from "@/components/shared/HomiChat";
+import { CompactHomiChat } from "@/components/shared/CompactHomiChat";
 import { PageIntro } from "@/components/shared/PageIntro";
 import { cn } from "@/lib/utils";
 
@@ -60,7 +61,8 @@ function InlineHomiPrompt({
 }
 
 export function AssessmentPage() {
-  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isCompactChatOpen, setIsCompactChatOpen] = useState(false);
+  const [isResultsChatOpen, setIsResultsChatOpen] = useState(false);
 
   const {
     currentQuestionIndex,
@@ -84,12 +86,20 @@ export function AssessmentPage() {
     getAssessmentContext,
   } = useAssessment();
 
-  const handleOpenChat = useCallback(() => {
-    setIsChatOpen(true);
+  const handleOpenCompactChat = useCallback(() => {
+    setIsCompactChatOpen(true);
   }, []);
 
-  const handleCloseChat = useCallback(() => {
-    setIsChatOpen(false);
+  const handleCloseCompactChat = useCallback(() => {
+    setIsCompactChatOpen(false);
+  }, []);
+
+  const handleOpenResultsChat = useCallback(() => {
+    setIsResultsChatOpen(true);
+  }, []);
+
+  const handleCloseResultsChat = useCallback(() => {
+    setIsResultsChatOpen(false);
   }, []);
 
   // Build context-aware initial message for Homi
@@ -184,13 +194,36 @@ export function AssessmentPage() {
                     />
                   </div>
 
-                  {/* Bottom section: Homi prompt + navigation - centered in remaining space */}
+                  {/* Bottom section: Homi prompt/chat + navigation */}
                   <div className="flex-1 flex flex-col justify-center items-center py-4 min-h-[120px] sm:min-h-[150px] mt-4 sm:mt-8">
-                    <div className="space-y-3">
-                      {/* Inline Homi prompt */}
-                      <InlineHomiPrompt
-                        prompt={currentQuestion.homiPrompt || "Ask Homi"}
-                        onClick={handleOpenChat}
+                    <div className="space-y-3 w-full max-w-lg">
+                      {/* Inline Homi prompt — hidden when compact chat is open */}
+                      <AnimatePresence>
+                        {!isCompactChatOpen && (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ duration: 0.15 }}
+                          >
+                            <InlineHomiPrompt
+                              prompt={currentQuestion.homiPrompt || "Ask Homi"}
+                              onClick={handleOpenCompactChat}
+                            />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      {/* Compact inline chat */}
+                      <CompactHomiChat
+                        isOpen={isCompactChatOpen}
+                        onClose={handleCloseCompactChat}
+                        initialMessage={buildInitialMessage()}
+                        contextLabel={`Q${currentQuestionIndex + 1} of 12`}
+                        suggestedPrompts={[
+                          { label: currentQuestion.homiPrompt || "Explain this in simple terms" },
+                          { label: "Why does this matter?" },
+                        ]}
                       />
 
                       {/* Previous question link */}
@@ -222,7 +255,7 @@ export function AssessmentPage() {
                       result={result}
                       onCtaClick={trackCtaClick}
                       onShare={trackShare}
-                      onOpenChat={handleOpenChat}
+                      onOpenChat={handleOpenResultsChat}
                       onRestart={restart}
                     />
                   )}
@@ -239,10 +272,10 @@ export function AssessmentPage() {
         </div>
       </div>
 
-      {/* Homi Chat Modal */}
+      {/* Full-screen Homi Chat — used only from results view */}
       <HomiChat
-        isOpen={isChatOpen}
-        onClose={handleCloseChat}
+        isOpen={isResultsChatOpen}
+        onClose={handleCloseResultsChat}
         initialMessage={buildInitialMessage()}
       />
     </>

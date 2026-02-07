@@ -2,7 +2,7 @@
 
 import { useAuthContext } from '@/providers/AuthProvider';
 import { motion } from 'framer-motion';
-import { User, Home, Settings, ArrowRight, Plus } from 'lucide-react';
+import { User, Home, Settings, ArrowRight, Plus, Compass } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
@@ -121,12 +121,42 @@ export default function DashboardPage() {
           </motion.div>
         </div>
 
-        {/* Calculator CTA */}
+        {/* Journey CTA */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
           className="mt-8 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl border border-primary/20 p-6"
+        >
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 flex-shrink-0">
+                <Compass className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground">
+                  Start Your Co-Buying Journey
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Discover your goals, assess co-buyers, and build your path to co-ownership.
+                </p>
+              </div>
+            </div>
+            <Link href="/journey">
+              <Button>
+                Go to Journey
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+        </motion.div>
+
+        {/* Calculator CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mt-4 bg-card rounded-xl border border-border p-6"
         >
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
@@ -138,7 +168,7 @@ export default function DashboardPage() {
               </p>
             </div>
             <Link href="/calc">
-              <Button>
+              <Button variant="outline">
                 Open Calculator
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
