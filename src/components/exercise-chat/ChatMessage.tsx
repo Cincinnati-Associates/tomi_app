@@ -30,8 +30,8 @@ export function ChatMessage({ role, content, isStreaming }: ChatMessageProps) {
         className={cn(
           "max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
           isAssistant
-            ? "bg-card border border-border rounded-tl-sm"
-            : "bg-primary text-primary-foreground rounded-tr-sm"
+            ? "bg-muted rounded-tl-md"
+            : "bg-primary text-primary-foreground rounded-br-md"
         )}
       >
         {content}
@@ -57,7 +57,7 @@ export function TypingIndicator() {
       <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 flex-shrink-0">
         <Sparkles className="h-3.5 w-3.5 text-primary" />
       </div>
-      <div className="bg-card border border-border rounded-2xl rounded-tl-sm px-4 py-3">
+      <div className="bg-muted rounded-2xl rounded-tl-md px-4 py-3">
         <div className="flex gap-1">
           {[0, 1, 2].map((i) => (
             <motion.div
