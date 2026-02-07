@@ -68,6 +68,37 @@ export const EXERCISE_FIELD_MAPPINGS: FieldMapping[] = [
     },
     overwriteExisting: false,
   },
+
+  // GEMs Discovery
+  {
+    exerciseSlug: "gems_discovery",
+    questionKey: "timeline",
+    targetTable: "user_journeys",
+    targetField: "target_timeline",
+    transform: (v) => {
+      const map: Record<string, string> = {
+        asap: "3mo",
+        this_year: "12mo",
+        "1_2_years": "18mo+",
+        exploring: "exploring",
+      };
+      return map[v as string] ?? undefined;
+    },
+    overwriteExisting: false,
+  },
+
+  // Co-Buyer Candidate Assessment
+  {
+    exerciseSlug: "cobuyer_candidate_assessment",
+    questionKey: "candidate_name",
+    targetTable: "user_journeys",
+    targetField: "co_buyer_status",
+    transform: (v) => {
+      // If they've assessed someone, they have potential co-buyers
+      return typeof v === "string" && v.length > 0 ? "has_cobuyers" : undefined;
+    },
+    overwriteExisting: false,
+  },
 ];
 
 /**

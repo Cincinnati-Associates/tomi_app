@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { Menu, LogOut, Settings, Home, ChevronDown, MessageSquare, Calculator, Users } from "lucide-react";
+import { Menu, LogOut, Settings, Home, ChevronDown, MessageSquare, Calculator, Users, Compass, Shield } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 
 const appNavLinks = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
+  { href: "/journey", label: "Journey", icon: Compass },
   { href: "/calc", label: "Calculator", icon: Calculator },
   { href: "/parties", label: "Parties", icon: Users },
 ];
@@ -21,7 +22,7 @@ export function AppNavbar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const { profile, signOut } = useAuthContext();
+  const { profile, isAdmin, signOut } = useAuthContext();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -149,6 +150,16 @@ export function AppNavbar() {
                       <Settings className="h-4 w-4" />
                       Settings
                     </Link>
+                    {isAdmin && (
+                      <Link
+                        href="/admin"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-orange-600 dark:text-orange-400 hover:bg-orange-500/10 transition-colors"
+                      >
+                        <Shield className="h-4 w-4" />
+                        Admin Panel
+                      </Link>
+                    )}
                     <button
                       onClick={handleSignOut}
                       className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-500 hover:bg-red-500/10 transition-colors"

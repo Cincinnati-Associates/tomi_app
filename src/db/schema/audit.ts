@@ -92,4 +92,9 @@ export const EVENT_RETENTION_MAP: Record<string, number> = {
   'user.logout': AUTH_AUDIT_RETENTION.OPERATIONAL,
   'user.profile_updated': AUTH_AUDIT_RETENTION.OPERATIONAL,
   'user.email_verified': AUTH_AUDIT_RETENTION.COMPLIANCE,
+  'admin.role_changed': AUTH_AUDIT_RETENTION.COMPLIANCE,
+  'admin.password_reset_sent': AUTH_AUDIT_RETENTION.COMPLIANCE,
+  'admin.exercise_reset': AUTH_AUDIT_RETENTION.OPERATIONAL,
+  'admin.member_removed': AUTH_AUDIT_RETENTION.COMPLIANCE,
+  'admin.party_status_changed': AUTH_AUDIT_RETENTION.COMPLIANCE,
 }

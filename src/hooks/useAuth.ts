@@ -14,6 +14,8 @@ interface AuthState {
 }
 
 interface AuthActions {
+  isAdmin: boolean;
+  isSuperAdmin: boolean;
   signInWithEmail: (email: string) => Promise<{ error: Error | null }>;
   signInWithPhone: (phone: string) => Promise<{ error: Error | null }>;
   signInWithPassword: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -32,49 +34,26 @@ export function useAuth(): AuthState & AuthActions {
 
   const supabase = useMemo(() => createClient(), []);
 
-  // Fetch profile data (creates one if missing)
-  const fetchProfile = useCallback(async (userId: string, userEmail?: string | null, userName?: string | null) => {
+  // Fetch profile data via server-side API (bypasses RLS)
+  const fetchProfile = useCallback(async (userId: string) => {
     console.log('[useAuth] fetchProfile called for:', userId);
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
+      const res = await fetch('/api/users/me');
+      console.log('[useAuth] /api/users/me status:', res.status);
 
-      console.log('[useAuth] Profile query result:', { data, error });
-
-      if (error) {
-        // Profile doesn't exist - try to create one
-        if (error.code === 'PGRST116') {
-          console.log('[useAuth] Profile not found, creating one...');
-          const { data: newProfile, error: insertError } = await supabase
-            .from('profiles')
-            .insert({
-              id: userId,
-              email: userEmail || null,
-              full_name: userName || null,
-            })
-            .select()
-            .single();
-
-          if (insertError) {
-            console.error('[useAuth] Error creating profile:', insertError);
-            return null;
-          }
-          console.log('[useAuth] Created new profile:', newProfile);
-          return newProfile as Profile;
-        }
-        console.error('[useAuth] Error fetching profile:', error);
+      if (!res.ok) {
+        console.error('[useAuth] Profile fetch failed:', res.status);
         return null;
       }
 
-      return data as Profile;
+      const profile = await res.json();
+      console.log('[useAuth] Profile loaded:', profile?.id);
+      return profile as Profile;
     } catch (error) {
       console.error('[useAuth] Exception fetching profile:', error);
       return null;
     }
-  }, [supabase]);
+  }, []);
 
   const refreshProfile = useCallback(async () => {
     if (user?.id) {
@@ -102,11 +81,7 @@ export function useAuth(): AuthState & AuthActions {
 
         if (session?.user) {
           console.log('[useAuth] Fetching profile for user:', session.user.id);
-          const profileData = await fetchProfile(
-            session.user.id,
-            session.user.email,
-            session.user.user_metadata?.full_name || session.user.user_metadata?.name
-          );
+          const profileData = await fetchProfile(session.user.id);
           console.log('[useAuth] Profile:', profileData);
           setProfile(profileData);
         }
@@ -131,11 +106,7 @@ export function useAuth(): AuthState & AuthActions {
           if (event === 'SIGNED_IN') {
             await new Promise(resolve => setTimeout(resolve, 500));
           }
-          const profileData = await fetchProfile(
-            session.user.id,
-            session.user.email,
-            session.user.user_metadata?.full_name || session.user.user_metadata?.name
-          );
+          const profileData = await fetchProfile(session.user.id);
           setProfile(profileData);
         } else {
           setProfile(null);
@@ -245,6 +216,8 @@ export function useAuth(): AuthState & AuthActions {
     profile,
     isLoading,
     isAuthenticated: !!user,
+    isAdmin: profile?.role === 'admin' || profile?.role === 'superadmin',
+    isSuperAdmin: profile?.role === 'superadmin',
     signInWithEmail,
     signInWithPassword,
     signUpWithPassword,

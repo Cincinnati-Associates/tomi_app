@@ -7,6 +7,7 @@ import {
   index,
   varchar,
 } from 'drizzle-orm/pg-core'
+import { userRoleEnum } from './enums'
 
 /**
  * User Profiles
@@ -26,6 +27,7 @@ export const profiles = pgTable(
     avatarUrl: text('avatar_url'),
     timezone: varchar('timezone', { length: 50 }).default('UTC'), // PRD-001 §4.1 - IANA timezone
     onboardingCompleted: boolean('onboarding_completed').default(false),
+    role: userRoleEnum('role').default('user').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true })
       .defaultNow()
       .notNull(),

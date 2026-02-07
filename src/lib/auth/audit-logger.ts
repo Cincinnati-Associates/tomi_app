@@ -18,6 +18,11 @@ export type AuthEventType =
   | 'user.password_reset'
   | 'user.profile_updated'
   | 'user.email_verified'
+  | 'admin.role_changed'
+  | 'admin.password_reset_sent'
+  | 'admin.exercise_reset'
+  | 'admin.member_removed'
+  | 'admin.party_status_changed'
 
 export interface AuditLogInput {
   eventType: AuthEventType

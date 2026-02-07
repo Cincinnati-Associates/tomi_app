@@ -313,6 +313,51 @@
   animation: chat-border-glow-dark 2s ease-in-out infinite;
 }
 
+/* Scrollbar hide utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Trail node breathing glow for current node */
+@keyframes trail-breathe {
+  0%, 100% {
+    box-shadow: 0 0 8px hsl(var(--primary) / 0.3), 0 0 16px hsl(var(--primary) / 0.15);
+  }
+  50% {
+    box-shadow: 0 0 14px hsl(var(--primary) / 0.5), 0 0 28px hsl(var(--primary) / 0.25);
+  }
+}
+
+.trail-node-current {
+  animation: trail-breathe 2.5s ease-in-out infinite;
+}
+
+/* Traveling dot on active trail connector */
+@keyframes trail-dot-travel {
+  0% {
+    top: 0;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
+.trail-dot-travel {
+  animation: trail-dot-travel 2s ease-in-out infinite;
+}
+
 /* Blog prose styles */
 @layer components {
   .prose-tomi {

@@ -56,6 +56,9 @@ export const exerciseStatusEnum = pgEnum('exercise_status', [
   'completed',
 ])
 
+// User Roles (app-level, separate from party-level member_role)
+export const userRoleEnum = pgEnum('user_role', ['user', 'admin', 'superadmin'])
+
 // Auth Audit Events (PRD-001)
 export const authEventTypeEnum = pgEnum('auth_event_type', [
   'user.registered',
@@ -64,4 +67,9 @@ export const authEventTypeEnum = pgEnum('auth_event_type', [
   'user.password_reset',
   'user.profile_updated',
   'user.email_verified',
+  'admin.role_changed',
+  'admin.password_reset_sent',
+  'admin.exercise_reset',
+  'admin.member_removed',
+  'admin.party_status_changed',
 ])

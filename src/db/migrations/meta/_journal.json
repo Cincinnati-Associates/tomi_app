@@ -15,6 +15,13 @@
       "when": 1738440000000,
       "tag": "0002_create_journey_trigger",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1770496300000,
+      "tag": "0003_add_admin_role",
+      "breakpoints": true
     }
   ]
 }

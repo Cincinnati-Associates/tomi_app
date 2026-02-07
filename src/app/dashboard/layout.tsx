@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AppNavbar } from "@/components/layout/AppNavbar";
 import { useAuthContext } from "@/providers/AuthProvider";
 
@@ -8,9 +10,24 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { isLoading } = useAuthContext();
+  const { isLoading, isAuthenticated } = useAuthContext();
+  const router = useRouter();
+  const [timedOut, setTimedOut] = useState(false);
 
-  // Auth redirect is handled by middleware - just show loading state here
+  // Safety timeout — if loading takes > 5s, redirect to home
+  useEffect(() => {
+    if (!isLoading) return;
+    const timer = setTimeout(() => setTimedOut(true), 5000);
+    return () => clearTimeout(timer);
+  }, [isLoading]);
+
+  // Redirect if not authenticated after loading resolves (or on timeout)
+  useEffect(() => {
+    if (timedOut || (!isLoading && !isAuthenticated)) {
+      router.replace("/?signin=true");
+    }
+  }, [timedOut, isLoading, isAuthenticated, router]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
