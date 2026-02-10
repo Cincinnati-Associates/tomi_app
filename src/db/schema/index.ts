@@ -17,5 +17,8 @@ export * from './journey'
 // Audit (PRD-001)
 export * from './audit'
 
+// HomeBase System
+export * from './homebase'
+
 // Relations (must be last to avoid circular imports)
 export * from './relations'

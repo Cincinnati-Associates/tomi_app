@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
+import { Logo } from "@/components/ui/logo";
 
 const iconMap: Record<string, React.ElementType> = {
   Compass: Compass,
@@ -367,13 +368,7 @@ export function HowItWorks({
               className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl flex items-center justify-center gap-2"
             >
               <span className="font-normal">how</span>
-              <Image
-                src="/logo.png"
-                alt="Tomi"
-                width={100}
-                height={32}
-                className="h-8 w-auto inline-block"
-              />
+              <Logo variant="auto" className="h-8 inline-block" />
               {header}
             </motion.h2>
             {subheader && (
@@ -445,13 +440,7 @@ export function HowItWorks({
         <div className="text-center mb-8 px-4">
           <h2 className="font-heading text-2xl font-bold tracking-tight text-foreground flex items-center justify-center gap-2 flex-wrap">
             <span className="font-normal">how</span>
-            <Image
-              src="/logo.png"
-              alt="Tomi"
-              width={80}
-              height={26}
-              className="h-6 w-auto inline-block"
-            />
+            <Logo variant="auto" className="h-6 inline-block" />
             {header}
           </h2>
           {subheader && (

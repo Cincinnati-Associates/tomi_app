@@ -134,4 +134,7 @@ export const GEMS_STAGES: ExerciseStageDef[] = [
 ]
 
 export const GEMS_GREETING =
-  "Let's start by understanding what you want out of co-ownership — your Goals, Expectations, and Motivations. This takes about 5 minutes and makes everything that follows more personal."
+  "Hey! I'm Homi — I'll be walking you through this together."
+
+export const GEMS_INTRO_PROMPT =
+  "Generate an [INTRO] message for the GEMs discovery exercise. The user just arrived and saw a brief hello from you. Now set the stage: explain what GEMs are, why honest self-knowledge matters for co-ownership communication, and that there are no wrong answers. Keep it warm and grounded — 3-5 sentences, no bullet points."

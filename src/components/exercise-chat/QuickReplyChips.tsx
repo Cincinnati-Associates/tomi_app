@@ -40,12 +40,12 @@ export function QuickReplyChips({
             onClick={() => !disabled && onSelect(option.value)}
             disabled={disabled}
             className={cn(
-              "inline-flex items-center rounded-full px-4 py-2.5 text-sm font-medium",
+              "inline-flex items-center rounded-full px-4 py-2.5 text-[15px] font-medium",
               "transition-all min-h-[44px]",
               "focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-1",
               isSelected
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-foreground hover:bg-muted/80",
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "bg-muted text-foreground hover:bg-muted/80 active:scale-[0.97]",
               disabled && !isSelected && "opacity-50 cursor-not-allowed",
               multiSelect && isSelected && "ring-2 ring-primary/30"
             )}

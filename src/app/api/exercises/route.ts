@@ -33,7 +33,7 @@ export async function GET() {
 
       serviceClient
         .from("user_exercise_responses")
-        .select("exercise_id, status, version, completed_at")
+        .select("exercise_id, status, version, completed_at, responses, computed_scores")
         .eq("user_id", user.id)
         .order("version", { ascending: false }),
     ]);
@@ -46,7 +46,13 @@ export async function GET() {
     // Build response map: exercise_id -> latest response
     const responseMap = new Map<
       string,
-      { status: string; version: number; completedAt: string | null }
+      {
+        status: string
+        version: number
+        completedAt: string | null
+        responses: Record<string, unknown> | null
+        computedScores: Record<string, unknown> | null
+      }
     >();
     for (const resp of responses) {
       if (!responseMap.has(resp.exercise_id)) {
@@ -54,6 +60,8 @@ export async function GET() {
           status: resp.status,
           version: resp.version,
           completedAt: resp.completed_at,
+          responses: resp.responses as Record<string, unknown> | null,
+          computedScores: resp.computed_scores as Record<string, unknown> | null,
         });
       }
     }
@@ -66,6 +74,8 @@ export async function GET() {
         userStatus: userResp?.status || "not_started",
         userVersion: userResp?.version || 0,
         completedAt: userResp?.completedAt || null,
+        responses: userResp?.responses || null,
+        computedScores: userResp?.computedScores || null,
       };
     });
 

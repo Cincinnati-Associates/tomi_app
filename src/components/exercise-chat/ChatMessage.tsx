@@ -28,7 +28,7 @@ export function ChatMessage({ role, content, isStreaming }: ChatMessageProps) {
 
       <div
         className={cn(
-          "max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
+          "max-w-[85%] sm:max-w-[75%] rounded-2xl px-4 py-3 text-[15px] leading-relaxed",
           isAssistant
             ? "bg-muted rounded-tl-md"
             : "bg-primary text-primary-foreground rounded-br-md"

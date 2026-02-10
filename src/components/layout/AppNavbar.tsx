@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { Menu, LogOut, Settings, Home, ChevronDown, MessageSquare, Calculator, Users, Compass, Shield } from "lucide-react";
+import { Menu, LogOut, Settings, Home, ChevronDown, MessageSquare, Calculator, Users, Compass, Shield, Landmark } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
@@ -15,6 +15,7 @@ const appNavLinks = [
   { href: "/journey", label: "Journey", icon: Compass },
   { href: "/calc", label: "Calculator", icon: Calculator },
   { href: "/parties", label: "Parties", icon: Users },
+  { href: "/homebase", label: "HomeBase", icon: Landmark },
 ];
 
 export function AppNavbar() {

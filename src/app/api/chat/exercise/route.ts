@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
       model: getAIModel(),
       system: contextualPrompt,
       messages: normalizedMessages,
-      maxTokens: 300,
+      maxTokens: 500,
       temperature: 0.7,
     })
 
