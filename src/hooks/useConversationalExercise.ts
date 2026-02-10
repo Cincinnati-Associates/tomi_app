@@ -36,6 +36,8 @@ export interface UseConversationalExerciseOptions {
   stages: ExerciseStageDef[]
   /** Initial AI greeting message */
   greeting: string
+  /** Prompt sent to AI to generate a contextual intro after the greeting */
+  introPrompt?: string
   /** Called when all stages are complete with final answers */
   onComplete: (answers: Record<string, unknown>) => void
   /** Resume from saved state */
@@ -52,6 +54,7 @@ export function useConversationalExercise({
   exerciseSlug,
   stages,
   greeting,
+  introPrompt,
   onComplete,
   savedAnswers,
   savedStage = 0,
@@ -134,7 +137,7 @@ export function useConversationalExercise({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStageIndex, currentQuestionIndex, stages])
 
-  // Initialize with greeting
+  // Initialize with greeting (and optional AI intro)
   useEffect(() => {
     if (!hasGreeted.current) {
       hasGreeted.current = true
@@ -143,8 +146,14 @@ export function useConversationalExercise({
       // If resuming, fast-forward to the right question
       if (savedStage > 0 || savedQuestion > 0) {
         showCurrentQuestion()
+      } else if (introPrompt) {
+        // Send intro prompt to AI — onFinish will call showCurrentQuestion()
+        setTimeout(() => {
+          setIsWaitingForAI(true)
+          append({ role: "user", content: `[INTRO] ${introPrompt}` })
+        }, 600)
       } else {
-        // Short delay then show first question
+        // No intro — short delay then show first question
         setTimeout(() => showCurrentQuestion(), 800)
       }
     }

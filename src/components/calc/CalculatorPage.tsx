@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from 'react';
-import { Person, MortgageDetails, ProFormaScenario, ProformaPerson, TaxConsideration } from './types';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { Person, MortgageDetails, ProFormaScenario, ProformaPerson, TaxConsideration, CalcMode } from './types';
 import OwnershipCalculator from './OwnershipCalculator';
 import PaymentTracker from './PaymentTracker';
 import ReturnsProforma from './ReturnsProforma';
@@ -32,17 +32,27 @@ const CalculatorPage: React.FC = () => {
   ]);
 
   const [selectedScenarioId, setSelectedScenarioId] = useState<string>('1');
+  const [mode, setMode] = useState<CalcMode>('bottoms-up');
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState('');
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isSticky, setIsSticky] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
-  // Load state from URL on mount
+  // Load state from URL on mount, or pre-populate first co-owner
   useEffect(() => {
     const stateFromUrl = getStateFromUrl();
     if (stateFromUrl) {
       setPeople(stateFromUrl.people);
       setMortgageDetails(stateFromUrl.mortgageDetails);
       setScenarios(stateFromUrl.scenarios);
+    } else {
+      setPeople([{
+        id: '1',
+        name: 'Co-Owner 1',
+        downPaymentContribution: 0,
+        estimatedMonthlyContribution: 0,
+      }]);
     }
   }, []);
 
@@ -54,6 +64,18 @@ const CalculatorPage: React.FC = () => {
 
     return () => clearTimeout(timeoutId);
   }, [people, mortgageDetails, scenarios]);
+
+  // IntersectionObserver for sticky bar
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsSticky(!entry.isIntersecting),
+      { threshold: 0, rootMargin: '-56px 0px 0px 0px' }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []);
 
   const handleShare = () => {
     const url = generateShareUrl({ people, mortgageDetails, scenarios });
@@ -181,6 +203,43 @@ const CalculatorPage: React.FC = () => {
         ctaText="Run the Numbers"
       />
 
+      {/* Sentinel for IntersectionObserver */}
+      <div ref={sentinelRef} aria-hidden="true" />
+
+      {/* Sticky Output Bar */}
+      <div
+        className={`sticky top-[56px] z-30 transition-shadow duration-200 ${
+          isSticky
+            ? 'bg-background/95 backdrop-blur-md border-b border-border shadow-sm'
+            : 'bg-transparent'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex items-center justify-center gap-8 sm:gap-16">
+            <div className="text-center">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                {mode === 'bottoms-up' ? 'Max Home Price' : 'Home Price'}
+              </p>
+              <p className="text-xl sm:text-2xl font-bold text-foreground tabular-nums transition-all duration-300">
+                ${mortgageDetails.homeValue.toLocaleString()}
+              </p>
+            </div>
+            <div className="w-px h-8 bg-border" />
+            <div className="text-center">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                {mode === 'bottoms-up' ? 'Max Mortgage' : 'Est. Monthly Payment'}
+              </p>
+              <p className="text-xl sm:text-2xl font-bold text-primary tabular-nums transition-all duration-300">
+                {mode === 'bottoms-up'
+                  ? `$${mortgageDetails.loanAmount.toLocaleString()}`
+                  : `$${monthlyMortgagePayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                }
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Calculator Nav (sticky action buttons on right side) */}
       <CalculatorNav onShare={handleShare} />
 
@@ -197,6 +256,8 @@ const CalculatorPage: React.FC = () => {
                 monthlyMortgagePayment={monthlyMortgagePayment}
                 fullTermOwnership={fullTermOwnership}
                 onInvite={handleShare}
+                mode={mode}
+                onModeChange={setMode}
               />
 
               {/* Middle Section: Scenario Table - Gated */}

@@ -177,7 +177,7 @@
     90deg,
     hsl(var(--muted-foreground)) 0%,
     hsl(var(--muted-foreground)) 40%,
-    hsl(0 0% 100%) 50%,
+    hsl(var(--primary)) 50%,
     hsl(var(--muted-foreground)) 60%,
     hsl(var(--muted-foreground)) 100%
   );
@@ -418,5 +418,27 @@
 
   .prose-tomi .callout-info {
     @apply border-blue-500 bg-blue-500/5;
+  }
+
+  /* HomeBase chat prose styles — larger, more readable text */
+  .homebase-prose p {
+    @apply mb-2 last:mb-0;
+  }
+
+  .homebase-prose strong {
+    @apply font-semibold;
+  }
+
+  .homebase-prose ul {
+    @apply my-2 ml-1 space-y-1;
+  }
+
+  .homebase-prose li {
+    @apply relative pl-4;
+  }
+
+  .homebase-prose li::before {
+    content: "•";
+    @apply absolute left-0 text-primary;
   }
 }

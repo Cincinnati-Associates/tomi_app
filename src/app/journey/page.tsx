@@ -1,10 +1,12 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { motion } from "framer-motion"
+import { useSearchParams, useRouter } from "next/navigation"
+import { motion, AnimatePresence } from "framer-motion"
 import { useAuthContext } from "@/providers/AuthProvider"
 import { JourneyShell } from "@/components/journey/JourneyShell"
 import { HomiWelcome } from "@/components/journey/HomiWelcome"
+import { CompletionCelebration } from "@/components/journey/CompletionCelebration"
 import {
   JOURNEY_PHASES,
   BLUEPRINT_TILES,
@@ -175,9 +177,13 @@ function buildTileContent(
 
 export default function JourneyPage() {
   const { profile, isLoading: authLoading } = useAuthContext()
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const completedSlug = searchParams.get("completed")
   const [journeyState, setJourneyState] = useState<JourneyState | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [showWelcome, setShowWelcome] = useState(false)
+  const [showCelebration, setShowCelebration] = useState(false)
 
   const fetchJourneyData = useCallback(async () => {
     try {
@@ -235,6 +241,18 @@ export default function JourneyPage() {
     }
   }, [authLoading, fetchJourneyData])
 
+  // Show celebration overlay when returning from a completed exercise
+  useEffect(() => {
+    if (completedSlug && journeyState && !showWelcome) {
+      setShowCelebration(true)
+    }
+  }, [completedSlug, journeyState, showWelcome])
+
+  const handleDismissCelebration = useCallback(() => {
+    setShowCelebration(false)
+    router.replace("/journey")
+  }, [router])
+
   const handleWelcomeComplete = useCallback(async () => {
     setShowWelcome(false)
     // Mark welcome as completed via journey PATCH
@@ -289,6 +307,16 @@ export default function JourneyPage() {
         state={journeyState}
         userName={profile?.full_name?.split(" ")[0] ?? null}
       />
+
+      <AnimatePresence>
+        {showCelebration && completedSlug && (
+          <CompletionCelebration
+            exerciseSlug={completedSlug}
+            journeyState={journeyState}
+            onDismiss={handleDismissCelebration}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }

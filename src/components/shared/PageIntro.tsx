@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { usePageIntro } from "@/hooks/usePageIntro";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 interface PageIntroProps {
   pageId: string;
@@ -25,7 +26,7 @@ interface PageIntroProps {
 /**
  * Page introduction component that shows on first visit.
  * Mobile: Bottom sheet (Drawer)
- * Desktop: Dismissible card at top of page
+ * Desktop: Centered dismissible card
  */
 export function PageIntro({
   pageId,
@@ -36,98 +37,98 @@ export function PageIntro({
   enabled = true,
 }: PageIntroProps) {
   const { isOpen, dismiss } = usePageIntro({ pageId, enabled });
+  const isMobile = useIsMobile();
 
   if (!isOpen) return null;
 
-  // Shared content for both mobile and desktop
-  const IntroContent = ({ isMobile = false }: { isMobile?: boolean }) => (
-    <>
-      {bullets && bullets.length > 0 && (
-        <ul className={`space-y-2 ${isMobile ? "mt-4" : "mt-3"}`}>
-          {bullets.map((bullet, index) => (
-            <li key={index} className="flex items-start gap-2 text-sm">
-              <CheckCircle className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
-              <span className="text-muted-foreground">{bullet}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </>
-  );
+  // Mobile: Bottom Sheet Drawer
+  if (isMobile) {
+    return (
+      <Drawer open={isOpen} onOpenChange={(open) => !open && dismiss()}>
+        <DrawerContent>
+          <DrawerHeader className="text-left">
+            <DrawerTitle>{title}</DrawerTitle>
+            <DrawerDescription>{description}</DrawerDescription>
+          </DrawerHeader>
+          <div className="px-4">
+            {bullets && bullets.length > 0 && (
+              <ul className="mt-4 space-y-2">
+                {bullets.map((bullet, index) => (
+                  <li key={index} className="flex items-start gap-2 text-sm">
+                    <CheckCircle className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
+                    <span className="text-muted-foreground">{bullet}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <DrawerFooter className="pb-8">
+            <Button onClick={dismiss} className="w-full" size="lg">
+              {ctaText}
+            </Button>
+            <button
+              onClick={dismiss}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors mt-1"
+            >
+              Dismiss
+            </button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
 
+  // Desktop: Centered card
   return (
-    <>
-      {/* Mobile: Bottom Sheet Drawer */}
-      <div className="md:hidden">
-        <Drawer open={isOpen} onOpenChange={(open) => !open && dismiss()}>
-          <DrawerContent>
-            <DrawerHeader className="text-left">
-              <DrawerTitle>{title}</DrawerTitle>
-              <DrawerDescription>{description}</DrawerDescription>
-            </DrawerHeader>
-            <div className="px-4">
-              <IntroContent isMobile />
-            </div>
-            <DrawerFooter className="pb-8">
-              <Button onClick={dismiss} className="w-full" size="lg">
-                {ctaText}
-              </Button>
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.2 }}
+          className="mb-6"
+        >
+          <div className="relative rounded-2xl border bg-card p-8 shadow-lg max-w-md mx-auto text-center">
+            {/* Close button */}
+            <button
+              onClick={dismiss}
+              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Dismiss intro"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            {/* Content */}
+            <h2 className="text-lg font-semibold">{title}</h2>
+            <p className="text-sm text-muted-foreground mt-2">
+              {description}
+            </p>
+
+            {bullets && bullets.length > 0 && (
+              <ul className="mt-4 space-y-2 inline-flex flex-col items-start">
+                {bullets.map((bullet, index) => (
+                  <li key={index} className="flex items-start gap-2 text-sm">
+                    <CheckCircle className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
+                    <span className="text-muted-foreground">{bullet}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {/* CTA */}
+            <div className="mt-5 flex items-center justify-center gap-4">
+              <Button onClick={dismiss}>{ctaText}</Button>
               <button
                 onClick={dismiss}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors mt-1"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
-                Dismiss
+                Skip intro
               </button>
-            </DrawerFooter>
-          </DrawerContent>
-        </Drawer>
-      </div>
-
-      {/* Desktop: Dismissible Card */}
-      <div className="hidden md:block">
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.2 }}
-              className="mb-6"
-            >
-              <div className="relative rounded-2xl border bg-card p-6 shadow-lg max-w-2xl mx-auto">
-                {/* Close button */}
-                <button
-                  onClick={dismiss}
-                  className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
-                  aria-label="Dismiss intro"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-
-                {/* Content */}
-                <div className="pr-8">
-                  <h2 className="text-lg font-semibold">{title}</h2>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {description}
-                  </p>
-                  <IntroContent />
-                </div>
-
-                {/* CTA */}
-                <div className="mt-4 flex items-center gap-4">
-                  <Button onClick={dismiss}>{ctaText}</Button>
-                  <button
-                    onClick={dismiss}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    Skip intro
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </>
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

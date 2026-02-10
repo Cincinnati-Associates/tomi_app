@@ -59,6 +59,29 @@ export const exerciseStatusEnum = pgEnum('exercise_status', [
 // User Roles (app-level, separate from party-level member_role)
 export const userRoleEnum = pgEnum('user_role', ['user', 'admin', 'superadmin'])
 
+// HomeBase Document System
+export const documentCategoryEnum = pgEnum('document_category', [
+  'ownership_agreement',
+  'insurance',
+  'financial',
+  'tax',
+  'maintenance',
+  'legal',
+  'other',
+])
+
+export const documentStatusEnum = pgEnum('document_status', [
+  'uploading',
+  'processing',
+  'ready',
+  'error',
+])
+
+// HomeBase Task System
+export const taskStatusEnum = pgEnum('task_status', ['todo', 'in_progress', 'done'])
+
+export const taskPriorityEnum = pgEnum('task_priority', ['low', 'medium', 'high'])
+
 // Auth Audit Events (PRD-001)
 export const authEventTypeEnum = pgEnum('auth_event_type', [
   'user.registered',

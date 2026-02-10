@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, LayoutGroup } from 'framer-motion';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { cn } from '@/lib/utils';
@@ -14,6 +14,8 @@ interface OwnershipCalculatorProps {
   monthlyMortgagePayment: number;
   fullTermOwnership: { id: string; name: string; percentage: number }[];
   onInvite: () => void;
+  mode: CalcMode;
+  onModeChange: (mode: CalcMode) => void;
 }
 
 // Tomi brand colors for pie chart - alternating green/gold for better contrast
@@ -152,24 +154,11 @@ const OwnershipCalculator: React.FC<OwnershipCalculatorProps> = ({
   monthlyMortgagePayment,
   fullTermOwnership,
   onInvite,
+  mode,
+  onModeChange,
 }) => {
-  const [mode, setMode] = useState<CalcMode>('bottoms-up');
-  const [newPersonName, setNewPersonName] = useState('');
   const [fetchingRate, setFetchingRate] = useState(false);
-  const [showAddDropdown, setShowAddDropdown] = useState(false);
   const [rateSource, setRateSource] = useState<string | null>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowAddDropdown(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   // Bottoms-Up Logic: Recalculate Affordability
   useEffect(() => {
@@ -190,32 +179,32 @@ const OwnershipCalculator: React.FC<OwnershipCalculatorProps> = ({
   }, [people, mortgageDetails.interestRate, mortgageDetails.loanTerm, mode, setMortgageDetails]);
 
   const handleAddPerson = () => {
-    if (newPersonName.trim() && people.length < 4) {
+    if (people.length < 4) {
       const newPerson: Person = {
         id: new Date().toISOString(),
-        name: newPersonName.trim(),
+        name: `Co-Owner ${people.length + 1}`,
         downPaymentContribution: 0,
         estimatedMonthlyContribution: 0,
       };
       setPeople([...people, newPerson]);
-      setNewPersonName('');
-      setShowAddDropdown(false);
     }
   };
 
   const handleAddPersonWithEqualSplit = () => {
-    if (newPersonName.trim() && people.length < 4 && people.length > 0) {
+    if (people.length < 4 && people.length > 0) {
       const firstPerson = people[0];
       const newPerson: Person = {
         id: new Date().toISOString(),
-        name: newPersonName.trim(),
+        name: `Co-Owner ${people.length + 1}`,
         downPaymentContribution: firstPerson.downPaymentContribution,
         estimatedMonthlyContribution: firstPerson.estimatedMonthlyContribution,
       };
       setPeople([...people, newPerson]);
-      setNewPersonName('');
-      setShowAddDropdown(false);
     }
+  };
+
+  const handleNameChange = (id: string, name: string) => {
+    setPeople(people.map(p => p.id === id ? { ...p, name } : p));
   };
 
   const handleRemovePerson = (id: string) => {
@@ -405,17 +394,6 @@ const OwnershipCalculator: React.FC<OwnershipCalculatorProps> = ({
           </select>
         </div>
 
-        {mode === 'bottoms-up' && (
-          <>
-            <div className="pt-4 border-t border-border mt-4"></div>
-            <InputField label="Max Home Price" name="homeValue" prefix="$" value={mortgageDetails.homeValue} onChange={() => { }} disabled highlight />
-            <InputField label="Max Loan Amount" name="loanAmount" prefix="$" value={mortgageDetails.loanAmount} onChange={() => { }} disabled highlight />
-            <div className="mt-2 text-xs text-muted-foreground">
-              Based on total monthly budget of <span className="text-primary">${totalMonthlyContributed.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span> and down payment of <span className="text-primary">${totalDownPaymentContributed.toLocaleString()}</span>.
-            </div>
-          </>
-        )}
-
         <InputField label="Number of Bedrooms" name="bedrooms" value={mortgageDetails.bedrooms} onChange={handleMortgageChange} />
 
         {mode === 'top-down' && (
@@ -530,7 +508,13 @@ const OwnershipCalculator: React.FC<OwnershipCalculatorProps> = ({
               </svg>
             </button>
             <div className="mb-3" style={{ paddingRight: '28px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span className="font-medium text-foreground">{person.name}</span>
+              <input
+                type="text"
+                value={person.name}
+                onChange={(e) => handleNameChange(person.id, e.target.value)}
+                className="font-medium text-foreground bg-transparent border-none outline-none p-0 w-32 sm:w-40 focus:ring-0 focus:border-b focus:border-primary transition-colors placeholder:text-muted-foreground/50"
+                placeholder="Name"
+              />
               {/* Invite button - only show for non-first owners (index > 0) */}
               {index > 0 && (
                 <button
@@ -587,63 +571,28 @@ const OwnershipCalculator: React.FC<OwnershipCalculatorProps> = ({
       </div>
 
       {people.length < 4 && (
-        <div className="mt-4 flex space-x-2">
-          <input
-            type="text"
-            value={newPersonName}
-            onChange={(e) => setNewPersonName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                handleAddPerson();
-              }
-            }}
-            placeholder="New owner name"
-            className="flex-grow rounded-md bg-card border border-border text-foreground focus:border-primary focus:ring-primary sm:text-sm pl-4 py-2"
-          />
-          <div className="relative" ref={dropdownRef}>
-            <div className="flex">
-              <button
-                onClick={handleAddPerson}
-                className={cn(
-                  "px-4 py-2 bg-primary text-primary-foreground font-bold hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors",
-                  people.length > 0 ? "rounded-l-md" : "rounded-md"
-                )}
-              >
-                Add
-              </button>
-              {people.length > 0 && (
-                <button
-                  onClick={() => setShowAddDropdown(!showAddDropdown)}
-                  className="px-2 py-2 bg-primary text-primary-foreground font-bold rounded-r-md border-l border-primary-foreground/20 hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
-                  aria-label="More add options"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                </button>
-              )}
-            </div>
-            {showAddDropdown && people.length > 0 && (
-              <div className="absolute right-0 mt-1 w-64 bg-card border border-border rounded-md shadow-lg z-20">
-                <button
-                  onClick={handleAddPerson}
-                  className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-muted transition-colors rounded-t-md"
-                >
-                  Add (blank)
-                </button>
-                <button
-                  onClick={handleAddPersonWithEqualSplit}
-                  className="w-full px-4 py-3 text-left hover:bg-muted transition-colors rounded-b-md border-t border-border"
-                >
-                  <div className="text-sm font-medium text-foreground">Add with equal split</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">
-                    Same as {people[0].name}: ${people[0].downPaymentContribution.toLocaleString()} down, ${people[0].estimatedMonthlyContribution.toLocaleString()}/mo
-                  </div>
-                </button>
-              </div>
-            )}
-          </div>
+        <div className="mt-4 flex gap-2">
+          <button
+            onClick={handleAddPerson}
+            className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-bold rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+            </svg>
+            Add Co-Owner
+          </button>
+          {people.length > 0 && (
+            <button
+              onClick={handleAddPersonWithEqualSplit}
+              className="flex items-center gap-1.5 px-4 py-2 bg-card text-foreground font-medium rounded-md border border-border hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors text-sm"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              Equal Split
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -655,7 +604,7 @@ const OwnershipCalculator: React.FC<OwnershipCalculatorProps> = ({
       <div className="flex justify-center min-w-0">
         <div className="inline-flex gap-1 p-1 bg-muted rounded-xl border border-border">
           <button
-            onClick={() => setMode('bottoms-up')}
+            onClick={() => onModeChange('bottoms-up')}
             className={cn(
               "flex flex-col items-center justify-center px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap border-none cursor-pointer transition-all",
               mode === 'bottoms-up'
@@ -672,7 +621,7 @@ const OwnershipCalculator: React.FC<OwnershipCalculatorProps> = ({
             <span className="text-xs font-normal text-muted-foreground mt-0.5">(budget first)</span>
           </button>
           <button
-            onClick={() => setMode('top-down')}
+            onClick={() => onModeChange('top-down')}
             className={cn(
               "flex flex-col items-center justify-center px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap border-none cursor-pointer transition-all",
               mode === 'top-down'

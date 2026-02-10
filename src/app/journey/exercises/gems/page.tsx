@@ -3,32 +3,15 @@
 import { useState, useEffect, useCallback } from "react"
 import { ExerciseChat } from "@/components/exercise-chat/ExerciseChat"
 import { useConversationalExercise } from "@/hooks/useConversationalExercise"
-import { GEMS_STAGES, GEMS_GREETING } from "@/lib/gems-exercise/stages"
+import { GEMS_STAGES, GEMS_GREETING, GEMS_INTRO_PROMPT } from "@/lib/gems-exercise/stages"
 import { motion } from "framer-motion"
 import { Gem, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { GEMS_LABELS } from "@/lib/gems-exercise/labels"
 
 function GemsSummaryCard({ answers }: { answers: Record<string, unknown> }) {
-  const goalLabels: Record<string, string> = {
-    build_wealth: "Build wealth",
-    afford_better: "Afford a better home",
-    stop_renting: "Stop renting",
-    near_people: "Live near family/friends",
-    investment: "Investment property",
-    other: "Custom goal",
-  }
-  const timelineLabels: Record<string, string> = {
-    asap: "ASAP (3-6 months)",
-    this_year: "This year",
-    "1_2_years": "1-2 years",
-    exploring: "Exploring for now",
-  }
-  const urgencyLabels: Record<string, string> = {
-    very: "Very urgent",
-    moderate: "Moderate",
-    low: "Just exploring",
-  }
+  const { goalLabels, timelineLabels, urgencyLabels } = GEMS_LABELS
 
   return (
     <div className="mx-auto max-w-[640px] px-4 py-8">
@@ -86,9 +69,9 @@ function GemsSummaryCard({ answers }: { answers: Record<string, unknown> }) {
         transition={{ delay: 0.4 }}
         className="flex flex-col gap-3"
       >
-        <Link href="/journey">
+        <Link href="/journey?completed=gems_discovery">
           <Button className="w-full gap-2">
-            Back to Journey
+            Continue Your Journey
             <ArrowRight className="h-4 w-4" />
           </Button>
         </Link>
@@ -166,6 +149,7 @@ export default function GemsExercisePage() {
     exerciseSlug: "gems_discovery",
     stages: GEMS_STAGES,
     greeting: GEMS_GREETING,
+    introPrompt: GEMS_INTRO_PROMPT,
     onComplete: handleComplete,
     savedAnswers: savedState?.answers,
     savedStage: savedState?.stage,

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { forgotPasswordSchema, formatZodErrors } from '@/lib/validators/auth-schemas'
 import { logAuthEvent } from '@/lib/auth/audit-logger'
+import { getSiteUrl } from '@/lib/site-url'
 
 /**
  * POST /api/auth/forgot-password
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
     // Send password reset email
     const supabase = createServerSupabaseClient()
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${request.nextUrl.origin}/auth/reset-password`,
+      redirectTo: `${getSiteUrl()}/auth/reset-password`,
     })
 
     // Log the attempt (even for non-existent emails - for security monitoring)

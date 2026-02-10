@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { registerSchema, formatZodErrors } from '@/lib/validators/auth-schemas'
 import { isPasswordValid } from '@/lib/auth/password-validator'
 import { logRegistration } from '@/lib/auth/audit-logger'
+import { getSiteUrl } from '@/lib/site-url'
 
 /**
  * POST /api/auth/register
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
       email,
       password,
       options: {
-        emailRedirectTo: `${request.nextUrl.origin}/auth/callback`,
+        emailRedirectTo: `${getSiteUrl()}/auth/callback`,
         data: {
           full_name: fullName,
         },
