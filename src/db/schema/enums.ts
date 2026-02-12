@@ -96,6 +96,7 @@ export const authEventTypeEnum = pgEnum('auth_event_type', [
   'admin.role_changed',
   'admin.password_reset_sent',
   'admin.exercise_reset',
+  'admin.member_added',
   'admin.member_removed',
   'admin.party_status_changed',
 ])
