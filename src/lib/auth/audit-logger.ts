@@ -21,6 +21,7 @@ export type AuthEventType =
   | 'admin.role_changed'
   | 'admin.password_reset_sent'
   | 'admin.exercise_reset'
+  | 'admin.member_added'
   | 'admin.member_removed'
   | 'admin.party_status_changed'
 
