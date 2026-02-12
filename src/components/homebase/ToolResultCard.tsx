@@ -1,6 +1,6 @@
 "use client"
 
-import { CheckCircle, ListTodo, FileText, MessageSquare, Plus } from 'lucide-react'
+import { CheckCircle, ListTodo, FileText, MessageSquare, Plus, Pencil, FolderPlus, FolderOpen } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface ToolResultCardProps {
@@ -12,10 +12,16 @@ export function ToolResultCard({ toolName, result }: ToolResultCardProps) {
   switch (toolName) {
     case 'createTask':
       return <TaskCreatedCard result={result} />
+    case 'editTask':
+      return <TaskEditedCard result={result} />
     case 'updateTaskStatus':
       return <TaskUpdatedCard result={result} />
     case 'listTasks':
       return <TaskListCard result={result} />
+    case 'createProject':
+      return <ProjectCreatedCard result={result} />
+    case 'listProjects':
+      return <ProjectListCard result={result} />
     case 'searchDocuments':
       return <DocumentSearchCard result={result} />
     case 'addTaskComment':
@@ -46,6 +52,36 @@ function TaskCreatedCard({ result }: { result: Record<string, unknown> }) {
   )
 }
 
+function TaskEditedCard({ result }: { result: Record<string, unknown> }) {
+  const task = result.task as Record<string, unknown> | undefined
+  const changes = result.changes as string[] | undefined
+  if (!task) return null
+
+  return (
+    <div className="rounded-xl border border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/30 p-4 my-2">
+      <div className="flex items-center gap-2 mb-2">
+        <Pencil className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+        <span className="text-sm font-medium text-violet-700 dark:text-violet-300">
+          Task Updated
+        </span>
+      </div>
+      <p className="font-medium text-foreground">{String(task.title)}</p>
+      {changes && changes.length > 0 && (
+        <div className="flex flex-wrap gap-2 mt-2">
+          {changes.map((change, i) => (
+            <span
+              key={i}
+              className="inline-flex items-center rounded-full bg-violet-100 dark:bg-violet-900/50 px-2.5 py-0.5 text-xs text-violet-700 dark:text-violet-300"
+            >
+              {change}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function TaskUpdatedCard({ result }: { result: Record<string, unknown> }) {
   const task = result.task as Record<string, unknown> | undefined
   if (!task) return null
@@ -55,11 +91,11 @@ function TaskUpdatedCard({ result }: { result: Record<string, unknown> }) {
       <div className="flex items-center gap-2 mb-1">
         <CheckCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
         <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-          Task Updated
+          Status Changed
         </span>
       </div>
       <p className="text-foreground">
-        &ldquo;{String(task.title)}&rdquo; &rarr; <span className="capitalize font-medium">{String(task.status)}</span>
+        &ldquo;{String(task.title)}&rdquo; &rarr; <span className="capitalize font-medium">{String(task.status).replace('_', ' ')}</span>
       </p>
     </div>
   )
@@ -91,6 +127,69 @@ function TaskListCard({ result }: { result: Record<string, unknown> }) {
                 {String(task.status).replace('_', ' ')}
               </span>
             </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function ProjectCreatedCard({ result }: { result: Record<string, unknown> }) {
+  const project = result.project as Record<string, unknown> | undefined
+  if (!project) return null
+
+  return (
+    <div className="rounded-xl border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30 p-4 my-2">
+      <div className="flex items-center gap-2 mb-2">
+        <FolderPlus className="h-4 w-4 text-green-600 dark:text-green-400" />
+        <span className="text-sm font-medium text-green-700 dark:text-green-300">
+          Project Created
+        </span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span
+          className="h-3 w-3 rounded-full flex-shrink-0"
+          style={{ backgroundColor: String(project.color || '#6B7280') }}
+        />
+        <p className="font-medium text-foreground">{String(project.name)}</p>
+      </div>
+    </div>
+  )
+}
+
+function ProjectListCard({ result }: { result: Record<string, unknown> }) {
+  const projects = result.projects as Array<Record<string, unknown>> | undefined
+  if (!projects) return null
+  const count = Number(result.count) || 0
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-4 my-2">
+      <div className="flex items-center gap-2 mb-3">
+        <FolderOpen className="h-4 w-4 text-primary" />
+        <span className="text-sm font-medium text-foreground">
+          {count} project{count !== 1 ? 's' : ''}
+        </span>
+      </div>
+      <div className="space-y-2">
+        {projects.map((project) => (
+          <div
+            key={String(project.id)}
+            className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0"
+          >
+            <div className="flex items-center gap-2">
+              <span
+                className="h-2.5 w-2.5 rounded-full flex-shrink-0"
+                style={{ backgroundColor: String(project.color || '#6B7280') }}
+              />
+              <span className="text-sm font-medium text-foreground">{String(project.name)}</span>
+            </div>
+            <span className="text-xs text-muted-foreground">
+              {Number(project.openTaskCount) > 0
+                ? `${project.openTaskCount} open`
+                : Number(project.totalTaskCount) > 0
+                  ? 'all done'
+                  : 'no tasks'}
+            </span>
           </div>
         ))}
       </div>

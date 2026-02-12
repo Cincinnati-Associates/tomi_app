@@ -15,6 +15,7 @@ import {
   documentStatusEnum,
   taskStatusEnum,
   taskPriorityEnum,
+  projectStatusEnum,
 } from './enums'
 import { profiles } from './profiles'
 import { buyingParties } from './parties'
@@ -101,6 +102,39 @@ export const homeDocumentChunks = pgTable(
 )
 
 // =============================================================================
+// HOME PROJECTS
+// =============================================================================
+
+export const homeProjects = pgTable(
+  'home_projects',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    partyId: uuid('party_id')
+      .references(() => buyingParties.id, { onDelete: 'cascade' })
+      .notNull(),
+    createdBy: uuid('created_by')
+      .references(() => profiles.id, { onDelete: 'set null' }),
+    name: text('name').notNull(),
+    description: text('description'),
+    color: text('color').notNull().default('#6B7280'),
+    icon: text('icon').default('folder'),
+    status: projectStatusEnum('status').default('active').notNull(),
+    sortOrder: integer('sort_order').notNull().default(0),
+    metadata: jsonb('metadata').default({}).$type<Record<string, unknown>>(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index('idx_home_projects_party_id').on(table.partyId),
+    index('idx_home_projects_status').on(table.status),
+  ]
+)
+
+// =============================================================================
 // HOME TASKS
 // =============================================================================
 
@@ -111,6 +145,8 @@ export const homeTasks = pgTable(
     partyId: uuid('party_id')
       .references(() => buyingParties.id, { onDelete: 'cascade' })
       .notNull(),
+    projectId: uuid('project_id')
+      .references(() => homeProjects.id, { onDelete: 'set null' }),
     createdBy: uuid('created_by')
       .references(() => profiles.id, { onDelete: 'set null' }),
     assignedTo: uuid('assigned_to')
@@ -133,6 +169,7 @@ export const homeTasks = pgTable(
   },
   (table) => [
     index('idx_home_tasks_party_id').on(table.partyId),
+    index('idx_home_tasks_project_id').on(table.projectId),
     index('idx_home_tasks_assigned_to').on(table.assignedTo),
     index('idx_home_tasks_status').on(table.status),
     index('idx_home_tasks_due_date').on(table.dueDate),
@@ -170,6 +207,8 @@ export type HomeDocument = typeof homeDocuments.$inferSelect
 export type NewHomeDocument = typeof homeDocuments.$inferInsert
 export type HomeDocumentChunk = typeof homeDocumentChunks.$inferSelect
 export type NewHomeDocumentChunk = typeof homeDocumentChunks.$inferInsert
+export type HomeProject = typeof homeProjects.$inferSelect
+export type NewHomeProject = typeof homeProjects.$inferInsert
 export type HomeTask = typeof homeTasks.$inferSelect
 export type NewHomeTask = typeof homeTasks.$inferInsert
 export type HomeTaskComment = typeof homeTaskComments.$inferSelect

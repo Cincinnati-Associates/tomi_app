@@ -11,6 +11,7 @@ import { authAuditLogs } from './audit'
 import {
   homeDocuments,
   homeDocumentChunks,
+  homeProjects,
   homeTasks,
   homeTaskComments,
 } from './homebase'
@@ -95,10 +96,26 @@ export const homeDocumentChunksRelations = relations(homeDocumentChunks, ({ one 
   }),
 }))
 
+export const homeProjectsRelations = relations(homeProjects, ({ one, many }) => ({
+  party: one(buyingParties, {
+    fields: [homeProjects.partyId],
+    references: [buyingParties.id],
+  }),
+  createdByProfile: one(profiles, {
+    fields: [homeProjects.createdBy],
+    references: [profiles.id],
+  }),
+  tasks: many(homeTasks),
+}))
+
 export const homeTasksRelations = relations(homeTasks, ({ one, many }) => ({
   party: one(buyingParties, {
     fields: [homeTasks.partyId],
     references: [buyingParties.id],
+  }),
+  project: one(homeProjects, {
+    fields: [homeTasks.projectId],
+    references: [homeProjects.id],
   }),
   createdByProfile: one(profiles, {
     fields: [homeTasks.createdBy],

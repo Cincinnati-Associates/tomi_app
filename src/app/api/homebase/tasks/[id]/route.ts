@@ -42,7 +42,7 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   const body = await request.json()
-  const { partyId, title, description, status, priority, dueDate, assignedTo } =
+  const { partyId, title, description, status, priority, dueDate, assignedTo, projectId } =
     body as {
       partyId: string
       title?: string
@@ -51,6 +51,7 @@ export async function PATCH(
       priority?: string
       dueDate?: string | null
       assignedTo?: string | null
+      projectId?: string | null
     }
 
   const auth = await requirePartyMember(partyId)
@@ -71,6 +72,7 @@ export async function PATCH(
   if (priority !== undefined) updates.priority = priority
   if (dueDate !== undefined) updates.dueDate = dueDate
   if (assignedTo !== undefined) updates.assignedTo = assignedTo
+  if (projectId !== undefined) updates.projectId = projectId
 
   // Handle status transitions
   if (status !== undefined) {
