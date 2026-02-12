@@ -33,7 +33,7 @@ export function HowItWorksPage() {
         ctaText="Let's Go"
       />
 
-      <div className="min-h-screen bg-background pt-16 md:pt-20">
+      <div className="min-h-screen bg-background navbar-offset">
         {/* Desktop: Split-screen layout */}
         <div className="hidden md:block h-[calc(100vh-80px)]">
           <div className="mx-auto max-w-7xl px-6 lg:px-8 py-6 h-full">

@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
   const partyId = searchParams.get('partyId')
   const status = searchParams.get('status')
   const assignedTo = searchParams.get('assignedTo')
+  const projectId = searchParams.get('projectId')
   const sort = searchParams.get('sort') || 'created_at'
 
   const auth = await requirePartyMember(partyId)
@@ -26,6 +27,9 @@ export async function GET(request: NextRequest) {
   if (assignedTo && assignedTo !== 'all') {
     conditions.push(eq(homeTasks.assignedTo, assignedTo))
   }
+  if (projectId) {
+    conditions.push(eq(homeTasks.projectId, projectId))
+  }
 
   const orderBy =
     sort === 'due_date'
@@ -38,6 +42,7 @@ export async function GET(request: NextRequest) {
     .select({
       id: homeTasks.id,
       partyId: homeTasks.partyId,
+      projectId: homeTasks.projectId,
       createdBy: homeTasks.createdBy,
       assignedTo: homeTasks.assignedTo,
       title: homeTasks.title,
@@ -68,13 +73,14 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   const body = await request.json()
-  const { partyId, title, description, assignedTo, priority, dueDate } = body as {
+  const { partyId, title, description, assignedTo, priority, dueDate, projectId: bodyProjectId } = body as {
     partyId: string
     title: string
     description?: string
     assignedTo?: string
     priority?: string
     dueDate?: string
+    projectId?: string
   }
 
   if (!title) {
@@ -88,6 +94,7 @@ export async function POST(request: NextRequest) {
     .insert(homeTasks)
     .values({
       partyId,
+      projectId: bodyProjectId || null,
       createdBy: auth.userId,
       assignedTo: assignedTo || null,
       title,

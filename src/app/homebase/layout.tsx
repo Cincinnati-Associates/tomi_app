@@ -4,7 +4,48 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { AppNavbar } from '@/components/layout/AppNavbar'
 import { useAuthContext } from '@/providers/AuthProvider'
-import { HomeBaseProvider } from '@/providers/HomeBaseProvider'
+import { HomeBaseProvider, useHomeBase } from '@/providers/HomeBaseProvider'
+import { HomiChatProvider } from '@/providers/HomiChatProvider'
+import { AppSwipeShell } from '@/components/shared/AppSwipeShell'
+import { HomiChatTrigger } from '@/components/shared/HomiChatTrigger'
+import { useHomiChatContext } from '@/providers/HomiChatProvider'
+
+function HomeBaseContent({ children }: { children: React.ReactNode }) {
+  const { triggerRefresh } = useHomeBase()
+  const { onToolCallRefresh, openChat } = useHomiChatContext()
+
+  // Wire up tool call refresh to HomeBase's triggerRefresh
+  useEffect(() => {
+    onToolCallRefresh.current = triggerRefresh
+    return () => {
+      onToolCallRefresh.current = null
+    }
+  }, [triggerRefresh, onToolCallRefresh])
+
+  return (
+    <>
+      <AppSwipeShell>{children}</AppSwipeShell>
+      {/* Floating Homi button */}
+      <HomiChatTrigger
+        onClick={openChat}
+        className="fixed bottom-6 right-6 z-50 h-14 w-14 md:h-16 md:w-16"
+      />
+    </>
+  )
+}
+
+function HomeBaseInner({ children }: { children: React.ReactNode }) {
+  const { activePartyId } = useHomeBase()
+
+  return (
+    <HomiChatProvider partyId={activePartyId}>
+      <AppNavbar />
+      <div className="homebase min-h-screen pt-14">
+        <HomeBaseContent>{children}</HomeBaseContent>
+      </div>
+    </HomiChatProvider>
+  )
+}
 
 export default function HomeBaseLayout({
   children,
@@ -37,8 +78,7 @@ export default function HomeBaseLayout({
 
   return (
     <HomeBaseProvider>
-      <AppNavbar />
-      <div className="min-h-screen pt-14">{children}</div>
+      <HomeBaseInner>{children}</HomeBaseInner>
     </HomeBaseProvider>
   )
 }

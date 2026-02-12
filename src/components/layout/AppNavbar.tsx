@@ -3,9 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { Menu, LogOut, Settings, Home, ChevronDown, MessageSquare, Calculator, Users, Compass, Shield, Landmark } from "lucide-react";
+import { Menu, LogOut, Settings, Home, ChevronDown, Calculator, Users, Compass, Shield, Landmark } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
-import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { useAuthContext } from "@/providers/AuthProvider";
 import { cn } from "@/lib/utils";
@@ -102,14 +101,6 @@ export function AppNavbar() {
 
           {/* Right Section */}
           <div className="flex items-center gap-2">
-            {/* Talk to Homi button */}
-            <Link href="/chat" className="hidden sm:block">
-              <Button variant="ghost" size="sm" className="gap-2">
-                <MessageSquare className="h-4 w-4" />
-                <span className="hidden lg:inline">Talk to a Homi</span>
-              </Button>
-            </Link>
-
             <ThemeToggle />
 
             {/* User Menu */}
@@ -209,14 +200,6 @@ export function AppNavbar() {
                 </Link>
               );
             })}
-            <Link
-              href="/chat"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            >
-              <MessageSquare className="h-5 w-5" />
-              Talk to a Homi
-            </Link>
           </div>
         )}
       </nav>

@@ -133,7 +133,7 @@ export function AssessmentPage() {
       />
 
       {/* Full viewport container for mobile */}
-      <div className="min-h-screen bg-background pt-14 sm:pt-16 md:pt-20 flex flex-col">
+      <div className="min-h-screen bg-background navbar-offset flex flex-col">
         {/* Compact header with title + progress */}
         {!isComplete && !showPreResultsGate && (
           <div className="flex-shrink-0 bg-background/95 backdrop-blur-sm border-b border-border/50">

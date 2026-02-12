@@ -190,7 +190,7 @@ const CalculatorPage: React.FC = () => {
   }, [people, mortgageDetails, scenarios, selectedScenarioId]);
 
   return (
-    <div className="min-h-screen bg-background pt-20">
+    <div className="min-h-screen bg-background navbar-offset">
       <PageIntro
         pageId="calculator"
         title="Co-Buying Power Calculator"

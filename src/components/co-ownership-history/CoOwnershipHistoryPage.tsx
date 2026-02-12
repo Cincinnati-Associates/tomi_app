@@ -233,73 +233,76 @@ export function CoOwnershipHistoryPage() {
         style={{ height: `${(TOTAL_FRAMES + 1) * 120}vh` }}
       >
         {/* Sticky viewport */}
-        <div className="sticky top-0 h-screen overflow-hidden pt-16 md:pt-20">
-          {/* Frame 1 */}
-          <FrameWrapper
-            index={0}
-            scrollYProgress={scrollYProgress}
-            isActive={currentFrame === 0}
-          >
-            <Frame1Together progress={frame0Progress} />
-          </FrameWrapper>
+        {/* Sticky viewport */}
+        <div className="sticky top-0 h-screen overflow-hidden navbar-offset">
+          <div className="relative w-full h-full md:pr-12">
+            {/* Frame 1 */}
+            <FrameWrapper
+              index={0}
+              scrollYProgress={scrollYProgress}
+              isActive={currentFrame === 0}
+            >
+              <Frame1Together progress={frame0Progress} />
+            </FrameWrapper>
 
-          {/* Frame 2 */}
-          <FrameWrapper
-            index={1}
-            scrollYProgress={scrollYProgress}
-            isActive={currentFrame === 1}
-          >
-            <Frame2WorldKnows progress={frame1Progress} isActive={currentFrame === 1} />
-          </FrameWrapper>
+            {/* Frame 2 */}
+            <FrameWrapper
+              index={1}
+              scrollYProgress={scrollYProgress}
+              isActive={currentFrame === 1}
+            >
+              <Frame2WorldKnows progress={frame1Progress} isActive={currentFrame === 1} />
+            </FrameWrapper>
 
-          {/* Frame 3 */}
-          <FrameWrapper
-            index={2}
-            scrollYProgress={scrollYProgress}
-            isActive={currentFrame === 2}
-          >
-            <Frame3AmericanDream progress={frame2Progress} />
-          </FrameWrapper>
+            {/* Frame 3 */}
+            <FrameWrapper
+              index={2}
+              scrollYProgress={scrollYProgress}
+              isActive={currentFrame === 2}
+            >
+              <Frame3AmericanDream progress={frame2Progress} />
+            </FrameWrapper>
 
-          {/* Frame 4 */}
-          <FrameWrapper
-            index={3}
-            scrollYProgress={scrollYProgress}
-            isActive={currentFrame === 3}
-          >
-            <Frame4MathStopped progress={frame3Progress} isActive={currentFrame === 3} />
-          </FrameWrapper>
+            {/* Frame 4 */}
+            <FrameWrapper
+              index={3}
+              scrollYProgress={scrollYProgress}
+              isActive={currentFrame === 3}
+            >
+              <Frame4MathStopped progress={frame3Progress} isActive={currentFrame === 3} />
+            </FrameWrapper>
 
-          {/* Frame 5 */}
-          <FrameWrapper
-            index={4}
-            scrollYProgress={scrollYProgress}
-            isActive={currentFrame === 4}
-          >
-            <Frame5Technology progress={frame4Progress} isActive={currentFrame === 4} />
-          </FrameWrapper>
+            {/* Frame 5 */}
+            <FrameWrapper
+              index={4}
+              scrollYProgress={scrollYProgress}
+              isActive={currentFrame === 4}
+            >
+              <Frame5Technology progress={frame4Progress} isActive={currentFrame === 4} />
+            </FrameWrapper>
 
-          {/* Frame 6 */}
-          <FrameWrapper
-            index={5}
-            scrollYProgress={scrollYProgress}
-            isActive={currentFrame === 5}
-          >
-            <Frame6ThisIsTomi progress={frame5Progress} />
-          </FrameWrapper>
+            {/* Frame 6 */}
+            <FrameWrapper
+              index={5}
+              scrollYProgress={scrollYProgress}
+              isActive={currentFrame === 5}
+            >
+              <Frame6ThisIsTomi progress={frame5Progress} />
+            </FrameWrapper>
 
-          {/* Frame 7 */}
-          <FrameWrapper
-            index={6}
-            scrollYProgress={scrollYProgress}
-            isActive={currentFrame === 6}
-          >
-            <Frame7YourTurn
-              onOpenChat={handleOpenChat}
-              onRestart={handleRestart}
-              onAssessmentClick={handleAssessmentClick}
-            />
-          </FrameWrapper>
+            {/* Frame 7 */}
+            <FrameWrapper
+              index={6}
+              scrollYProgress={scrollYProgress}
+              isActive={currentFrame === 6}
+            >
+              <Frame7YourTurn
+                onOpenChat={handleOpenChat}
+                onRestart={handleRestart}
+                onAssessmentClick={handleAssessmentClick}
+              />
+            </FrameWrapper>
+          </div>
         </div>
       </div>
 

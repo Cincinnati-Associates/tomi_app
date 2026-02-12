@@ -4,6 +4,24 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AppNavbar } from "@/components/layout/AppNavbar";
 import { useAuthContext } from "@/providers/AuthProvider";
+import { HomiChatProvider, useHomiChatContext } from "@/providers/HomiChatProvider";
+import { AppSwipeShell } from "@/components/shared/AppSwipeShell";
+import { HomiChatTrigger } from "@/components/shared/HomiChatTrigger";
+
+function DashboardContent({ children }: { children: React.ReactNode }) {
+  const { openChat } = useHomiChatContext();
+
+  return (
+    <>
+      <AppSwipeShell>{children}</AppSwipeShell>
+      {/* Floating Homi button */}
+      <HomiChatTrigger
+        onClick={openChat}
+        className="fixed bottom-6 right-6 z-50 h-14 w-14 md:h-16 md:w-16"
+      />
+    </>
+  );
+}
 
 export default function DashboardLayout({
   children,
@@ -14,14 +32,12 @@ export default function DashboardLayout({
   const router = useRouter();
   const [timedOut, setTimedOut] = useState(false);
 
-  // Safety timeout — if loading takes > 5s, redirect to home
   useEffect(() => {
     if (!isLoading) return;
     const timer = setTimeout(() => setTimedOut(true), 5000);
     return () => clearTimeout(timer);
   }, [isLoading]);
 
-  // Redirect if not authenticated after loading resolves (or on timeout)
   useEffect(() => {
     if (timedOut || (!isLoading && !isAuthenticated)) {
       router.replace("/?signin=true");
@@ -37,11 +53,11 @@ export default function DashboardLayout({
   }
 
   return (
-    <>
+    <HomiChatProvider>
       <AppNavbar />
       <div className="min-h-screen pt-14">
-        {children}
+        <DashboardContent>{children}</DashboardContent>
       </div>
-    </>
+    </HomiChatProvider>
   );
 }

@@ -10,10 +10,10 @@ export interface QuickAction {
 }
 
 const DEFAULT_ACTIONS: QuickAction[] = [
-  { label: 'What tasks are open?', message: 'What tasks are open?' },
-  { label: 'Show my documents', message: 'Show me all my documents' },
-  { label: 'Upload a document', message: '' }, // Handled by UI (opens upload modal)
+  { label: 'What needs attention?', message: 'What tasks need attention? Any overdue or high priority?' },
+  { label: 'Show my projects', message: 'Show me all my projects' },
   { label: 'Create a task', message: 'I need to create a new task' },
+  { label: 'Upload a document', message: '' }, // Handled by UI (opens upload modal)
 ]
 
 const POST_UPLOAD_ACTIONS: QuickAction[] = [

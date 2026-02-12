@@ -82,6 +82,9 @@ export const taskStatusEnum = pgEnum('task_status', ['todo', 'in_progress', 'don
 
 export const taskPriorityEnum = pgEnum('task_priority', ['low', 'medium', 'high'])
 
+// HomeBase Project System
+export const projectStatusEnum = pgEnum('project_status', ['active', 'completed', 'archived'])
+
 // Auth Audit Events (PRD-001)
 export const authEventTypeEnum = pgEnum('auth_event_type', [
   'user.registered',

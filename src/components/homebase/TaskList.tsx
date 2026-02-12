@@ -3,20 +3,25 @@
 import { useState, useEffect, useCallback } from 'react'
 import { ListTodo, Plus, X } from 'lucide-react'
 import { TaskCard, type TaskCardData } from './TaskCard'
+import { TaskDetailPanel } from './TaskDetailPanel'
 import { useHomeBase } from '@/providers/HomeBaseProvider'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 interface TaskListProps {
   limit?: number
+  projectId?: string | null
+  /** Hide the project filter tabs (used when inside a project detail page) */
+  hideProjectFilter?: boolean
 }
 
-export function TaskList({ limit }: TaskListProps) {
+export function TaskList({ limit, projectId: fixedProjectId, hideProjectFilter }: TaskListProps) {
   const { activePartyId, refreshKey, triggerRefresh } = useHomeBase()
   const [tasks, setTasks] = useState<TaskCardData[]>([])
   const [filter, setFilter] = useState<'all' | 'todo' | 'in_progress' | 'done'>('all')
   const [isLoading, setIsLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
 
   const fetchTasks = useCallback(async () => {
     if (!activePartyId) return
@@ -24,6 +29,7 @@ export function TaskList({ limit }: TaskListProps) {
     try {
       const params = new URLSearchParams({ partyId: activePartyId })
       if (filter !== 'all') params.set('status', filter)
+      if (fixedProjectId) params.set('projectId', fixedProjectId)
       const res = await fetch(`/api/homebase/tasks?${params}`)
       if (res.ok) {
         const data = await res.json()
@@ -34,9 +40,8 @@ export function TaskList({ limit }: TaskListProps) {
     } finally {
       setIsLoading(false)
     }
-  }, [activePartyId, filter])
+  }, [activePartyId, filter, fixedProjectId])
 
-  // Re-fetch when party, filter, or refreshKey changes
   useEffect(() => {
     fetchTasks()
   }, [fetchTasks, refreshKey])
@@ -44,7 +49,6 @@ export function TaskList({ limit }: TaskListProps) {
   const handleStatusChange = async (taskId: string, status: string) => {
     if (!activePartyId) return
 
-    // Optimistic update
     setTasks((prev) =>
       prev.map((t) => (t.id === taskId ? { ...t, status } : t))
     )
@@ -56,7 +60,7 @@ export function TaskList({ limit }: TaskListProps) {
         body: JSON.stringify({ partyId: activePartyId, status }),
       })
     } catch {
-      fetchTasks() // Revert on error
+      fetchTasks()
     }
   }
 
@@ -65,8 +69,15 @@ export function TaskList({ limit }: TaskListProps) {
     triggerRefresh()
   }
 
+  // Count tasks by status
+  const counts = {
+    all: tasks.length,
+    todo: tasks.filter((t) => t.status === 'todo').length,
+    in_progress: tasks.filter((t) => t.status === 'in_progress').length,
+    done: tasks.filter((t) => t.status === 'done').length,
+  }
+
   const displayed = limit ? tasks.slice(0, limit) : tasks
-  const openCount = tasks.filter((t) => t.status !== 'done').length
 
   return (
     <div>
@@ -74,9 +85,9 @@ export function TaskList({ limit }: TaskListProps) {
         <div className="flex items-center gap-2">
           <ListTodo className="h-5 w-5 text-primary" />
           <h3 className="text-base font-semibold">Tasks</h3>
-          {openCount > 0 && (
+          {counts.all - counts.done > 0 && (
             <span className="inline-flex items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-medium px-2 py-0.5">
-              {openCount} open
+              {counts.all - counts.done} open
             </span>
           )}
         </div>
@@ -93,28 +104,41 @@ export function TaskList({ limit }: TaskListProps) {
       {showCreateForm && (
         <CreateTaskForm
           partyId={activePartyId}
+          projectId={fixedProjectId}
           onCreated={handleTaskCreated}
           onCancel={() => setShowCreateForm(false)}
         />
       )}
 
-      {/* Filter tabs */}
-      <div className="flex gap-1 mb-3">
-        {(['all', 'todo', 'in_progress', 'done'] as const).map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={cn(
-              'rounded-full px-3 py-1 text-xs font-medium transition-colors',
-              filter === f
-                ? 'bg-primary/10 text-primary'
-                : 'text-muted-foreground hover:text-foreground'
-            )}
-          >
-            {f === 'all' ? 'All' : f === 'in_progress' ? 'In Progress' : f === 'todo' ? 'To Do' : 'Done'}
-          </button>
-        ))}
-      </div>
+      {/* Filter tabs (segmented control) */}
+      {!hideProjectFilter && (
+        <div className="flex gap-1 mb-3 p-1 rounded-xl bg-muted/50">
+          {([
+            { key: 'all', label: 'All' },
+            { key: 'todo', label: 'To Do' },
+            { key: 'in_progress', label: 'Working' },
+            { key: 'done', label: 'Done' },
+          ] as const).map((f) => (
+            <button
+              key={f.key}
+              onClick={() => setFilter(f.key)}
+              className={cn(
+                'flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-all min-h-[44px]',
+                filter === f.key
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              {f.label}
+              {counts[f.key] > 0 && (
+                <span className="ml-1.5 text-xs opacity-60">
+                  {counts[f.key]}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
 
       {isLoading ? (
         <div className="py-8 text-center text-sm text-muted-foreground animate-pulse">
@@ -131,6 +155,7 @@ export function TaskList({ limit }: TaskListProps) {
               key={task.id}
               task={task}
               onStatusChange={handleStatusChange}
+              onClick={setSelectedTaskId}
             />
           ))}
           {limit && tasks.length > limit && (
@@ -140,6 +165,19 @@ export function TaskList({ limit }: TaskListProps) {
           )}
         </div>
       )}
+
+      {/* Task detail panel */}
+      <TaskDetailPanel
+        taskId={selectedTaskId}
+        onClose={() => setSelectedTaskId(null)}
+        onTaskUpdated={() => {
+          triggerRefresh()
+        }}
+        onTaskDeleted={() => {
+          setSelectedTaskId(null)
+          triggerRefresh()
+        }}
+      />
     </div>
   )
 }
@@ -150,10 +188,12 @@ export function TaskList({ limit }: TaskListProps) {
 
 function CreateTaskForm({
   partyId,
+  projectId,
   onCreated,
   onCancel,
 }: {
   partyId: string | null
+  projectId?: string | null
   onCreated: () => void
   onCancel: () => void
 }) {
@@ -178,6 +218,7 @@ function CreateTaskForm({
           description: description.trim() || undefined,
           priority,
           dueDate: dueDate || undefined,
+          projectId: projectId || undefined,
         }),
       })
 

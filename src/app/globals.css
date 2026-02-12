@@ -19,6 +19,10 @@
 
     --tomi-yellow: 52 65% 70%;         /* Logo yellow #E8DC7E */
 
+    /* Navbar heights — used by .navbar-offset utility */
+    --navbar-height: 4rem;              /* 64px, matches h-16 (mobile) */
+    --navbar-height-md: 5rem;           /* 80px, matches h-20 (desktop) */
+
     /* Semantic mappings for shadcn */
     --background: 40 20% 98%;          /* #FAFAF8 */
     --foreground: 0 0% 10%;            /* #1A1A1A */
@@ -117,6 +121,16 @@
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* Navbar clearance — use on any page container that sits below the fixed Navbar */
+  .navbar-offset {
+    padding-top: var(--navbar-height);
+  }
+  @media (min-width: 768px) {
+    .navbar-offset {
+      padding-top: var(--navbar-height-md);
+    }
   }
 }
 
@@ -440,5 +454,27 @@
   .homebase-prose li::before {
     content: "•";
     @apply absolute left-0 text-primary;
+  }
+
+  /* HomeBase accessibility styles — larger text and touch targets for elderly users */
+  .homebase {
+    @apply text-[17px];
+  }
+
+  .homebase .card-padded {
+    @apply p-5;
+  }
+
+  .homebase button,
+  .homebase [role="button"] {
+    min-height: 44px;
+  }
+
+  .homebase input[type="text"],
+  .homebase input[type="date"],
+  .homebase textarea,
+  .homebase select {
+    min-height: 48px;
+    @apply text-base;
   }
 }
