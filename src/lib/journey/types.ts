@@ -9,7 +9,7 @@
 // EXERCISE TYPES
 // =============================================================================
 
-export type ExerciseRenderMode = 'form' | 'conversational' | 'walkthrough'
+export type ExerciseRenderMode = 'form' | 'conversational' | 'walkthrough' | 'configurator'
 export type ExerciseScope = 'individual' | 'group'
 
 export interface JourneyExercise {

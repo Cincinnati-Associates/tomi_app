@@ -1,11 +1,12 @@
 /**
  * Journey Phase Definitions
  *
- * All 7 journey phases with their exercises, unlock conditions,
+ * Journey phases with their exercises, unlock conditions,
  * TIC section mappings, and blueprint tile configurations.
  *
- * Phases 0-2 are fully individual (no group needed).
- * Phases 3-6 have both individual and group components.
+ * Phase 0: Foundation — 3 starter exercises (GEMs, Shared Home Vision, Roadmap),
+ *          all available from the start with no forced ordering.
+ * Phases 2-4 are individual. Phases 5-6 have group components.
  */
 
 import type { JourneyPhase, BlueprintTileConfig, TrailNodeData, TrailNodeStatus } from './types'
@@ -34,19 +35,17 @@ export const JOURNEY_PHASES: JourneyPhase[] = [
         scope: 'individual',
         route: 'gems',
       },
-    ],
-    ticSection: null,
-    blueprintTiles: ['my_gems', 'timeline'],
-    unlockAfterPhases: [], // Always unlocked
-  },
-  {
-    id: 1,
-    name: 'The Roadmap',
-    subtitle: 'What does this journey look like?',
-    description:
-      'Learn what co-ownership involves — the steps, costs, timeline, and team.',
-    icon: 'Map',
-    exercises: [
+      {
+        slug: 'shared_home_vision',
+        name: 'Shared Home Vision',
+        description:
+          'Build an interactive vision of your ideal shared home',
+        icon: 'Home',
+        estimatedMinutes: 5,
+        renderMode: 'configurator',
+        scope: 'individual',
+        route: 'home-vision',
+      },
       {
         slug: 'roadmap_walkthrough',
         name: 'What to Expect',
@@ -60,8 +59,8 @@ export const JOURNEY_PHASES: JourneyPhase[] = [
       },
     ],
     ticSection: null,
-    blueprintTiles: ['timeline', 'ownership_type'],
-    unlockAfterPhases: [0],
+    blueprintTiles: ['my_gems', 'timeline', 'home_vision', 'location', 'ownership_type'],
+    unlockAfterPhases: [], // Always unlocked
   },
   {
     id: 2,
@@ -108,7 +107,7 @@ export const JOURNEY_PHASES: JourneyPhase[] = [
     ],
     ticSection: 'Financial Terms',
     blueprintTiles: ['budget_snapshot', 'financial_split'],
-    unlockAfterPhases: [1],
+    unlockAfterPhases: [0],
   },
   {
     id: 4,
@@ -224,16 +223,16 @@ export const BLUEPRINT_TILES: BlueprintTileConfig[] = [
     label: 'Our Home Vision',
     icon: 'Home',
     emptyText: 'Complete housing preferences to unlock',
-    sourceExercises: ['housing_preferences', 'property_criteria'],
-    phaseId: 4,
+    sourceExercises: ['shared_home_vision', 'housing_preferences', 'property_criteria'],
+    phaseId: 0,
   },
   {
     id: 'location',
     label: 'Location',
     icon: 'MapPin',
     emptyText: 'Select a target location',
-    sourceExercises: ['housing_preferences'],
-    phaseId: 4,
+    sourceExercises: ['shared_home_vision', 'housing_preferences'],
+    phaseId: 0,
   },
   {
     id: 'ownership_type',
@@ -241,14 +240,14 @@ export const BLUEPRINT_TILES: BlueprintTileConfig[] = [
     icon: 'FileText',
     emptyText: 'Complete the roadmap to unlock',
     sourceExercises: ['roadmap_walkthrough'],
-    phaseId: 1,
+    phaseId: 0,
   },
   {
     id: 'timeline',
     label: 'Timeline',
     icon: 'Calendar',
     emptyText: 'Set your target timeline',
-    sourceExercises: ['gems_discovery', 'roadmap_walkthrough'],
+    sourceExercises: ['shared_home_vision', 'gems_discovery', 'roadmap_walkthrough'],
     phaseId: 0,
   },
   {

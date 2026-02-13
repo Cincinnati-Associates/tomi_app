@@ -6,6 +6,7 @@ import {
   useState,
   useCallback,
   useRef,
+  useEffect,
   type ReactNode,
 } from 'react'
 import { useChat, type Message } from 'ai/react'
@@ -43,8 +44,6 @@ interface HomiChatContextType {
   quickActions: QuickAction[]
   /** Programmatic scroll to chat panel (for swipe shell) */
   scrollToChatRef: React.MutableRefObject<(() => void) | null>
-  /** Callback for when AI tool calls modify data (tasks, etc.) */
-  onToolCallRefresh: React.MutableRefObject<(() => void) | null>
 }
 
 const HomiChatContext = createContext<HomiChatContextType | null>(null)
@@ -63,16 +62,24 @@ const DEFAULT_ACTIONS: QuickAction[] = [
 export function HomiChatProvider({
   children,
   partyId,
+  onDataChange,
 }: {
   children: ReactNode
   partyId?: string | null
+  /** Called when AI tool calls may have modified data (tasks, projects, etc.) */
+  onDataChange?: () => void
 }) {
   const pathname = usePathname()
   const [isChatOpen, setIsChatOpen] = useState(false)
 
-  // Refs for shell integration
+  // Ref for shell integration (scroll)
   const scrollToChatRef = useRef<(() => void) | null>(null)
-  const onToolCallRefresh = useRef<(() => void) | null>(null)
+
+  // Keep onDataChange in a ref so useChat's onFinish always sees the latest
+  const onDataChangeRef = useRef(onDataChange)
+  useEffect(() => {
+    onDataChangeRef.current = onDataChange
+  }, [onDataChange])
 
   // Determine which chat endpoint to use based on current route
   const isHomeBase = pathname?.startsWith('/homebase')
@@ -96,13 +103,37 @@ export function HomiChatProvider({
     maxSteps: 5, // Allow multi-step tool calling (client must match server)
     keepLastMessageOnError: true,
     onFinish: () => {
-      // Trigger refresh of task/doc lists when AI might have used tools
-      onToolCallRefresh.current?.()
+      // Trigger refresh when AI finishes responding (may have used tools)
+      onDataChangeRef.current?.()
     },
     onError: (error) => {
       console.error('Homi chat error:', error)
     },
   })
+
+  // Backup refresh: watch for tool results appearing in messages.
+  // This catches cases where onFinish fires before tool results are committed,
+  // or when the ref-based callback isn't wired up yet.
+  const prevToolResultCount = useRef(0)
+  useEffect(() => {
+    if (!isHomeBase) return
+    const count = messages.reduce((acc, m) => {
+      const invocations = (m as unknown as Record<string, unknown>).toolInvocations as
+        | Array<{ state: string }>
+        | undefined
+      return acc + (invocations?.filter((inv) => inv.state === 'result').length ?? 0)
+    }, 0)
+    if (count > prevToolResultCount.current) {
+      // New tool results appeared — trigger refresh after a short delay
+      // to allow the DB write to complete on the server
+      const timer = setTimeout(() => {
+        onDataChangeRef.current?.()
+      }, 500)
+      prevToolResultCount.current = count
+      return () => clearTimeout(timer)
+    }
+    prevToolResultCount.current = count
+  }, [messages, isHomeBase])
 
   const openChat = useCallback(() => {
     setIsChatOpen(true)
@@ -156,7 +187,6 @@ export function HomiChatProvider({
         isLoading,
         quickActions,
         scrollToChatRef,
-        onToolCallRefresh,
       }}
     >
       {children}
