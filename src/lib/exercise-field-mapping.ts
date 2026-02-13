@@ -87,6 +87,32 @@ export const EXERCISE_FIELD_MAPPINGS: FieldMapping[] = [
     overwriteExisting: false,
   },
 
+  // Shared Home Vision
+  {
+    exerciseSlug: "shared_home_vision",
+    questionKey: "timeline",
+    targetTable: "user_journeys",
+    targetField: "target_timeline",
+    transform: (v) => {
+      const map: Record<string, string> = {
+        ready_now: "3mo",
+        this_year: "12mo",
+        "1_2_years": "18mo+",
+        exploring: "exploring",
+      };
+      return map[v as string] ?? undefined;
+    },
+    overwriteExisting: false,
+  },
+  {
+    exerciseSlug: "shared_home_vision",
+    questionKey: "location_vibe",
+    targetTable: "user_journeys",
+    targetField: "target_markets",
+    transform: (v) => (typeof v === "string" ? [v] : undefined),
+    overwriteExisting: false,
+  },
+
   // Co-Buyer Candidate Assessment
   {
     exerciseSlug: "cobuyer_candidate_assessment",

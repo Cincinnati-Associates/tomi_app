@@ -5,22 +5,12 @@ import { useRouter } from 'next/navigation'
 import { AppNavbar } from '@/components/layout/AppNavbar'
 import { useAuthContext } from '@/providers/AuthProvider'
 import { HomeBaseProvider, useHomeBase } from '@/providers/HomeBaseProvider'
-import { HomiChatProvider } from '@/providers/HomiChatProvider'
+import { HomiChatProvider, useHomiChatContext } from '@/providers/HomiChatProvider'
 import { AppSwipeShell } from '@/components/shared/AppSwipeShell'
 import { HomiChatTrigger } from '@/components/shared/HomiChatTrigger'
-import { useHomiChatContext } from '@/providers/HomiChatProvider'
 
 function HomeBaseContent({ children }: { children: React.ReactNode }) {
-  const { triggerRefresh } = useHomeBase()
-  const { onToolCallRefresh, openChat, isChatOpen } = useHomiChatContext()
-
-  // Wire up tool call refresh to HomeBase's triggerRefresh
-  useEffect(() => {
-    onToolCallRefresh.current = triggerRefresh
-    return () => {
-      onToolCallRefresh.current = null
-    }
-  }, [triggerRefresh, onToolCallRefresh])
+  const { openChat, isChatOpen } = useHomiChatContext()
 
   return (
     <>
@@ -37,10 +27,10 @@ function HomeBaseContent({ children }: { children: React.ReactNode }) {
 }
 
 function HomeBaseInner({ children }: { children: React.ReactNode }) {
-  const { activePartyId } = useHomeBase()
+  const { activePartyId, triggerRefresh } = useHomeBase()
 
   return (
-    <HomiChatProvider partyId={activePartyId}>
+    <HomiChatProvider partyId={activePartyId} onDataChange={triggerRefresh}>
       <AppNavbar />
       <div className="homebase min-h-screen pt-14">
         <HomeBaseContent>{children}</HomeBaseContent>
