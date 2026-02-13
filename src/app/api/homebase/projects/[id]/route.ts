@@ -30,7 +30,11 @@ export async function GET(
     return Response.json({ error: 'Project not found' }, { status: 404 })
   }
 
-  return Response.json(project)
+  // Compute task counts from the loaded tasks
+  const totalTaskCount = project.tasks.length
+  const openTaskCount = project.tasks.filter((t) => t.status !== 'done').length
+
+  return Response.json({ ...project, openTaskCount, totalTaskCount })
 }
 
 /**
@@ -42,13 +46,14 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   const body = await request.json()
-  const { partyId, name, description, color, icon, status } = body as {
+  const { partyId, name, description, color, icon, status, ownerId } = body as {
     partyId: string
     name?: string
     description?: string
     color?: string
     icon?: string
     status?: string
+    ownerId?: string | null
   }
 
   const auth = await requirePartyMember(partyId)
@@ -68,6 +73,7 @@ export async function PATCH(
   if (color !== undefined) updates.color = color
   if (icon !== undefined) updates.icon = icon
   if (status !== undefined) updates.status = status
+  if (ownerId !== undefined) updates.ownerId = ownerId
 
   const [updated] = await db
     .update(homeProjects)
@@ -100,7 +106,11 @@ export async function DELETE(
     return Response.json({ error: 'Project not found' }, { status: 404 })
   }
 
-  await db.delete(homeProjects).where(eq(homeProjects.id, params.id))
+  // Delete only this specific project by its primary key
+  const deleted = await db
+    .delete(homeProjects)
+    .where(eq(homeProjects.id, existing.id))
+    .returning({ id: homeProjects.id })
 
-  return Response.json({ success: true })
+  return Response.json({ success: true, deletedId: deleted[0]?.id })
 }

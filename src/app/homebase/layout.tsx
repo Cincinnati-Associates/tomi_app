@@ -12,7 +12,7 @@ import { useHomiChatContext } from '@/providers/HomiChatProvider'
 
 function HomeBaseContent({ children }: { children: React.ReactNode }) {
   const { triggerRefresh } = useHomeBase()
-  const { onToolCallRefresh, openChat } = useHomiChatContext()
+  const { onToolCallRefresh, openChat, isChatOpen } = useHomiChatContext()
 
   // Wire up tool call refresh to HomeBase's triggerRefresh
   useEffect(() => {
@@ -25,11 +25,13 @@ function HomeBaseContent({ children }: { children: React.ReactNode }) {
   return (
     <>
       <AppSwipeShell>{children}</AppSwipeShell>
-      {/* Floating Homi button */}
-      <HomiChatTrigger
-        onClick={openChat}
-        className="fixed bottom-6 right-6 z-50 h-14 w-14 md:h-16 md:w-16"
-      />
+      {/* Floating Homi button — hidden when chat panel is open */}
+      {!isChatOpen && (
+        <HomiChatTrigger
+          onClick={openChat}
+          className="fixed bottom-6 right-6 z-50 h-14 w-14 md:h-16 md:w-16"
+        />
+      )}
     </>
   )
 }

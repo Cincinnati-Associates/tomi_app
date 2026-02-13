@@ -51,13 +51,17 @@ export function ProjectCard({ project, onClick, isActive }: ProjectCardProps) {
       {/* Progress */}
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs text-muted-foreground">
-          {project.openTaskCount > 0
-            ? `${project.openTaskCount} open`
-            : 'All done'}
+          {project.totalTaskCount === 0
+            ? 'No tasks'
+            : project.openTaskCount > 0
+              ? `${project.openTaskCount} open`
+              : 'All done'}
         </span>
-        <span className="text-xs text-muted-foreground">
-          {doneCount}/{project.totalTaskCount}
-        </span>
+        {project.totalTaskCount > 0 && (
+          <span className="text-xs text-muted-foreground">
+            {doneCount}/{project.totalTaskCount}
+          </span>
+        )}
       </div>
 
       {/* Progress bar */}

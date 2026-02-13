@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useAuthContext } from "./AuthProvider";
 
 // Routes that are part of the authenticated app experience
-const APP_ROUTES = ["/dashboard", "/settings", "/parties"];
+const APP_ROUTES = ["/dashboard", "/settings", "/parties", "/homebase", "/journey", "/calc", "/admin", "/onboarding"];
 
 type LayoutMode = "marketing" | "app";
 

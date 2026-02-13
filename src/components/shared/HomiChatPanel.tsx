@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useEffect } from 'react'
-import { Loader2, Mic, MicOff, Send } from 'lucide-react'
+import { Loader2, Mic, MicOff, Send, X } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import { cn } from '@/lib/utils'
 import { useHomiChatContext } from '@/providers/HomiChatProvider'
@@ -12,7 +12,11 @@ import { ToolResultCard } from '@/components/homebase/ToolResultCard'
  * The Homi chat panel rendered inside AppSwipeShell.
  * Snapchat-style bordered chat with voice input.
  */
-export function HomiChatPanel() {
+interface HomiChatPanelProps {
+  onClose?: () => void
+}
+
+export function HomiChatPanel({ onClose }: HomiChatPanelProps) {
   const {
     messages,
     input,
@@ -62,14 +66,25 @@ export function HomiChatPanel() {
   return (
     <div className="flex flex-col h-full bg-background rounded-xl overflow-hidden">
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-background">
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 flex-shrink-0">
-          <span className="text-sm font-bold text-primary">H</span>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-background">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 flex-shrink-0">
+            <span className="text-sm font-bold text-primary">H</span>
+          </div>
+          <div>
+            <h3 className="text-base font-semibold text-foreground">Homi</h3>
+            <p className="text-xs text-muted-foreground">Your home assistant</p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-base font-semibold text-foreground">Homi</h3>
-          <p className="text-xs text-muted-foreground">Your home assistant</p>
-        </div>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="flex items-center justify-center h-8 w-8 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Close chat"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       {/* Messages area */}

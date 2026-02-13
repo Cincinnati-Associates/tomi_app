@@ -1,5 +1,5 @@
-import { db, homeDocuments, homeTasks, homeTaskComments, homeProjects, partyMembers, buyingParties } from '@/db'
-import { eq, and, ne, desc, sql } from 'drizzle-orm'
+import { db, homeDocuments, homeTasks, homeTaskComments, homeProjects, homeLabels, homeTaskLabels, partyMembers, buyingParties } from '@/db'
+import { eq, and, ne, desc, sql, isNull, inArray } from 'drizzle-orm'
 
 interface PartyInfo {
   id: string
@@ -17,24 +17,37 @@ interface DocumentSummary {
 
 interface TaskSummary {
   id: string
+  taskNumber: number
   title: string
   status: string
   priority: string
   assignedTo: string | null
   assignedToName: string | null
   dueDate: string | null
+  startDate: string | null
   projectId: string | null
   projectName: string | null
+  projectCode: string | null
   commentCount: number
+  subtaskCount: number
+  subtaskDoneCount: number
+  labels: Array<{ name: string; color: string }>
 }
 
 interface ProjectSummary {
   id: string
   name: string
+  code: string | null
   color: string
   status: string
   openTaskCount: number
   totalTaskCount: number
+}
+
+interface LabelSummary {
+  id: string
+  name: string
+  color: string
 }
 
 interface RecentActivity {
@@ -49,6 +62,7 @@ export interface HomebaseContext {
   documents: DocumentSummary[]
   tasks: TaskSummary[]
   projects: ProjectSummary[]
+  labels: LabelSummary[]
   recentActivity: RecentActivity[]
 }
 
@@ -59,7 +73,7 @@ export async function assembleHomebaseContext(
   partyId: string
 ): Promise<HomebaseContext> {
   // Run queries in parallel
-  const [partyResult, membersResult, docs, tasks, recentComments, projects] =
+  const [partyResult, membersResult, docs, tasks, recentComments, projects, labels] =
     await Promise.all([
       // Party info
       db.query.buyingParties.findFirst({
@@ -90,19 +104,41 @@ export async function assembleHomebaseContext(
         .where(eq(homeDocuments.partyId, partyId))
         .orderBy(desc(homeDocuments.createdAt)),
 
-      // Active tasks (non-done)
-      db.query.homeTasks.findMany({
-        where: and(
-          eq(homeTasks.partyId, partyId),
-          ne(homeTasks.status, 'done')
-        ),
-        with: {
-          assignedToProfile: true,
-          project: true,
-          comments: true,
-        },
-        orderBy: (tasks, { desc }) => [desc(tasks.createdAt)],
-      }),
+      // Active top-level tasks (non-done, no parent)
+      db
+        .select({
+          id: homeTasks.id,
+          taskNumber: homeTasks.taskNumber,
+          title: homeTasks.title,
+          status: homeTasks.status,
+          priority: homeTasks.priority,
+          assignedTo: homeTasks.assignedTo,
+          dueDate: homeTasks.dueDate,
+          startDate: homeTasks.startDate,
+          projectId: homeTasks.projectId,
+          createdAt: homeTasks.createdAt,
+          commentCount: sql<number>`(
+            SELECT COUNT(*)::int FROM home_task_comments
+            WHERE home_task_comments.task_id = ${homeTasks.id}
+          )`,
+          subtaskCount: sql<number>`(
+            SELECT COUNT(*)::int FROM home_tasks st
+            WHERE st.parent_task_id = ${homeTasks.id}
+          )`,
+          subtaskDoneCount: sql<number>`(
+            SELECT COUNT(*)::int FROM home_tasks st
+            WHERE st.parent_task_id = ${homeTasks.id} AND st.status = 'done'
+          )`,
+        })
+        .from(homeTasks)
+        .where(
+          and(
+            eq(homeTasks.partyId, partyId),
+            ne(homeTasks.status, 'done'),
+            isNull(homeTasks.parentTaskId)
+          )
+        )
+        .orderBy(desc(homeTasks.createdAt)),
 
       // Recent comments (last 10)
       db
@@ -126,6 +162,12 @@ export async function assembleHomebaseContext(
         ),
         orderBy: (projects, { asc }) => [asc(projects.sortOrder)],
       }),
+
+      // All labels for the party
+      db.query.homeLabels.findMany({
+        where: eq(homeLabels.partyId, partyId),
+        orderBy: (labels, { asc }) => [asc(labels.name)],
+      }),
     ])
 
   // Build member map for name lookups
@@ -146,17 +188,56 @@ export async function assembleHomebaseContext(
     })),
   }
 
+  // Fetch labels for all tasks in one query
+  const taskIds = tasks.map((t) => t.id)
+  const allTaskLabels = taskIds.length > 0
+    ? await db
+        .select({
+          taskId: homeTaskLabels.taskId,
+          labelName: homeLabels.name,
+          labelColor: homeLabels.color,
+        })
+        .from(homeTaskLabels)
+        .innerJoin(homeLabels, eq(homeTaskLabels.labelId, homeLabels.id))
+        .where(inArray(homeTaskLabels.taskId, taskIds))
+    : []
+
+  const labelsByTask = new Map<string, Array<{ name: string; color: string }>>()
+  for (const row of allTaskLabels) {
+    const existing = labelsByTask.get(row.taskId) || []
+    existing.push({ name: row.labelName, color: row.labelColor })
+    labelsByTask.set(row.taskId, existing)
+  }
+
+  // Look up project names
+  const projectMap = new Map<string, string>()
+  for (const p of projects) {
+    projectMap.set(p.id, p.name)
+  }
+
+  // Build project code map
+  const projectCodeMap = new Map<string, string>()
+  for (const p of projects) {
+    if (p.code) projectCodeMap.set(p.id, p.code)
+  }
+
   const taskSummaries: TaskSummary[] = tasks.map((t) => ({
     id: t.id,
+    taskNumber: t.taskNumber,
     title: t.title,
     status: t.status,
     priority: t.priority,
     assignedTo: t.assignedTo,
     assignedToName: t.assignedTo ? memberMap.get(t.assignedTo) || null : null,
     dueDate: t.dueDate,
+    startDate: t.startDate,
     projectId: t.projectId,
-    projectName: (t as unknown as { project?: { name: string } }).project?.name || null,
-    commentCount: t.comments?.length || 0,
+    projectName: t.projectId ? projectMap.get(t.projectId) || null : null,
+    projectCode: t.projectId ? projectCodeMap.get(t.projectId) || null : null,
+    commentCount: t.commentCount,
+    subtaskCount: t.subtaskCount,
+    subtaskDoneCount: t.subtaskDoneCount,
+    labels: labelsByTask.get(t.id) || [],
   }))
 
   // Get task counts per project
@@ -173,6 +254,7 @@ export async function assembleHomebaseContext(
       return {
         id: p.id,
         name: p.name,
+        code: p.code,
         color: p.color,
         status: p.status,
         openTaskCount: taskCounts[0]?.open || 0,
@@ -181,6 +263,12 @@ export async function assembleHomebaseContext(
     })
   )
 
+  const labelSummaries: LabelSummary[] = labels.map((l) => ({
+    id: l.id,
+    name: l.name,
+    color: l.color,
+  }))
+
   const recentActivity: RecentActivity[] = recentComments.map((c) => ({
     type: 'comment' as const,
     description: c.content.slice(0, 100),
@@ -188,7 +276,7 @@ export async function assembleHomebaseContext(
     createdAt: c.createdAt,
   }))
 
-  return { party, documents: docs, tasks: taskSummaries, projects: projectSummaries, recentActivity }
+  return { party, documents: docs, tasks: taskSummaries, projects: projectSummaries, labels: labelSummaries, recentActivity }
 }
 
 /**
@@ -210,8 +298,15 @@ export function formatHomebaseContextForPrompt(ctx: HomebaseContext): string {
       const status = p.openTaskCount > 0
         ? `${p.openTaskCount} open of ${p.totalTaskCount} tasks`
         : p.totalTaskCount > 0 ? 'all tasks done' : 'no tasks yet'
-      lines.push(`- **${p.name}** (ID: ${p.id}) — ${status}`)
+      const codeStr = p.code ? ` [${p.code}]` : ''
+      lines.push(`- **${p.name}**${codeStr} (ID: ${p.id}) — ${status}`)
     }
+  }
+
+  // Labels
+  if (ctx.labels.length > 0) {
+    lines.push(`\n### Available Labels (${ctx.labels.length})`)
+    lines.push(ctx.labels.map((l) => l.name).join(', '))
   }
 
   // Documents
@@ -232,10 +327,21 @@ export function formatHomebaseContextForPrompt(ctx: HomebaseContext): string {
     // Highlight overdue tasks
     const today = new Date().toISOString().split('T')[0]
     const overdue = openTasks.filter((t) => t.dueDate && t.dueDate < today)
+    // Helper to format task ID display (e.g. "ADU-3" or "T-3")
+    const fmtId = (t: TaskSummary) => {
+      const prefix = t.projectCode || 'T'
+      return `${prefix}-${t.taskNumber}`
+    }
+
     if (overdue.length > 0) {
       lines.push(`**OVERDUE (${overdue.length}):**`)
       for (const t of overdue) {
-        lines.push(`- "${t.title}" (ID: ${t.id}) — due ${t.dueDate}, ${t.priority} priority${t.projectName ? `, project: ${t.projectName}` : ''}`)
+        const parts = [`[${fmtId(t)}] "${t.title}"`, `due ${t.dueDate}`, `${t.priority} priority`]
+        if (t.projectName) parts.push(`project: ${t.projectName}`)
+        if (t.assignedToName) parts.push(`assigned: ${t.assignedToName}`)
+        if (t.labels.length > 0) parts.push(`labels: ${t.labels.map(l => l.name).join(', ')}`)
+        if (t.subtaskCount > 0) parts.push(`subtasks: ${t.subtaskDoneCount}/${t.subtaskCount}`)
+        lines.push(`- ${parts.join(' — ')}`)
       }
     }
 
@@ -244,14 +350,29 @@ export function formatHomebaseContextForPrompt(ctx: HomebaseContext): string {
     if (highPriority.length > 0) {
       lines.push(`**High Priority (${highPriority.length}):**`)
       for (const t of highPriority) {
-        lines.push(`- "${t.title}" (ID: ${t.id})${t.dueDate ? ` — due ${t.dueDate}` : ''}${t.projectName ? `, project: ${t.projectName}` : ''}`)
+        const parts = [`[${fmtId(t)}] "${t.title}"`]
+        if (t.dueDate) parts.push(`due ${t.dueDate}`)
+        if (t.projectName) parts.push(`project: ${t.projectName}`)
+        if (t.assignedToName) parts.push(`assigned: ${t.assignedToName}`)
+        if (t.labels.length > 0) parts.push(`labels: ${t.labels.map(l => l.name).join(', ')}`)
+        if (t.subtaskCount > 0) parts.push(`subtasks: ${t.subtaskDoneCount}/${t.subtaskCount}`)
+        lines.push(`- ${parts.join(' — ')}`)
       }
     }
 
-    // Summary of remaining
+    // Remaining tasks (not overdue, not high priority)
     const remaining = openTasks.filter((t) => !overdue.includes(t) && t.priority !== 'high')
     if (remaining.length > 0) {
-      lines.push(`**Other open tasks**: ${remaining.length} (${remaining.filter(t => t.priority === 'medium').length} medium, ${remaining.filter(t => t.priority === 'low').length} low priority)`)
+      lines.push(`**Other Tasks (${remaining.length}):**`)
+      for (const t of remaining) {
+        const parts = [`[${fmtId(t)}] "${t.title}"`, `${t.priority} priority`]
+        if (t.dueDate) parts.push(`due ${t.dueDate}`)
+        if (t.projectName) parts.push(`project: ${t.projectName}`)
+        if (t.assignedToName) parts.push(`assigned: ${t.assignedToName}`)
+        if (t.labels.length > 0) parts.push(`labels: ${t.labels.map(l => l.name).join(', ')}`)
+        if (t.subtaskCount > 0) parts.push(`subtasks: ${t.subtaskDoneCount}/${t.subtaskCount}`)
+        lines.push(`- ${parts.join(' — ')}`)
+      }
     }
   } else {
     lines.push('\n- **Open tasks**: None — all caught up!')

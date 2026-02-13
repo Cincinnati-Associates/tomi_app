@@ -14,6 +14,9 @@ import {
   homeProjects,
   homeTasks,
   homeTaskComments,
+  homeLabels,
+  homeTaskLabels,
+  homeTaskActivity,
 } from './homebase'
 
 // =============================================================================
@@ -104,6 +107,12 @@ export const homeProjectsRelations = relations(homeProjects, ({ one, many }) => 
   createdByProfile: one(profiles, {
     fields: [homeProjects.createdBy],
     references: [profiles.id],
+    relationName: 'projectCreator',
+  }),
+  ownerProfile: one(profiles, {
+    fields: [homeProjects.ownerId],
+    references: [profiles.id],
+    relationName: 'projectOwner',
   }),
   tasks: many(homeTasks),
 }))
@@ -117,6 +126,12 @@ export const homeTasksRelations = relations(homeTasks, ({ one, many }) => ({
     fields: [homeTasks.projectId],
     references: [homeProjects.id],
   }),
+  parentTask: one(homeTasks, {
+    fields: [homeTasks.parentTaskId],
+    references: [homeTasks.id],
+    relationName: 'subtasks',
+  }),
+  subtasks: many(homeTasks, { relationName: 'subtasks' }),
   createdByProfile: one(profiles, {
     fields: [homeTasks.createdBy],
     references: [profiles.id],
@@ -133,6 +148,8 @@ export const homeTasksRelations = relations(homeTasks, ({ one, many }) => ({
     relationName: 'taskCompleter',
   }),
   comments: many(homeTaskComments),
+  taskLabels: many(homeTaskLabels),
+  activity: many(homeTaskActivity),
 }))
 
 export const homeTaskCommentsRelations = relations(homeTaskComments, ({ one }) => ({
@@ -142,6 +159,36 @@ export const homeTaskCommentsRelations = relations(homeTaskComments, ({ one }) =
   }),
   author: one(profiles, {
     fields: [homeTaskComments.authorId],
+    references: [profiles.id],
+  }),
+}))
+
+export const homeLabelsRelations = relations(homeLabels, ({ one, many }) => ({
+  party: one(buyingParties, {
+    fields: [homeLabels.partyId],
+    references: [buyingParties.id],
+  }),
+  taskLabels: many(homeTaskLabels),
+}))
+
+export const homeTaskLabelsRelations = relations(homeTaskLabels, ({ one }) => ({
+  task: one(homeTasks, {
+    fields: [homeTaskLabels.taskId],
+    references: [homeTasks.id],
+  }),
+  label: one(homeLabels, {
+    fields: [homeTaskLabels.labelId],
+    references: [homeLabels.id],
+  }),
+}))
+
+export const homeTaskActivityRelations = relations(homeTaskActivity, ({ one }) => ({
+  task: one(homeTasks, {
+    fields: [homeTaskActivity.taskId],
+    references: [homeTasks.id],
+  }),
+  actor: one(profiles, {
+    fields: [homeTaskActivity.actorId],
     references: [profiles.id],
   }),
 }))

@@ -8,6 +8,7 @@ import {
   date,
   index,
   unique,
+  primaryKey,
   customType,
 } from 'drizzle-orm/pg-core'
 import {
@@ -114,10 +115,13 @@ export const homeProjects = pgTable(
       .notNull(),
     createdBy: uuid('created_by')
       .references(() => profiles.id, { onDelete: 'set null' }),
+    ownerId: uuid('owner_id')
+      .references(() => profiles.id, { onDelete: 'set null' }),
     name: text('name').notNull(),
     description: text('description'),
     color: text('color').notNull().default('#6B7280'),
     icon: text('icon').default('folder'),
+    code: text('code'),
     status: projectStatusEnum('status').default('active').notNull(),
     sortOrder: integer('sort_order').notNull().default(0),
     metadata: jsonb('metadata').default({}).$type<Record<string, unknown>>(),
@@ -131,6 +135,7 @@ export const homeProjects = pgTable(
   (table) => [
     index('idx_home_projects_party_id').on(table.partyId),
     index('idx_home_projects_status').on(table.status),
+    index('idx_home_projects_code').on(table.partyId, table.code),
   ]
 )
 
@@ -147,15 +152,20 @@ export const homeTasks = pgTable(
       .notNull(),
     projectId: uuid('project_id')
       .references(() => homeProjects.id, { onDelete: 'set null' }),
+    parentTaskId: uuid('parent_task_id'),
     createdBy: uuid('created_by')
       .references(() => profiles.id, { onDelete: 'set null' }),
     assignedTo: uuid('assigned_to')
       .references(() => profiles.id, { onDelete: 'set null' }),
+    taskNumber: integer('task_number').notNull(),
     title: text('title').notNull(),
     description: text('description'),
     status: taskStatusEnum('status').default('todo').notNull(),
     priority: taskPriorityEnum('priority').default('medium').notNull(),
     dueDate: date('due_date'),
+    startDate: date('start_date'),
+    estimatedMinutes: integer('estimated_minutes'),
+    sortOrder: integer('sort_order').notNull().default(0),
     completedAt: timestamp('completed_at', { withTimezone: true }),
     completedBy: uuid('completed_by')
       .references(() => profiles.id, { onDelete: 'set null' }),
@@ -170,9 +180,12 @@ export const homeTasks = pgTable(
   (table) => [
     index('idx_home_tasks_party_id').on(table.partyId),
     index('idx_home_tasks_project_id').on(table.projectId),
+    index('idx_home_tasks_parent_task_id').on(table.parentTaskId),
     index('idx_home_tasks_assigned_to').on(table.assignedTo),
     index('idx_home_tasks_status').on(table.status),
     index('idx_home_tasks_due_date').on(table.dueDate),
+    index('idx_home_tasks_sort_order').on(table.sortOrder),
+    unique('idx_home_tasks_party_task_number').on(table.partyId, table.taskNumber),
   ]
 )
 
@@ -200,6 +213,77 @@ export const homeTaskComments = pgTable(
 )
 
 // =============================================================================
+// HOME LABELS
+// =============================================================================
+
+export const homeLabels = pgTable(
+  'home_labels',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    partyId: uuid('party_id')
+      .references(() => buyingParties.id, { onDelete: 'cascade' })
+      .notNull(),
+    name: text('name').notNull(),
+    color: text('color').notNull().default('#6B7280'),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index('idx_home_labels_party_id').on(table.partyId),
+  ]
+)
+
+// =============================================================================
+// HOME TASK LABELS (junction table)
+// =============================================================================
+
+export const homeTaskLabels = pgTable(
+  'home_task_labels',
+  {
+    taskId: uuid('task_id')
+      .references(() => homeTasks.id, { onDelete: 'cascade' })
+      .notNull(),
+    labelId: uuid('label_id')
+      .references(() => homeLabels.id, { onDelete: 'cascade' })
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.taskId, table.labelId] }),
+    index('idx_home_task_labels_label_id').on(table.labelId),
+  ]
+)
+
+// =============================================================================
+// HOME TASK ACTIVITY (audit trail)
+// =============================================================================
+
+export const homeTaskActivity = pgTable(
+  'home_task_activity',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    taskId: uuid('task_id')
+      .references(() => homeTasks.id, { onDelete: 'cascade' })
+      .notNull(),
+    actorId: uuid('actor_id')
+      .references(() => profiles.id, { onDelete: 'set null' }),
+    actorType: text('actor_type').notNull().default('user'),
+    action: text('action').notNull(),
+    fieldName: text('field_name'),
+    oldValue: text('old_value'),
+    newValue: text('new_value'),
+    metadata: jsonb('metadata').default({}).$type<Record<string, unknown>>(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index('idx_home_task_activity_task_id').on(table.taskId),
+    index('idx_home_task_activity_created_at').on(table.createdAt),
+  ]
+)
+
+// =============================================================================
 // TYPES
 // =============================================================================
 
@@ -213,3 +297,9 @@ export type HomeTask = typeof homeTasks.$inferSelect
 export type NewHomeTask = typeof homeTasks.$inferInsert
 export type HomeTaskComment = typeof homeTaskComments.$inferSelect
 export type NewHomeTaskComment = typeof homeTaskComments.$inferInsert
+export type HomeLabel = typeof homeLabels.$inferSelect
+export type NewHomeLabel = typeof homeLabels.$inferInsert
+export type HomeTaskLabel = typeof homeTaskLabels.$inferSelect
+export type NewHomeTaskLabel = typeof homeTaskLabels.$inferInsert
+export type HomeTaskActivityRecord = typeof homeTaskActivity.$inferSelect
+export type NewHomeTaskActivityRecord = typeof homeTaskActivity.$inferInsert

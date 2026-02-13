@@ -135,7 +135,7 @@ export default function ProjectDetailPage() {
       : 0
 
   return (
-    <div className="pb-24">
+    <div className="pb-24 max-w-3xl mx-auto">
       {/* Header */}
       <div className="px-4 pt-4">
         <div className="flex items-center justify-between mb-4">

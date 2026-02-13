@@ -90,11 +90,17 @@ export function HomiChatProvider({
     isLoading,
     append,
   } = useChat({
+    id: 'homi-chat', // Stable ID prevents SWR key changes when api URL changes
     api: chatApi,
     body,
+    maxSteps: 5, // Allow multi-step tool calling (client must match server)
+    keepLastMessageOnError: true,
     onFinish: () => {
       // Trigger refresh of task/doc lists when AI might have used tools
       onToolCallRefresh.current?.()
+    },
+    onError: (error) => {
+      console.error('Homi chat error:', error)
     },
   })
 
