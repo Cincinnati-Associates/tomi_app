@@ -9,16 +9,18 @@ import { AppSwipeShell } from "@/components/shared/AppSwipeShell";
 import { HomiChatTrigger } from "@/components/shared/HomiChatTrigger";
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
-  const { openChat } = useHomiChatContext();
+  const { openChat, isChatOpen } = useHomiChatContext();
 
   return (
     <>
       <AppSwipeShell>{children}</AppSwipeShell>
-      {/* Floating Homi button */}
-      <HomiChatTrigger
-        onClick={openChat}
-        className="fixed bottom-6 right-6 z-50 h-14 w-14 md:h-16 md:w-16"
-      />
+      {/* Floating Homi button — hidden when chat panel is open */}
+      {!isChatOpen && (
+        <HomiChatTrigger
+          onClick={openChat}
+          className="fixed bottom-6 right-6 z-50 h-14 w-14 md:h-16 md:w-16"
+        />
+      )}
     </>
   );
 }

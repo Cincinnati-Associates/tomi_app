@@ -14,32 +14,43 @@ export async function GET(request: NextRequest) {
   const auth = await requirePartyMember(partyId)
   if ('error' in auth) return auth.error
 
-  const projects = await db
-    .select({
-      id: homeProjects.id,
-      partyId: homeProjects.partyId,
-      createdBy: homeProjects.createdBy,
-      name: homeProjects.name,
-      description: homeProjects.description,
-      color: homeProjects.color,
-      icon: homeProjects.icon,
-      status: homeProjects.status,
-      sortOrder: homeProjects.sortOrder,
-      createdAt: homeProjects.createdAt,
-      updatedAt: homeProjects.updatedAt,
-      openTaskCount: sql<number>`(
-        SELECT COUNT(*)::int FROM ${homeTasks}
-        WHERE ${homeTasks.projectId} = ${homeProjects.id}
-        AND ${homeTasks.status} != 'done'
-      )`,
-      totalTaskCount: sql<number>`(
-        SELECT COUNT(*)::int FROM ${homeTasks}
-        WHERE ${homeTasks.projectId} = ${homeProjects.id}
-      )`,
-    })
+  // Fetch projects
+  const projectRows = await db
+    .select()
     .from(homeProjects)
     .where(eq(homeProjects.partyId, partyId!))
     .orderBy(homeProjects.sortOrder, desc(homeProjects.createdAt))
+
+  // Fetch task counts per project in a single query
+  const projectIds = projectRows.map((p) => p.id)
+  let taskCounts: Array<{ projectId: string; open: number; total: number }> = []
+  if (projectIds.length > 0) {
+    const countRows = await db
+      .select({
+        projectId: homeTasks.projectId,
+        total: sql<number>`COUNT(*)::int`,
+        open: sql<number>`COUNT(*) FILTER (WHERE ${homeTasks.status} != 'done')::int`,
+      })
+      .from(homeTasks)
+      .where(
+        sql`${homeTasks.projectId} IN (${sql.join(projectIds.map((id) => sql`${id}`), sql`, `)})`
+      )
+      .groupBy(homeTasks.projectId)
+
+    taskCounts = countRows.map((r) => ({
+      projectId: r.projectId!,
+      open: r.open,
+      total: r.total,
+    }))
+  }
+
+  const countMap = new Map(taskCounts.map((c) => [c.projectId, c]))
+
+  const projects = projectRows.map((p) => ({
+    ...p,
+    openTaskCount: countMap.get(p.id)?.open ?? 0,
+    totalTaskCount: countMap.get(p.id)?.total ?? 0,
+  }))
 
   return Response.json(projects)
 }
@@ -50,12 +61,14 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   const body = await request.json()
-  const { partyId, name, description, color, icon } = body as {
+  const { partyId, name, description, color, icon, code, ownerId } = body as {
     partyId: string
     name: string
     description?: string
     color?: string
     icon?: string
+    code?: string
+    ownerId?: string
   }
 
   if (!name) {
@@ -65,15 +78,20 @@ export async function POST(request: NextRequest) {
   const auth = await requirePartyMember(partyId)
   if ('error' in auth) return auth.error
 
+  // Auto-generate project code from name if not provided
+  const projectCode = code || name.replace(/[^a-zA-Z]/g, '').slice(0, 3).toUpperCase() || 'PRJ'
+
   const [project] = await db
     .insert(homeProjects)
     .values({
       partyId,
       createdBy: auth.userId,
+      ownerId: ownerId || auth.userId,
       name,
       description,
       color: color || '#6B7280',
       icon: icon || 'folder',
+      code: projectCode,
     })
     .returning()
 

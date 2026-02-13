@@ -1,4 +1,4 @@
-import { streamText } from 'ai'
+import { streamText, convertToCoreMessages, type Message } from 'ai'
 import { NextRequest } from 'next/server'
 import { getAIModel } from '@/lib/ai-provider'
 import { requirePartyMember } from '@/lib/homebase/auth'
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { messages, partyId } = body as {
-      messages: Array<{ role: string; content: string }>
+      messages: Message[]
       partyId: string
     }
 
@@ -27,20 +27,34 @@ export async function POST(request: NextRequest) {
     const auth = await requirePartyMember(partyId)
     if ('error' in auth) return auth.error
 
-    // Get the latest user message for RAG retrieval
+    // Get the latest user message text for RAG retrieval
     const latestUserMessage = [...messages]
       .reverse()
       .find((m) => m.role === 'user')
+    const latestUserText = latestUserMessage
+      ? (typeof latestUserMessage.content === 'string'
+          ? latestUserMessage.content
+          : '')
+      : ''
 
     // Run context assembly and RAG retrieval in parallel
-    const [homebaseCtx, ragChunks] = await Promise.all([
-      assembleHomebaseContext(partyId),
-      latestUserMessage
-        ? generateQueryEmbedding(latestUserMessage.content).then((embedding) =>
-            searchDocumentChunks(partyId, embedding, 5)
-          )
-        : Promise.resolve([]),
-    ])
+    let homebaseCtx
+    let ragChunks: Awaited<ReturnType<typeof searchDocumentChunks>> = []
+    try {
+      ;[homebaseCtx, ragChunks] = await Promise.all([
+        assembleHomebaseContext(partyId),
+        latestUserText
+          ? generateQueryEmbedding(latestUserText).then((embedding) =>
+              searchDocumentChunks(partyId, embedding, 5)
+            )
+          : Promise.resolve([]),
+      ])
+    } catch (ctxError) {
+      console.error('HomeBase context assembly error:', ctxError instanceof Error ? ctxError.message : ctxError)
+      console.error('HomeBase context stack:', ctxError instanceof Error ? ctxError.stack : '')
+      // Fall back to minimal context so chat still works
+      homebaseCtx = { party: { id: partyId, name: 'Home', members: [] }, documents: [], tasks: [], projects: [], labels: [], recentActivity: [] }
+    }
 
     // Build the system prompt
     let systemPrompt = HOMEBASE_SYSTEM_PROMPT
@@ -56,6 +70,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Add date context for resolving relative dates
+    const today = new Date()
+    systemPrompt += `\n\n## Date Context\n`
+    systemPrompt += `- Today is ${today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}\n`
+    systemPrompt += `- Today's ISO date: ${today.toISOString().split('T')[0]}\n`
+    systemPrompt += `- When the user says "tomorrow", "next week", etc., convert to an ISO date (YYYY-MM-DD) for tool calls.\n`
+
     // Add member context for tool resolution
     systemPrompt += '\n\n## Current User\n'
     const currentUser = homebaseCtx.party.members.find((m) => m.id === auth.userId)
@@ -65,13 +86,10 @@ export async function POST(request: NextRequest) {
       systemPrompt += `- Co-owners: ${otherMembers.map((m) => `${m.name} (ID: ${m.id})`).join(', ')}\n`
     }
 
-    // Normalize messages
-    const normalizedMessages = (messages || []).map(
-      (msg: { role: string; content: string }) => ({
-        role: (msg.role === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
-        content: msg.content,
-      })
-    )
+    // Convert UI messages (from useChat) to CoreMessage format.
+    // This properly handles tool call/result parts for multi-step tool calling.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const normalizedMessages = convertToCoreMessages(messages as any)
 
     // Create tools scoped to this party and user
     const tools = createHomebaseTools(partyId, auth.userId)
@@ -82,15 +100,16 @@ export async function POST(request: NextRequest) {
       messages: normalizedMessages,
       tools,
       maxSteps: 5, // Allow multiple tool calls in one turn
-      maxTokens: 1000,
+      maxTokens: 2000,
       temperature: 0.7,
     })
 
     return result.toDataStreamResponse()
   } catch (error) {
-    console.error('HomeBase chat error:', error)
+    console.error('HomeBase chat error:', error instanceof Error ? error.message : error)
+    console.error('HomeBase chat stack:', error instanceof Error ? error.stack : 'no stack')
     return new Response(
-      JSON.stringify({ error: 'Failed to generate response' }),
+      JSON.stringify({ error: 'Failed to generate response', details: error instanceof Error ? error.message : String(error) }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     )
   }

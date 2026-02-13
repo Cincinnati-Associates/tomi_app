@@ -40,10 +40,15 @@ export function useHomeBaseChat() {
     body: {
       partyId: activePartyId,
     },
+    maxSteps: 5, // Allow multi-step tool calling (must match server)
+    keepLastMessageOnError: true,
     onFinish: () => {
       // Trigger a refresh of task/doc lists after any AI response completes
       // (it may have used tools to create/update tasks)
       triggerRefresh()
+    },
+    onError: (error) => {
+      console.error('HomeBase chat error:', error)
     },
   })
 

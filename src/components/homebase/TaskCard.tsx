@@ -1,10 +1,11 @@
 "use client"
 
-import { CheckCircle, ChevronRight, Circle, Clock, MessageSquare } from 'lucide-react'
+import { CheckCircle, ChevronRight, Clock, GitBranch, MessageSquare, MoreHorizontal } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export interface TaskCardData {
   id: string
+  taskNumber?: number
   title: string
   description?: string | null
   status: string
@@ -13,9 +14,13 @@ export interface TaskCardData {
   projectId?: string | null
   dueDate?: string | null
   commentCount?: number
+  subtaskCount?: number
+  subtaskDoneCount?: number
+  labels?: Array<{ id: string; name: string; color: string }>
   /** Project info for display */
   projectName?: string
   projectColor?: string
+  projectCode?: string
 }
 
 interface TaskCardProps {
@@ -29,7 +34,7 @@ export function TaskCard({ task, onStatusChange, onClick }: TaskCardProps) {
     ? CheckCircle
     : task.status === 'in_progress'
       ? Clock
-      : Circle
+      : MoreHorizontal
 
   const statusColor = task.status === 'done'
     ? 'text-green-500'
@@ -40,7 +45,7 @@ export function TaskCard({ task, onStatusChange, onClick }: TaskCardProps) {
   const statusLabel = task.status === 'done'
     ? 'Done'
     : task.status === 'in_progress'
-      ? 'Working'
+      ? 'In Progress'
       : 'To Do'
 
   const isOverdue =
@@ -100,6 +105,13 @@ export function TaskCard({ task, onStatusChange, onClick }: TaskCardProps) {
         </p>
 
         <div className="flex items-center gap-3 mt-2 flex-wrap">
+          {/* Task ID */}
+          {task.taskNumber != null && (
+            <span className="text-xs font-mono text-muted-foreground/60">
+              {task.projectCode || 'T'}-{task.taskNumber}
+            </span>
+          )}
+
           {/* Status label */}
           <span className={cn(
             'text-xs font-medium',
@@ -129,6 +141,14 @@ export function TaskCard({ task, onStatusChange, onClick }: TaskCardProps) {
             </span>
           )}
 
+          {/* Subtask indicator */}
+          {task.subtaskCount != null && task.subtaskCount > 0 && (
+            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              <GitBranch className="h-3 w-3" />
+              {task.subtaskDoneCount || 0}/{task.subtaskCount}
+            </span>
+          )}
+
           {/* Due date */}
           {task.dueDate && (
             <span className={cn(
@@ -154,6 +174,29 @@ export function TaskCard({ task, onStatusChange, onClick }: TaskCardProps) {
             </span>
           ) : null}
         </div>
+
+        {/* Labels */}
+        {task.labels && task.labels.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {task.labels.map((label) => (
+              <span
+                key={label.id}
+                className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium"
+                style={{
+                  backgroundColor: label.color + '20',
+                  color: label.color,
+                  border: `1px solid ${label.color}40`,
+                }}
+              >
+                <span
+                  className="h-1.5 w-1.5 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: label.color }}
+                />
+                {label.name}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Chevron */}

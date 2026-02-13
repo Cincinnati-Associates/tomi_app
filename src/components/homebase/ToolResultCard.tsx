@@ -1,6 +1,6 @@
 "use client"
 
-import { CheckCircle, ListTodo, FileText, MessageSquare, Plus, Pencil, FolderPlus, FolderOpen } from 'lucide-react'
+import { CheckCircle, ListTodo, FileText, MessageSquare, Plus, Pencil, FolderPlus, FolderOpen, Tag, GitBranch } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface ToolResultCardProps {
@@ -12,6 +12,8 @@ export function ToolResultCard({ toolName, result }: ToolResultCardProps) {
   switch (toolName) {
     case 'createTask':
       return <TaskCreatedCard result={result} />
+    case 'createSubtask':
+      return <SubtaskCreatedCard result={result} />
     case 'editTask':
       return <TaskEditedCard result={result} />
     case 'updateTaskStatus':
@@ -20,8 +22,14 @@ export function ToolResultCard({ toolName, result }: ToolResultCardProps) {
       return <TaskListCard result={result} />
     case 'createProject':
       return <ProjectCreatedCard result={result} />
+    case 'editProject':
+      return <ProjectEditedCard result={result} />
     case 'listProjects':
       return <ProjectListCard result={result} />
+    case 'addLabel':
+      return <LabelCreatedCard result={result} />
+    case 'listLabels':
+      return <LabelListCard result={result} />
     case 'searchDocuments':
       return <DocumentSearchCard result={result} />
     case 'addTaskComment':
@@ -47,7 +55,32 @@ function TaskCreatedCard({ result }: { result: Record<string, unknown> }) {
       <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
         <span className="capitalize">{String(task.priority)} priority</span>
         {task.dueDate ? <span>Due: {String(task.dueDate)}</span> : null}
+        {Array.isArray(task.labels) && task.labels.length > 0 && (
+          <span>{(task.labels as string[]).join(', ')}</span>
+        )}
       </div>
+    </div>
+  )
+}
+
+function SubtaskCreatedCard({ result }: { result: Record<string, unknown> }) {
+  const subtask = result.subtask as Record<string, unknown> | undefined
+  if (!subtask) return null
+
+  return (
+    <div className="rounded-xl border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30 p-4 my-2">
+      <div className="flex items-center gap-2 mb-2">
+        <GitBranch className="h-4 w-4 text-green-600 dark:text-green-400" />
+        <span className="text-sm font-medium text-green-700 dark:text-green-300">
+          Subtask Created
+        </span>
+      </div>
+      <p className="font-medium text-foreground">{String(subtask.title)}</p>
+      {typeof subtask.parentTaskTitle === 'string' && (
+        <p className="text-xs text-muted-foreground mt-1">
+          Under &ldquo;{subtask.parentTaskTitle}&rdquo;
+        </p>
+      )}
     </div>
   )
 }
@@ -157,6 +190,42 @@ function ProjectCreatedCard({ result }: { result: Record<string, unknown> }) {
   )
 }
 
+function ProjectEditedCard({ result }: { result: Record<string, unknown> }) {
+  const project = result.project as Record<string, unknown> | undefined
+  const changes = result.changes as string[] | undefined
+  if (!project) return null
+
+  return (
+    <div className="rounded-xl border border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/30 p-4 my-2">
+      <div className="flex items-center gap-2 mb-2">
+        <Pencil className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+        <span className="text-sm font-medium text-violet-700 dark:text-violet-300">
+          Project Updated
+        </span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span
+          className="h-3 w-3 rounded-full flex-shrink-0"
+          style={{ backgroundColor: String(project.color || '#6B7280') }}
+        />
+        <p className="font-medium text-foreground">{String(project.name)}</p>
+      </div>
+      {changes && changes.length > 0 && (
+        <div className="flex flex-wrap gap-2 mt-2">
+          {changes.map((change, i) => (
+            <span
+              key={i}
+              className="inline-flex items-center rounded-full bg-violet-100 dark:bg-violet-900/50 px-2.5 py-0.5 text-xs text-violet-700 dark:text-violet-300"
+            >
+              {change}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function ProjectListCard({ result }: { result: Record<string, unknown> }) {
   const projects = result.projects as Array<Record<string, unknown>> | undefined
   if (!projects) return null
@@ -191,6 +260,66 @@ function ProjectListCard({ result }: { result: Record<string, unknown> }) {
                   : 'no tasks'}
             </span>
           </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function LabelCreatedCard({ result }: { result: Record<string, unknown> }) {
+  const label = result.label as Record<string, unknown> | undefined
+  if (!label) return null
+  const alreadyExisted = result.alreadyExisted as boolean
+
+  return (
+    <div className="rounded-xl border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30 p-4 my-2">
+      <div className="flex items-center gap-2 mb-2">
+        <Tag className="h-4 w-4 text-green-600 dark:text-green-400" />
+        <span className="text-sm font-medium text-green-700 dark:text-green-300">
+          {alreadyExisted ? 'Label Already Exists' : 'Label Created'}
+        </span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span
+          className="h-3 w-3 rounded-full flex-shrink-0"
+          style={{ backgroundColor: String(label.color || '#6B7280') }}
+        />
+        <p className="font-medium text-foreground">{String(label.name)}</p>
+      </div>
+    </div>
+  )
+}
+
+function LabelListCard({ result }: { result: Record<string, unknown> }) {
+  const labels = result.labels as Array<Record<string, unknown>> | undefined
+  if (!labels) return null
+  const count = Number(result.count) || 0
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-4 my-2">
+      <div className="flex items-center gap-2 mb-3">
+        <Tag className="h-4 w-4 text-primary" />
+        <span className="text-sm font-medium text-foreground">
+          {count} label{count !== 1 ? 's' : ''}
+        </span>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {labels.map((label) => (
+          <span
+            key={String(label.id)}
+            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium"
+            style={{
+              backgroundColor: String(label.color || '#6B7280') + '20',
+              color: String(label.color || '#6B7280'),
+              border: `1px solid ${String(label.color || '#6B7280')}40`,
+            }}
+          >
+            <span
+              className="h-2 w-2 rounded-full flex-shrink-0"
+              style={{ backgroundColor: String(label.color || '#6B7280') }}
+            />
+            {String(label.name)}
+          </span>
         ))}
       </div>
     </div>

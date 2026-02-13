@@ -1,6 +1,6 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
-import { db, partyMembers } from '@/db'
-import { eq, and } from 'drizzle-orm'
+import { db, partyMembers, homeTasks } from '@/db'
+import { eq, and, sql } from 'drizzle-orm'
 
 /**
  * Verify the current user is authenticated and return their ID.
@@ -68,4 +68,15 @@ export async function requirePartyMember(
   }
 
   return { userId }
+}
+
+/**
+ * Get the next task number for a party (max + 1, or 1 if none exist).
+ */
+export async function getNextTaskNumber(partyId: string): Promise<number> {
+  const [result] = await db
+    .select({ max: sql<number>`COALESCE(MAX(${homeTasks.taskNumber}), 0)` })
+    .from(homeTasks)
+    .where(eq(homeTasks.partyId, partyId))
+  return (result?.max ?? 0) + 1
 }

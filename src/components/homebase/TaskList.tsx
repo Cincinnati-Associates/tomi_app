@@ -116,7 +116,7 @@ export function TaskList({ limit, projectId: fixedProjectId, hideProjectFilter }
           {([
             { key: 'all', label: 'All' },
             { key: 'todo', label: 'To Do' },
-            { key: 'in_progress', label: 'Working' },
+            { key: 'in_progress', label: 'In Progress' },
             { key: 'done', label: 'Done' },
           ] as const).map((f) => (
             <button
@@ -169,9 +169,10 @@ export function TaskList({ limit, projectId: fixedProjectId, hideProjectFilter }
       {/* Task detail panel */}
       <TaskDetailPanel
         taskId={selectedTaskId}
-        onClose={() => setSelectedTaskId(null)}
-        onTaskUpdated={() => {
-          triggerRefresh()
+        onClose={() => {
+          setSelectedTaskId(null)
+          // Refresh the task list when closing so changes are reflected
+          fetchTasks()
         }}
         onTaskDeleted={() => {
           setSelectedTaskId(null)

@@ -1,11 +1,11 @@
 import { NextRequest } from 'next/server'
-import { db, homeTasks, homeTaskComments } from '@/db'
+import { db, homeTasks, homeTaskActivity, homeTaskLabels, homeLabels } from '@/db'
 import { eq } from 'drizzle-orm'
 import { requirePartyMember } from '@/lib/homebase/auth'
 
 /**
  * GET /api/homebase/tasks/[id]?partyId=...
- * Get a single task with comments.
+ * Get a single task with comments, subtasks, labels, and recent activity.
  */
 export async function GET(
   request: NextRequest,
@@ -23,6 +23,13 @@ export async function GET(
       comments: {
         orderBy: (comments, { asc }) => [asc(comments.createdAt)],
       },
+      subtasks: {
+        orderBy: (tasks, { asc }) => [asc(tasks.sortOrder), asc(tasks.createdAt)],
+      },
+      activity: {
+        orderBy: (activity, { desc }) => [desc(activity.createdAt)],
+        limit: 50,
+      },
     },
   })
 
@@ -30,34 +37,52 @@ export async function GET(
     return Response.json({ error: 'Task not found' }, { status: 404 })
   }
 
-  return Response.json(task)
+  // Fetch labels
+  const labels = await db
+    .select({
+      id: homeLabels.id,
+      name: homeLabels.name,
+      color: homeLabels.color,
+    })
+    .from(homeTaskLabels)
+    .innerJoin(homeLabels, eq(homeTaskLabels.labelId, homeLabels.id))
+    .where(eq(homeTaskLabels.taskId, params.id))
+
+  return Response.json({ ...task, labels })
 }
 
 /**
  * PATCH /api/homebase/tasks/[id]
- * Update a task.
+ * Update a task. Records activity for each field change.
  */
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   const body = await request.json()
-  const { partyId, title, description, status, priority, dueDate, assignedTo, projectId } =
-    body as {
-      partyId: string
-      title?: string
-      description?: string
-      status?: string
-      priority?: string
-      dueDate?: string | null
-      assignedTo?: string | null
-      projectId?: string | null
-    }
+  const {
+    partyId, title, description, status, priority, dueDate, startDate,
+    estimatedMinutes, assignedTo, projectId, parentTaskId, sortOrder,
+    actorType,
+  } = body as {
+    partyId: string
+    title?: string
+    description?: string
+    status?: string
+    priority?: string
+    dueDate?: string | null
+    startDate?: string | null
+    estimatedMinutes?: number | null
+    assignedTo?: string | null
+    projectId?: string | null
+    parentTaskId?: string | null
+    sortOrder?: number
+    actorType?: 'user' | 'ai'
+  }
 
   const auth = await requirePartyMember(partyId)
   if ('error' in auth) return auth.error
 
-  // Verify task belongs to party
   const existing = await db.query.homeTasks.findFirst({
     where: eq(homeTasks.id, params.id),
   })
@@ -67,24 +92,106 @@ export async function PATCH(
   }
 
   const updates: Record<string, unknown> = { updatedAt: new Date() }
-  if (title !== undefined) updates.title = title
-  if (description !== undefined) updates.description = description
-  if (priority !== undefined) updates.priority = priority
-  if (dueDate !== undefined) updates.dueDate = dueDate
-  if (assignedTo !== undefined) updates.assignedTo = assignedTo
-  if (projectId !== undefined) updates.projectId = projectId
+  const activityEntries: Array<{
+    taskId: string
+    actorId: string
+    actorType: string
+    action: string
+    fieldName: string
+    oldValue: string | null
+    newValue: string | null
+  }> = []
+
+  const resolvedActorType = actorType || 'user'
+
+  // Track each field change
+  if (title !== undefined && title !== existing.title) {
+    updates.title = title
+    activityEntries.push({
+      taskId: params.id, actorId: auth.userId, actorType: resolvedActorType,
+      action: 'field_changed', fieldName: 'title',
+      oldValue: existing.title, newValue: title,
+    })
+  }
+  if (description !== undefined && description !== existing.description) {
+    updates.description = description
+    activityEntries.push({
+      taskId: params.id, actorId: auth.userId, actorType: resolvedActorType,
+      action: 'field_changed', fieldName: 'description',
+      oldValue: existing.description, newValue: description,
+    })
+  }
+  if (priority !== undefined && priority !== existing.priority) {
+    updates.priority = priority
+    activityEntries.push({
+      taskId: params.id, actorId: auth.userId, actorType: resolvedActorType,
+      action: 'priority_changed', fieldName: 'priority',
+      oldValue: existing.priority, newValue: priority,
+    })
+  }
+  if (dueDate !== undefined && dueDate !== existing.dueDate) {
+    updates.dueDate = dueDate
+    activityEntries.push({
+      taskId: params.id, actorId: auth.userId, actorType: resolvedActorType,
+      action: 'field_changed', fieldName: 'due_date',
+      oldValue: existing.dueDate, newValue: dueDate,
+    })
+  }
+  if (startDate !== undefined && startDate !== existing.startDate) {
+    updates.startDate = startDate
+    activityEntries.push({
+      taskId: params.id, actorId: auth.userId, actorType: resolvedActorType,
+      action: 'field_changed', fieldName: 'start_date',
+      oldValue: existing.startDate, newValue: startDate,
+    })
+  }
+  if (estimatedMinutes !== undefined && estimatedMinutes !== existing.estimatedMinutes) {
+    updates.estimatedMinutes = estimatedMinutes
+    activityEntries.push({
+      taskId: params.id, actorId: auth.userId, actorType: resolvedActorType,
+      action: 'field_changed', fieldName: 'estimated_minutes',
+      oldValue: existing.estimatedMinutes?.toString() || null,
+      newValue: estimatedMinutes?.toString() || null,
+    })
+  }
+  if (assignedTo !== undefined && assignedTo !== existing.assignedTo) {
+    updates.assignedTo = assignedTo
+    activityEntries.push({
+      taskId: params.id, actorId: auth.userId, actorType: resolvedActorType,
+      action: 'assigned', fieldName: 'assigned_to',
+      oldValue: existing.assignedTo, newValue: assignedTo,
+    })
+  }
+  if (projectId !== undefined && projectId !== existing.projectId) {
+    updates.projectId = projectId
+    activityEntries.push({
+      taskId: params.id, actorId: auth.userId, actorType: resolvedActorType,
+      action: 'moved_to_project', fieldName: 'project_id',
+      oldValue: existing.projectId, newValue: projectId,
+    })
+  }
+  if (parentTaskId !== undefined && parentTaskId !== existing.parentTaskId) {
+    updates.parentTaskId = parentTaskId
+  }
+  if (sortOrder !== undefined && sortOrder !== existing.sortOrder) {
+    updates.sortOrder = sortOrder
+  }
 
   // Handle status transitions
-  if (status !== undefined) {
+  if (status !== undefined && status !== existing.status) {
     updates.status = status
     if (status === 'done') {
       updates.completedAt = new Date()
       updates.completedBy = auth.userId
     } else if (existing.status === 'done') {
-      // Reopening a completed task
       updates.completedAt = null
       updates.completedBy = null
     }
+    activityEntries.push({
+      taskId: params.id, actorId: auth.userId, actorType: resolvedActorType,
+      action: 'status_changed', fieldName: 'status',
+      oldValue: existing.status, newValue: status,
+    })
   }
 
   const [updated] = await db
@@ -93,12 +200,17 @@ export async function PATCH(
     .where(eq(homeTasks.id, params.id))
     .returning()
 
+  // Record activity entries
+  if (activityEntries.length > 0) {
+    await db.insert(homeTaskActivity).values(activityEntries)
+  }
+
   return Response.json(updated)
 }
 
 /**
  * DELETE /api/homebase/tasks/[id]?partyId=...
- * Delete a task.
+ * Delete a task and its subtasks (CASCADE).
  */
 export async function DELETE(
   request: NextRequest,
@@ -118,7 +230,7 @@ export async function DELETE(
     return Response.json({ error: 'Task not found' }, { status: 404 })
   }
 
-  await db.delete(homeTaskComments).where(eq(homeTaskComments.taskId, params.id))
+  // CASCADE will handle subtasks, comments, labels, and activity
   await db.delete(homeTasks).where(eq(homeTasks.id, params.id))
 
   return Response.json({ success: true })

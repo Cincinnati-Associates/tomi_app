@@ -19,9 +19,9 @@ export default function HomeBasePage() {
 
   const activeParty = parties.find((p) => p.id === activePartyId)
 
-  const fetchProjects = useCallback(async () => {
+  const fetchProjects = useCallback(async (showLoading = false) => {
     if (!activePartyId) return
-    setIsLoadingProjects(true)
+    if (showLoading) setIsLoadingProjects(true)
     try {
       const res = await fetch(`/api/homebase/projects?partyId=${activePartyId}`)
       if (res.ok) {
@@ -35,9 +35,11 @@ export default function HomeBasePage() {
     }
   }, [activePartyId])
 
+  // Initial load shows loading skeleton; refreshKey changes silently re-fetch
   useEffect(() => {
-    fetchProjects()
-  }, [fetchProjects, refreshKey])
+    fetchProjects(projects.length === 0)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activePartyId, refreshKey])
 
   if (isLoading) {
     return (
@@ -62,7 +64,7 @@ export default function HomeBasePage() {
   }
 
   return (
-    <div className="pb-24">
+    <div className="pb-24 max-w-3xl mx-auto">
       {/* Property header */}
       <div className="px-4 pt-4 pb-2">
         <PropertySwitcher />

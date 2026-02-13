@@ -161,15 +161,7 @@ function DesktopShell({
         )}
       >
         <div className="h-full rounded-l-2xl border-4 border-r-0 border-primary bg-background shadow-2xl">
-          <div className="absolute top-4 left-4 z-10">
-            <button
-              onClick={onClose}
-              className="rounded-full bg-muted/80 backdrop-blur-sm px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            >
-              Close
-            </button>
-          </div>
-          <HomiChatPanel />
+          <HomiChatPanel onClose={onClose} />
         </div>
       </div>
 
