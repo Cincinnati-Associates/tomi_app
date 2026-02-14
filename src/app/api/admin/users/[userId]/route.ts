@@ -16,8 +16,8 @@ export async function GET(
 
     const [profileResult, journeyResult, exercisesResult, partyMembershipsResult] =
       await Promise.all([
-        supabase.from('profiles').select('*').eq('id', userId).single(),
-        supabase.from('user_journeys').select('*').eq('user_id', userId).single(),
+        supabase.from('profiles').select('id, email, full_name, avatar_url, role, onboarding_completed, timezone, created_at, updated_at').eq('id', userId).single(),
+        supabase.from('user_journeys').select('id, user_id, current_phase, current_stage, readiness_score, started_at, updated_at').eq('user_id', userId).single(),
         supabase
           .from('user_exercise_responses')
           .select('id, exercise_id, status, computed_scores, version, started_at, completed_at, created_at')

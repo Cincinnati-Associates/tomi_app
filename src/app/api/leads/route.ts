@@ -1,5 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase-server";
+import {
+  createRateLimiter,
+  getClientIp,
+  rateLimitResponse,
+} from "@/lib/rate-limit";
+
+const checkRateLimit = createRateLimiter({
+  name: "leads",
+  anonymousLimit: 10,  // Stricter for lead capture — prevent spam
+  authenticatedLimit: 10,
+});
 
 // Email notification configuration
 const NOTIFY_EMAIL = process.env.LEAD_NOTIFY_EMAIL || "cody@tomi.com";
@@ -81,6 +92,10 @@ Captured at: ${new Date().toISOString()}
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit (anonymous — IP-based)
+    const rl = checkRateLimit({ ip: getClientIp(request) });
+    if (!rl.success) return rateLimitResponse(rl);
+
     const data: LeadData = await request.json();
 
     // Validate required fields

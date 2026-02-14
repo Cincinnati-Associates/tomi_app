@@ -10,9 +10,47 @@ import {
   formatKnowledgeForPrompt,
 } from "@/lib/user-knowledge";
 import type { StoredAssessment } from "@/lib/assessment-context";
+import {
+  createRateLimiter,
+  getClientIp,
+  rateLimitResponse,
+} from "@/lib/rate-limit";
+
+const checkRateLimit = createRateLimiter({ name: "chat" });
+
+const MAX_MESSAGES = 50;
+const MAX_CHARS_PER_MESSAGE = 8000;
+const VALID_ROLES = new Set(["user", "assistant", "system"]);
+
+function validateMessages(
+  msgs: Array<{ role: string; content: string }> | undefined
+): string | null {
+  if (!msgs) return null;
+  if (!Array.isArray(msgs)) return "messages must be an array";
+  if (msgs.length > MAX_MESSAGES)
+    return `Too many messages (max ${MAX_MESSAGES})`;
+  for (const msg of msgs) {
+    if (!VALID_ROLES.has(msg.role))
+      return `Invalid message role: ${msg.role}`;
+    if (typeof msg.content !== "string") return "Message content must be a string";
+    if (msg.content.length > MAX_CHARS_PER_MESSAGE)
+      return `Message too long (max ${MAX_CHARS_PER_MESSAGE} characters)`;
+  }
+  return null;
+}
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit check — get auth state first for user-based limits
+    const ip = getClientIp(request);
+    const supabase = createServerSupabaseClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const rl = checkRateLimit({ userId: user?.id, ip });
+    if (!rl.success) return rateLimitResponse(rl);
+
     const body = await request.json();
 
     // Support both formats:
@@ -35,6 +73,26 @@ export async function POST(request: NextRequest) {
       assessmentContext?: string;
       assessmentData?: StoredAssessment;
     };
+
+    // --- Input validation ---
+    // Validate both message formats
+    const msgError = validateMessages(rawMessages) || validateMessages(chatHistory);
+    if (msgError) {
+      return new Response(JSON.stringify({ error: msgError }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (
+      singleMessage !== undefined &&
+      (typeof singleMessage !== "string" ||
+        singleMessage.length > MAX_CHARS_PER_MESSAGE)
+    ) {
+      return new Response(
+        JSON.stringify({ error: "Invalid or oversized message" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
 
     // Normalize messages to Vercel AI SDK format
     let messages: Array<{ role: "user" | "assistant"; content: string }>;
@@ -64,12 +122,6 @@ export async function POST(request: NextRequest) {
 
     // Build knowledge section based on auth state
     let knowledgeSection: string | undefined;
-
-    // Check if user is authenticated
-    const supabase = createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
 
     if (user) {
       // Authenticated: assemble knowledge from DB (ignores client-sent userContext)
