@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
 
       console.error('Registration error:', error)
       return NextResponse.json(
-        { error: error.message || 'Registration failed' },
+        { error: 'Registration failed' },
         { status: 400 }
       )
     }

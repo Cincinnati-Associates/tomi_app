@@ -1,10 +1,21 @@
 import type { Metadata } from "next";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
-import { ConditionalNavbar, ConditionalFooter } from "@/components/layout/ConditionalLayout";
 import { PostHogProvider } from "@/providers/PostHogProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { AuthProvider } from "@/providers/AuthProvider";
-import { LayoutProvider } from "@/providers/LayoutProvider";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-plus-jakarta-sans",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://livetomi.com"),
@@ -73,7 +84,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="scroll-smooth" suppressHydrationWarning>
+    <html lang="en" className={`scroll-smooth ${inter.variable} ${plusJakartaSans.variable}`} suppressHydrationWarning>
       <body className="min-h-screen bg-background antialiased">
         <ThemeProvider
           attribute="class"
@@ -83,11 +94,7 @@ export default function RootLayout({
         >
           <PostHogProvider>
             <AuthProvider>
-              <LayoutProvider>
-                <ConditionalNavbar />
-                <main>{children}</main>
-                <ConditionalFooter />
-              </LayoutProvider>
+              {children}
             </AuthProvider>
           </PostHogProvider>
         </ThemeProvider>

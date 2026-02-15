@@ -42,20 +42,23 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Refresh session if expired
-  const { data: { user } } = await supabase.auth.getUser()
-
-  // Protected routes - redirect to home if not authenticated
-  const protectedPaths = ['/dashboard', '/settings', '/parties', '/journey', '/admin']
+  // Protected routes that require authentication
+  const protectedPaths = ['/dashboard', '/settings', '/parties', '/journey', '/admin', '/homebase', '/onboarding']
   const isProtectedPath = protectedPaths.some(path =>
     request.nextUrl.pathname.startsWith(path)
   )
 
-  if (isProtectedPath && !user) {
-    const redirectUrl = new URL('/', request.url)
-    redirectUrl.searchParams.set('signin', 'true')
-    redirectUrl.searchParams.set('redirect', request.nextUrl.pathname)
-    return NextResponse.redirect(redirectUrl)
+  // Only call getUser() (async DB call) for protected routes.
+  // Marketing pages (/, /how-it-works, /blog, etc.) skip this entirely.
+  if (isProtectedPath) {
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      const redirectUrl = new URL('/', request.url)
+      redirectUrl.searchParams.set('signin', 'true')
+      redirectUrl.searchParams.set('redirect', request.nextUrl.pathname)
+      return NextResponse.redirect(redirectUrl)
+    }
   }
 
   return response

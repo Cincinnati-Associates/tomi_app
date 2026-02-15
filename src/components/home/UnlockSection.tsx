@@ -254,12 +254,11 @@ export function UnlockSection({
             {/* Image */}
             <div className="aspect-[4/3] rounded-xl bg-muted mb-6 overflow-hidden relative">
               <Image
-                src="/buying alone.png"
+                src="/buying alone.webp"
                 alt="Person looking at a modest apartment building"
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-cover object-center"
-                priority
               />
             </div>
 

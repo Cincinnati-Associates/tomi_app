@@ -7,6 +7,15 @@ import { extractText } from '@/lib/homebase/document-processing'
 import { chunkText } from '@/lib/homebase/chunking'
 import { generateEmbeddings } from '@/lib/homebase/embedding'
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+const ALLOWED_MIME_TYPES = new Set([
+  'application/pdf',
+  'text/plain',
+  'text/markdown',
+  'text/csv',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+])
+
 /**
  * GET /api/homebase/documents?partyId=...&category=...
  * List documents for a party.
@@ -62,6 +71,22 @@ async function handleFileUpload(request: NextRequest) {
 
   if (!title) {
     return Response.json({ error: 'Title is required' }, { status: 400 })
+  }
+
+  // Validate file size
+  if (file.size > MAX_FILE_SIZE) {
+    return Response.json(
+      { error: `File too large. Maximum size is ${MAX_FILE_SIZE / 1024 / 1024}MB.` },
+      { status: 413 }
+    )
+  }
+
+  // Validate file type
+  if (!ALLOWED_MIME_TYPES.has(file.type)) {
+    return Response.json(
+      { error: 'Unsupported file type. Allowed: PDF, TXT, Markdown, CSV, DOCX.' },
+      { status: 400 }
+    )
   }
 
   const auth = await requirePartyMember(partyId)

@@ -35,11 +35,10 @@ export function useAuth(): AuthState & AuthActions {
   const supabase = useMemo(() => createClient(), []);
 
   // Fetch profile data via server-side API (bypasses RLS)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const fetchProfile = useCallback(async (userId: string) => {
-    console.log('[useAuth] fetchProfile called for:', userId);
     try {
       const res = await fetch('/api/users/me');
-      console.log('[useAuth] /api/users/me status:', res.status);
 
       if (!res.ok) {
         console.error('[useAuth] Profile fetch failed:', res.status);
@@ -47,7 +46,6 @@ export function useAuth(): AuthState & AuthActions {
       }
 
       const profile = await res.json();
-      console.log('[useAuth] Profile loaded:', profile?.id);
       return profile as Profile;
     } catch (error) {
       console.error('[useAuth] Exception fetching profile:', error);
@@ -65,7 +63,6 @@ export function useAuth(): AuthState & AuthActions {
   useEffect(() => {
     // Get initial session
     const getSession = async () => {
-      console.log('[useAuth] Getting session...');
       try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
@@ -75,20 +72,16 @@ export function useAuth(): AuthState & AuthActions {
           return;
         }
 
-        console.log('[useAuth] Session:', session ? 'exists' : 'null');
         setSession(session);
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          console.log('[useAuth] Fetching profile for user:', session.user.id);
           const profileData = await fetchProfile(session.user.id);
-          console.log('[useAuth] Profile:', profileData);
           setProfile(profileData);
         }
       } catch (error) {
         console.error('[useAuth] Error getting session:', error);
       } finally {
-        console.log('[useAuth] Setting isLoading to false');
         setIsLoading(false);
       }
     };

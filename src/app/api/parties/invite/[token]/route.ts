@@ -28,7 +28,7 @@ export async function POST(
   if (error) {
     console.error("Failed to accept invite:", error)
     return NextResponse.json(
-      { error: error.message || "Invalid or expired invite" },
+      { error: "Invalid or expired invite" },
       { status: 400 }
     )
   }

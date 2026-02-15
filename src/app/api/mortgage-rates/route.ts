@@ -75,10 +75,9 @@ ${html.substring(0, 30000)}`,
       date: "weekly average",
     });
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('Error fetching mortgage rates:', error);
     return Response.json(
-      { error: 'Failed to fetch mortgage rates', message: errorMessage },
+      { error: 'Failed to fetch mortgage rates' },
       { status: 500 }
     );
   }

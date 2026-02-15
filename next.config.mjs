@@ -1,5 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    optimizePackageImports: [
+      "framer-motion",
+      "lucide-react",
+      "@supabase/supabase-js",
+      "recharts",
+    ],
+  },
   async rewrites() {
     return [
       {
