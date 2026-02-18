@@ -2,66 +2,17 @@
 
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, MessageCircle } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { useAssessment } from "@/hooks/useAssessment";
 import { AssessmentQuestion } from "./AssessmentQuestion";
 import { AssessmentResult } from "./AssessmentResult";
 import { SectionedProgress } from "./SectionedProgress";
 import { PreResultsGate } from "./PreResultsGate";
+import { HomiMiniInput } from "./HomiMiniInput";
 import { HomiChat } from "@/components/shared/HomiChat";
-import { CompactHomiChat } from "@/components/shared/CompactHomiChat";
 import { PageIntro } from "@/components/shared/PageIntro";
-import { cn } from "@/lib/utils";
-
-// Inline Homi prompt button - contextual based on question, yellow fill with glow
-function InlineHomiPrompt({
-  prompt,
-  onClick
-}: {
-  prompt: string;
-  onClick: () => void;
-}) {
-  return (
-    <motion.button
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.3 }}
-      onClick={onClick}
-      className={cn(
-        "relative flex items-center justify-center gap-2 mx-auto",
-        "px-5 py-2.5 rounded-full",
-        "bg-[hsl(52,65%,55%)] hover:bg-[hsl(52,65%,50%)]",
-        "text-sm font-semibold text-black",
-        "shadow-md shadow-[hsl(52,65%,55%)]/30",
-        "transition-all duration-200",
-        "focus:outline-none focus:ring-2 focus:ring-[hsl(52,65%,55%)]/50 focus:ring-offset-2"
-      )}
-      whileTap={{ scale: 0.97 }}
-    >
-      {/* Subtle glow effect */}
-      <motion.div
-        className="absolute inset-0 rounded-full bg-[hsl(52,65%,55%)]"
-        animate={{
-          boxShadow: [
-            "0 0 0 0 hsla(52, 65%, 55%, 0.4)",
-            "0 0 12px 4px hsla(52, 65%, 55%, 0.2)",
-            "0 0 0 0 hsla(52, 65%, 55%, 0.4)",
-          ],
-        }}
-        transition={{
-          duration: 2,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      />
-      <MessageCircle className="w-4 h-4 relative z-10" />
-      <span className="relative z-10">{prompt}</span>
-    </motion.button>
-  );
-}
 
 export function AssessmentPage() {
-  const [isCompactChatOpen, setIsCompactChatOpen] = useState(false);
   const [isResultsChatOpen, setIsResultsChatOpen] = useState(false);
 
   const {
@@ -83,16 +34,7 @@ export function AssessmentPage() {
     currentSection,
     sectionProgress,
     categories,
-    getAssessmentContext,
   } = useAssessment();
-
-  const handleOpenCompactChat = useCallback(() => {
-    setIsCompactChatOpen(true);
-  }, []);
-
-  const handleCloseCompactChat = useCallback(() => {
-    setIsCompactChatOpen(false);
-  }, []);
 
   const handleOpenResultsChat = useCallback(() => {
     setIsResultsChatOpen(true);
@@ -102,34 +44,27 @@ export function AssessmentPage() {
     setIsResultsChatOpen(false);
   }, []);
 
-  // Build context-aware initial message for Homi
+  // Build context-aware initial message for Homi — focused on current question only
   const buildInitialMessage = useCallback(() => {
-    const context = getAssessmentContext();
-
-    if (context.isComplete && result) {
+    if (isComplete && result) {
       return `I just completed the co-ownership readiness assessment and got a grade of ${result.grade} (${result.title}). Can you help me understand what this means and what I should focus on next?`;
     }
 
-    if (context.answeredQuestions.length > 0) {
-      const recentAnswer = context.answeredQuestions[context.answeredQuestions.length - 1];
-      return `I'm taking the co-ownership readiness assessment. I'm on question ${context.currentQuestion} of ${context.totalQuestions} in the "${context.currentCategory}" section. I just answered "${recentAnswer.question}" with "${recentAnswer.answer}". Can you help me understand what this means for my readiness?`;
-    }
-
-    return `I'm about to start the co-ownership readiness assessment. Can you tell me what to expect and how the assessment works?`;
-  }, [getAssessmentContext, result]);
+    return `I'm taking the co-ownership readiness assessment (question ${currentQuestionIndex + 1} of 11, "${currentQuestion.category}" section). The current question is: "${currentQuestion.question}"`;
+  }, [isComplete, result, currentQuestionIndex, currentQuestion]);
 
   return (
     <>
       <PageIntro
         pageId="assessment"
-        title="Co-Ownership Readiness Assessment"
-        description="Answer 12 quick questions to discover if co-ownership is right for you, right now."
+        title="Find Out If Co-Ownership Is Right For You."
+        description="Co-ownership is how regular people are buying homes they actually want — with people they actually like. This quick assessment will tell you where you stand."
         bullets={[
-          "Takes about 2 minutes",
-          "No account required",
-          "Get a personalized readiness grade",
+          "11 questions, ~2 minutes",
+          "No account needed",
+          "Get your personalized readiness score + next steps",
         ]}
-        ctaText="Start Assessment"
+        ctaText="Let's Go!"
       />
 
       {/* Full viewport container for mobile */}
@@ -194,36 +129,14 @@ export function AssessmentPage() {
                     />
                   </div>
 
-                  {/* Bottom section: Homi prompt/chat + navigation */}
+                  {/* Bottom section: Homi mini input + navigation */}
                   <div className="flex-1 flex flex-col justify-center items-center py-4 min-h-[120px] sm:min-h-[150px] mt-4 sm:mt-8">
                     <div className="space-y-3 w-full max-w-lg">
-                      {/* Inline Homi prompt — hidden when compact chat is open */}
-                      <AnimatePresence>
-                        {!isCompactChatOpen && (
-                          <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            transition={{ duration: 0.15 }}
-                          >
-                            <InlineHomiPrompt
-                              prompt={currentQuestion.homiPrompt || "Ask Homi"}
-                              onClick={handleOpenCompactChat}
-                            />
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-
-                      {/* Compact inline chat */}
-                      <CompactHomiChat
-                        isOpen={isCompactChatOpen}
-                        onClose={handleCloseCompactChat}
-                        initialMessage={buildInitialMessage()}
-                        contextLabel={`Q${currentQuestionIndex + 1} of 12`}
-                        suggestedPrompts={[
-                          { label: currentQuestion.homiPrompt || "Explain this in simple terms" },
-                          { label: "Why does this matter?" },
-                        ]}
+                      <HomiMiniInput
+                        homiPrompt={currentQuestion.homiPrompt || "Ask Homi anything..."}
+                        contextLabel={`Q${currentQuestionIndex + 1} of 11`}
+                        questionIndex={currentQuestionIndex}
+                        buildInitialMessage={buildInitialMessage}
                       />
 
                       {/* Previous question link */}
@@ -267,8 +180,8 @@ export function AssessmentPage() {
 
         {/* Background decorations - more subtle */}
         <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none opacity-50">
-          <div className="absolute -top-40 -right-40 h-60 w-60 rounded-full bg-primary/5 blur-3xl" />
-          <div className="absolute -bottom-40 -left-40 h-60 w-60 rounded-full bg-accent/10 blur-3xl" />
+          <div className="absolute -top-40 -right-40 h-60 w-60 rounded-full" style={{ background: "radial-gradient(circle, hsl(var(--primary) / 0.05) 0%, transparent 70%)" }} />
+          <div className="absolute -bottom-40 -left-40 h-60 w-60 rounded-full" style={{ background: "radial-gradient(circle, hsl(var(--accent) / 0.1) 0%, transparent 70%)" }} />
         </div>
       </div>
 

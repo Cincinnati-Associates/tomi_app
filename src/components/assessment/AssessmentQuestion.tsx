@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check } from "lucide-react";
+import { Check, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { HybridInput } from "./HybridInput";
 import type { AssessmentQuestion as QuestionType, AnswerOption, AnswerData } from "@/hooks/useAssessment";
@@ -13,6 +13,7 @@ interface AssessmentQuestionProps {
   selectedAnswer: AnswerData | null;
   onSelectAnswer: (optionIndex: number, exactValue?: number | string) => void;
   onAnimationComplete: () => void;
+  onCustomAnswer?: (text: string) => void;
 }
 
 // Option card component for standard choice questions - compact for mobile
@@ -83,12 +84,82 @@ function OptionCard({
   );
 }
 
+// Custom answer input — always-visible text field at the bottom of options
+function CustomAnswerInput({
+  onSubmit,
+  disabled,
+  questionIndex,
+  savedText,
+}: {
+  onSubmit: (text: string) => void;
+  disabled: boolean;
+  questionIndex: number;
+  savedText?: string;
+}) {
+  const [value, setValue] = useState("");
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Reset on question change, restore saved text if returning
+  useEffect(() => {
+    setValue(savedText || "");
+  }, [questionIndex, savedText]);
+
+  const handleSubmit = () => {
+    const text = value.trim();
+    if (text) onSubmit(text);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.12, delay: 0.1 }}
+    >
+      {/* Match option card: py-3 px-3.5 min-h-[48px] rounded-xl border-2 */}
+      <div className="flex items-center gap-2 rounded-xl border-2 border-border bg-card py-3 px-3.5 min-h-[48px] focus-within:border-primary/50 transition-colors">
+        <textarea
+          ref={inputRef}
+          value={value}
+          onChange={(e) => {
+            setValue(e.target.value);
+            e.target.style.height = "auto";
+            e.target.style.height = Math.min(e.target.scrollHeight, 100) + "px";
+          }}
+          onKeyDown={handleKeyDown}
+          placeholder="Share your thoughts..."
+          className="flex-1 resize-none bg-transparent text-sm leading-snug focus:outline-none min-h-[20px] max-h-[100px] py-0 text-foreground placeholder:text-muted-foreground/60"
+          style={{ fontSize: "16px" }}
+          rows={1}
+          disabled={disabled}
+        />
+        <motion.button
+          type="button"
+          disabled={!value.trim() || disabled}
+          onClick={handleSubmit}
+          className="h-7 w-7 rounded-lg bg-primary text-primary-foreground disabled:opacity-30 flex items-center justify-center flex-shrink-0"
+          whileTap={{ scale: 0.95 }}
+        >
+          <ArrowRight className="h-3.5 w-3.5" />
+        </motion.button>
+      </div>
+    </motion.div>
+  );
+}
+
 export function AssessmentQuestion({
   question,
   questionIndex,
   selectedAnswer,
   onSelectAnswer,
   onAnimationComplete,
+  onCustomAnswer,
 }: AssessmentQuestionProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
@@ -123,7 +194,25 @@ export function AssessmentQuestion({
     }, 350);
   };
 
+  const handleCustomSubmit = (text: string) => {
+    if (isAnimatingOut) return;
+
+    // Pass -1 as optionIndex to indicate custom answer, text as exactValue
+    setSelectedIndex(-1);
+    onSelectAnswer(-1, text);
+    onCustomAnswer?.(text);
+
+    setTimeout(() => {
+      setIsAnimatingOut(true);
+    }, 150);
+
+    setTimeout(() => {
+      onAnimationComplete();
+    }, 350);
+  };
+
   const isHybrid = question.inputType === "hybrid";
+  const showCustomAnswer = question.allowCustomAnswer && !isHybrid;
 
   return (
     <AnimatePresence mode="wait">
@@ -186,6 +275,16 @@ export function AssessmentQuestion({
                 disabled={isAnimatingOut}
               />
             ))}
+
+            {/* Custom answer input */}
+            {showCustomAnswer && (
+              <CustomAnswerInput
+                onSubmit={handleCustomSubmit}
+                disabled={isAnimatingOut}
+                questionIndex={questionIndex}
+                savedText={selectedAnswer?.customText}
+              />
+            )}
           </div>
         )}
       </motion.div>

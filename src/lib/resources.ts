@@ -210,10 +210,15 @@ export function getResourcesByCategory(
 }
 
 /** Format resources for prompt injection */
-export function formatResourcesForPrompt(): string {
+export function formatResourcesForPrompt(currentPage?: string): string {
   const sorted = [...TOMI_RESOURCES].sort((a, b) => a.priority - b.priority);
   const available = sorted.filter((r) => r.available);
   const comingSoon = sorted.filter((r) => !r.available);
+
+  // Check if the user is currently on a resource page
+  const isOnResourcePage = currentPage
+    ? available.some((r) => currentPage.startsWith(r.url))
+    : false;
 
   let prompt = `## Resources & Recommended Journey (Priority Order)
 You have a set of resources to guide users through. Work through them **in priority order** — promote the highest-priority resource the user hasn't engaged with yet. Track what they've already done (assessment completed, calculator used, account created) from the conversation context and move to the next one.
@@ -224,7 +229,12 @@ You have a set of resources to guide users through. Work through them **in prior
 `;
 
   for (const r of available) {
-    prompt += `### ${r.priority}. ${r.name} (${r.url})\n`;
+    const isCurrentPage = currentPage ? currentPage.startsWith(r.url) : false;
+    prompt += `### ${r.priority}. ${r.name} (${r.url})`;
+    if (isCurrentPage) {
+      prompt += ` ⚠️ USER IS CURRENTLY ON THIS PAGE — DO NOT PROMOTE`;
+    }
+    prompt += `\n`;
     prompt += `${r.description}\n`;
     prompt += `**Why it matters**: ${r.valueProp}\n`;
     prompt += `**Suggest when**: ${r.triggers.slice(0, 4).join(", ")}\n\n`;
@@ -239,8 +249,15 @@ You have a set of resources to guide users through. Work through them **in prior
   }
 
   prompt += `## Linking Guidelines
-- Link naturally within your response using markdown: [Link Text](url)
-- Only suggest **ONE primary resource per response** — the highest-priority one they haven't done yet
+- Link naturally within your response using markdown: [Link Text](url)`;
+
+  if (isOnResourcePage) {
+    prompt += `\n- **The user is already engaged in an exercise/resource. Do NOT suggest other resources unless they explicitly ask. Focus on helping them with what they're currently doing.**`;
+  } else {
+    prompt += `\n- Only suggest **ONE primary resource per response** — the highest-priority one they haven't done yet`;
+  }
+
+  prompt += `
 - If the user has already completed a resource (e.g., assessment context is present), skip it and promote the next one
 - For "coming soon" resources, acknowledge interest: "We're building that right now — in the meantime, [next available resource]"
 - Always explain WHY the resource is valuable, don't just drop a link
