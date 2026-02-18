@@ -44,9 +44,9 @@ const coverageItems = [
 export function AgreementSection() {
   return (
     <section className="relative py-16 md:py-24 lg:py-32 bg-background overflow-hidden">
-      {/* Decorative elements */}
-      <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-primary/5 blur-3xl" />
-      <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-accent/10 blur-3xl" />
+      {/* Decorative elements (radial gradients instead of blur for performance) */}
+      <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full" style={{ background: "radial-gradient(circle, hsl(var(--primary) / 0.05) 0%, transparent 70%)" }} />
+      <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full" style={{ background: "radial-gradient(circle, hsl(var(--accent) / 0.1) 0%, transparent 70%)" }} />
 
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         {/* Header */}

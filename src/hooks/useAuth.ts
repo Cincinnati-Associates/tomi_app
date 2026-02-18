@@ -186,10 +186,17 @@ export function useAuth(): AuthState & AuthActions {
 
   const signInWithGoogle = useCallback(async () => {
     try {
+      // Preserve the redirect param (set by middleware) so the callback
+      // can send the user back to the page they originally requested
+      const params = new URLSearchParams(window.location.search)
+      const redirect = params.get('redirect')
+      const callbackUrl = new URL('/auth/callback', window.location.origin)
+      if (redirect) callbackUrl.searchParams.set('next', redirect)
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: callbackUrl.toString(),
         },
       });
       return { error: error as Error | null };

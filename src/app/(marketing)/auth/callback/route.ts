@@ -35,15 +35,17 @@ async function getSmartRedirect(userId: string, next: string | null, origin: str
       where: eq(profiles.id, userId),
     })
 
+    // Always honour explicit `next` for admin/homebase routes
+    // (admin users shouldn't be blocked by onboarding)
+    if (next && (next.startsWith('/admin') || next.startsWith('/homebase'))) {
+      return `${origin}${next}`
+    }
+
     if (!profile) {
-      // Profile not found (shouldn't happen, but handle gracefully)
-      // Supabase trigger should create profile, but it may take a moment
-      // Send to onboarding which will create journey if needed
       return `${origin}/onboarding/welcome`
     }
 
     if (!profile.onboardingCompleted) {
-      // User hasn't completed onboarding - send to welcome flow
       return `${origin}/onboarding/welcome`
     }
 
@@ -51,7 +53,6 @@ async function getSmartRedirect(userId: string, next: string | null, origin: str
     return `${origin}${next || '/dashboard'}`
   } catch (error) {
     console.error('Error in smart redirect:', error)
-    // Fallback to dashboard on error
     return `${origin}${next || '/dashboard'}`
   }
 }
