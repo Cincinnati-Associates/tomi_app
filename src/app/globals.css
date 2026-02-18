@@ -197,7 +197,51 @@
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: text-shimmer 8s ease-in-out infinite;
+  will-change: background-position;
+  animation: text-shimmer 12s ease-in-out infinite;
+}
+
+/* HomiChatTrigger animations (CSS-only, GPU-composited) */
+@keyframes homi-ring-pulse {
+  0% { transform: scale(1); opacity: 0.5; }
+  70% { transform: scale(1.5); opacity: 0; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+.homi-ring-pulse {
+  will-change: transform, opacity;
+  animation: homi-ring-pulse 2.5s ease-out infinite;
+}
+
+@keyframes homi-glow {
+  0%, 100% { box-shadow: 0 0 12px hsl(var(--primary) / 0.3), 0 0 24px hsl(var(--primary) / 0.15); }
+  50% { box-shadow: 0 0 18px hsl(var(--primary) / 0.45), 0 0 36px hsl(var(--primary) / 0.2); }
+}
+
+.homi-glow {
+  will-change: box-shadow;
+  animation: homi-glow 3s ease-in-out infinite;
+}
+
+/* Homi card glow — reusable magical golden border glow for Homi-presented content */
+@keyframes homi-card-glow {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px hsl(var(--accent) / 0.15),
+      0 0 8px hsl(var(--accent) / 0.08),
+      0 0 20px hsl(var(--accent) / 0.04);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px hsl(var(--accent) / 0.25),
+      0 0 12px hsl(var(--accent) / 0.12),
+      0 0 28px hsl(var(--accent) / 0.06);
+  }
+}
+
+.homi-card-glow {
+  border-color: hsl(var(--accent) / 0.2);
+  animation: homi-card-glow 4s ease-in-out infinite;
 }
 
 /* Elegant glow effects for CTAs */

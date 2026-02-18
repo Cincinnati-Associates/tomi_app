@@ -51,10 +51,13 @@ export function HomiChat({ isOpen, onClose, initialMessage }: HomiChatProps) {
     }
   }, [isOpen]);
 
-  // Scroll to bottom on new messages - only if user hasn't scrolled up
+  // Scroll within the chat container (not the page) on new messages
   useEffect(() => {
-    if (!userHasScrolled) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!userHasScrolled && messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTo({
+        top: messagesContainerRef.current.scrollHeight,
+        behavior: "smooth",
+      });
     }
   }, [messages, userHasScrolled]);
 

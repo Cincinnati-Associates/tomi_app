@@ -58,19 +58,26 @@ export function ExerciseChat({
   children,
 }: ExerciseChatProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesScrollRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const prevMessageCount = useRef(0)
   const [userHasScrolled, setUserHasScrolled] = useState(false)
   const [inputValue, setInputValue] = useState("")
 
   const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    messagesScrollRef.current?.scrollTo({
+      top: messagesScrollRef.current.scrollHeight,
+      behavior: "smooth",
+    })
   }, [])
 
-  // Scroll on new messages
+  // Scroll within the chat container (not the page) on new messages
   useEffect(() => {
-    if (!userHasScrolled) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    if (!userHasScrolled && messagesScrollRef.current) {
+      messagesScrollRef.current.scrollTo({
+        top: messagesScrollRef.current.scrollHeight,
+        behavior: "smooth",
+      })
     }
   }, [messages, userHasScrolled])
 
@@ -192,6 +199,7 @@ export function ExerciseChat({
 
       {/* ── Messages area ── */}
       <div
+        ref={messagesScrollRef}
         className="flex-1 overflow-y-auto p-4 sm:p-6 overscroll-contain"
         onScroll={handleMessagesScroll}
       >

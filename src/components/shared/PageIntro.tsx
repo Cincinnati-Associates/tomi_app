@@ -267,7 +267,7 @@ export function PageIntro({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="relative rounded-2xl border bg-card shadow-xl max-w-md mx-4 overflow-hidden"
+            className="relative rounded-2xl border bg-card shadow-xl max-w-md mx-4 overflow-hidden homi-card-glow"
             onClick={(e) => e.stopPropagation()}
           >
             <DesktopIntroContent

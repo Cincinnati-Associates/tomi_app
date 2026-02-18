@@ -41,12 +41,6 @@ function StepIndicator({
     [0, 1]
   );
 
-  const titleY = useTransform(
-    currentStep,
-    [index - 0.3, index + 0.2],
-    [8, 0]
-  );
-
   return (
     <div className="flex flex-col items-center">
       <motion.span
@@ -57,10 +51,7 @@ function StepIndicator({
       </motion.span>
       <motion.span
         className="text-[10px] font-medium text-primary mt-0.5 whitespace-nowrap"
-        style={{
-          opacity: titleOpacity,
-          y: titleY,
-        }}
+        style={{ opacity: titleOpacity }}
       >
         {step.title}
       </motion.span>
@@ -143,17 +134,7 @@ function StepPanel({
       : [directionOffset.y, 0, directionOffset.y * -0.5]
   );
 
-  // Icon animations - last card stays visible
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _iconOpacity = useTransform(
-    scrollYProgress,
-    isLast
-      ? [cardStart, cardMid - 0.02, cardMid]
-      : [cardStart, cardMid - 0.02, cardMid, cardFadeStart, cardEnd],
-    isLast
-      ? [0, 1, 1]
-      : [0, 1, 1, 1, 0]
-  );
+  // Icon animation
   const iconScale = useTransform(
     scrollYProgress,
     isLast
@@ -217,6 +198,7 @@ function StepPanel({
             opacity: imageOpacity,
             x: imageX,
             y: imageY,
+            willChange: "transform, opacity",
           }}
         >
           <div className="relative">
@@ -242,10 +224,10 @@ function StepPanel({
               <Icon className="w-8 h-8 md:w-10 md:h-10 text-primary" />
             </motion.div>
 
-            {/* Step number watermark */}
+            {/* Step number badge - opposite corner from icon */}
             <span className={cn(
-              "absolute -bottom-2 text-6xl md:text-7xl font-bold text-primary/10",
-              index % 2 === 0 ? "-right-8" : "-left-8"
+              "absolute -top-3 flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-primary text-primary-foreground text-lg md:text-xl font-bold shadow-md",
+              index % 2 === 0 ? "-left-3" : "-right-3"
             )}>
               {step.number}
             </span>
@@ -263,6 +245,7 @@ function StepPanel({
             style={{
               opacity: contentOpacity,
               y: contentY,
+              willChange: "transform, opacity",
             }}
           >
             <h3 className="font-heading text-2xl md:text-4xl font-bold text-foreground mb-4">
@@ -354,8 +337,8 @@ export function HowItWorks({
         className="relative bg-secondary/30 hidden md:block"
         style={{ height: `${totalSteps * 100 + 50}vh` }}
       >
-        {/* Yellow glow - transition from section above */}
-        <div className="absolute -top-40 -left-40 h-80 w-80 rounded-full bg-primary/10 blur-3xl z-0" />
+        {/* Decorative glow (radial gradient instead of blur for performance) */}
+        <div className="absolute -top-40 -left-40 h-80 w-80 rounded-full z-0" style={{ background: "radial-gradient(circle, hsl(var(--primary) / 0.1) 0%, transparent 70%)" }} />
 
         {/* Sticky viewport that stays pinned */}
         <div className="sticky top-0 h-screen overflow-hidden">
@@ -411,7 +394,7 @@ export function HowItWorks({
           {/* Horizontal sliding panels */}
           <motion.div
             className="flex h-full pt-32 md:pt-40"
-            style={{ x }}
+            style={{ x, willChange: "transform" }}
           >
             {howItWorksSteps.map((step, index) => (
               <StepPanel
@@ -474,13 +457,13 @@ export function HowItWorks({
                   </div>
 
                   {/* Icon and number */}
-                  <div className="flex items-center gap-4 mb-3">
-                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10">
-                      <Icon className="w-6 h-6 text-primary" />
-                    </div>
-                    <span className="text-4xl font-bold text-primary/20">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground text-base font-bold">
                       {step.number}
-                    </span>
+                    </div>
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10">
+                      <Icon className="w-5 h-5 text-primary" />
+                    </div>
                   </div>
 
                   {/* Content */}
