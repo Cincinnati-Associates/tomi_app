@@ -1,4 +1,5 @@
 import { formatResourcesForPrompt } from "./resources";
+import { getExerciseContext } from "./exercise-contexts";
 import type { AnonymousUserContext } from "./user-context";
 
 /**
@@ -260,20 +261,36 @@ export interface BuildSystemPromptOptions {
   userContext?: AnonymousUserContext;
   /** @deprecated Included in knowledgeSection. Kept for backward compatibility. */
   assessmentContext?: string;
+  /** The page the user is currently on (e.g. "/assessment") — suppresses CTAs for that page */
+  currentPage?: string;
 }
 
 /**
  * Build a system prompt with resources, user knowledge, and calculator context.
  */
 export function buildSystemPrompt(options: BuildSystemPromptOptions = {}): string {
-  const { calculatorContext, knowledgeSection, userContext, assessmentContext } = options;
+  const { calculatorContext, knowledgeSection, userContext, assessmentContext, currentPage } = options;
 
-  // Always include the resources catalog
-  const resourcesSection = formatResourcesForPrompt();
+  // Always include the resources catalog (filtered by current page)
+  const resourcesSection = formatResourcesForPrompt(currentPage);
 
   let prompt = `${HOMI_SYSTEM_PROMPT}
 
 ${resourcesSection}`;
+
+  // Add exercise-specific context and page-level CTA suppression
+  if (currentPage) {
+    // Inject exercise-specific behavioral instructions if available
+    const exerciseCtx = getExerciseContext(currentPage);
+    if (exerciseCtx) {
+      prompt += `\n${exerciseCtx.systemPromptBlock}\n`;
+    }
+
+    // Always add generic CTA suppression for the current page
+    prompt += `\n## Active Page Context
+The user is currently on **${currentPage}**. They are already engaged with this resource/exercise.
+**CRITICAL**: Do NOT suggest, promote, or link to the page the user is already on. Do NOT promote other resources or exercises that would pull them away from what they are currently doing. Focus your response entirely on helping them with their current activity. Only suggest other resources if the user explicitly asks about next steps or something unrelated.\n`;
+  }
 
   // Prefer the new knowledgeSection if provided
   if (knowledgeSection) {

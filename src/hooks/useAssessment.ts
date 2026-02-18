@@ -14,11 +14,11 @@ export interface CategoryInfo {
 }
 
 export const CATEGORIES: CategoryInfo[] = [
-  { id: "intent", label: "Intent", questionCount: 3 },
-  { id: "cobuyer", label: "Co-Buyer", questionCount: 3 },
-  { id: "living", label: "Living", questionCount: 1 },
-  { id: "financial", label: "Financial", questionCount: 3 },
-  { id: "readiness", label: "Readiness", questionCount: 2 },
+  { id: "intent", label: "Vision", questionCount: 3 },
+  { id: "cobuyer", label: "People", questionCount: 3 },
+  { id: "living", label: "Lifestyle", questionCount: 1 },
+  { id: "financial", label: "Finances", questionCount: 3 },
+  { id: "readiness", label: "Readiness", questionCount: 1 },
 ];
 
 // Input types for questions
@@ -48,6 +48,7 @@ export interface AssessmentQuestion {
   hybridConfig?: HybridConfig;
   multiSelect?: boolean; // Allow selecting multiple options
   homiPrompt?: string; // Contextual prompt for Homi button
+  allowCustomAnswer?: boolean; // Show "type your own answer" option
 }
 
 // Grade type
@@ -73,41 +74,44 @@ export interface AssessmentResult {
   };
 }
 
-// Assessment questions data - 12 questions across 5 categories
+// Assessment questions data - 11 questions across 5 categories
+// Order: Aspiration → People → Living → Experience → Money → Fun closer
 export const ASSESSMENT_QUESTIONS: AssessmentQuestion[] = [
-  // Category 1: Intent (3 questions) - Easy openers
+  // Category 1: Intent (3 questions) - Start with dreams, not logistics
   {
     id: 1,
     category: "intent",
-    question: "When are you hoping to purchase?",
+    question: "What's pulling you toward co-ownership?",
     inputType: "choice",
-    homiPrompt: "Chat w/ Homi",
+    homiPrompt: "Tell me more",
+    allowCustomAnswer: true,
     options: [
-      { text: "Within 6 months", score: 3 },
-      { text: "Within 1 year", score: 2 },
-      { text: "1-2 years", score: 1 },
-      { text: "No specific timeline", score: 0 },
+      { text: "I want to stop renting and start building equity", score: 3 },
+      { text: "I can't afford what I want on my own", score: 3 },
+      { text: "I want to live near the people I love", score: 2 },
+      { text: "I'm curious — just exploring", score: 1 },
     ],
   },
   {
     id: 2,
     category: "intent",
-    question: "What type of home are you looking to co-own?",
+    question: "Picture your ideal (shared) home setup. What does it look like?",
     inputType: "choice",
-    homiPrompt: "Chat w/ Homi",
+    homiPrompt: "Help me imagine",
+    allowCustomAnswer: true,
     options: [
-      { text: "Primary residence - I'll live here full-time", score: 3 },
-      { text: "Vacation home - for periodic getaways", score: 2 },
-      { text: "Investment property - rental income focus", score: 2 },
-      { text: "Not sure yet", score: 1 },
+      { text: "A house where I live full-time with my people", score: 3 },
+      { text: "A vacation spot we all escape to", score: 2 },
+      { text: "An investment property that makes us money", score: 2 },
+      { text: "Honestly? I just want something that's mine", score: 1 },
     ],
   },
   {
     id: 3,
     category: "intent",
-    question: "Do you know where you want to buy?",
+    question: "Do you know where you want to put down roots?",
     inputType: "hybrid",
-    homiPrompt: "Chat w/ Homi",
+    homiPrompt: "Help me decide",
     hybridConfig: {
       unit: "text",
       placeholder: "Enter city or neighborhood",
@@ -119,16 +123,17 @@ export const ASSESSMENT_QUESTIONS: AssessmentQuestion[] = [
       { text: "No idea yet", score: 0 },
     ],
   },
-  // Category 2: Co-Buyer Situation (3 questions)
+  // Category 2: Co-Buyer Situation (3 questions) - Who's coming along?
   {
     id: 4,
     category: "cobuyer",
-    question: "Do you have a potential co-buyer in mind?",
+    question: "Here's the big one: do you have someone in mind to do this with?",
     inputType: "choice",
     homiPrompt: "How do I find one?",
+    allowCustomAnswer: true,
     options: [
       { text: "Yes, we've discussed it seriously", score: 3 },
-      { text: "I have someone in mind, haven't asked", score: 2 },
+      { text: "I have someone in mind, haven't asked yet", score: 2 },
       { text: "I have a few people I could approach", score: 1 },
       { text: "No, I'd need to find someone", score: 0 },
     ],
@@ -141,6 +146,7 @@ export const ASSESSMENT_QUESTIONS: AssessmentQuestion[] = [
     inputType: "multiselect",
     multiSelect: true,
     homiPrompt: "Does this matter?",
+    allowCustomAnswer: true,
     options: [
       { text: "Close friend (5+ years)", score: 3 },
       { text: "Family member", score: 3 },
@@ -152,36 +158,36 @@ export const ASSESSMENT_QUESTIONS: AssessmentQuestion[] = [
   {
     id: 6,
     category: "cobuyer",
-    question: "How comfortable are you sharing finances with your potential co-buyer(s)?",
+    question: "Could you talk money with this person over dinner without it getting weird?",
     inputType: "choice",
     homiPrompt: "Why does this matter?",
+    allowCustomAnswer: true,
     options: [
-      { text: "Very comfortable - we're already open books", score: 3 },
-      { text: "Comfortable - I'd share what's necessary", score: 2 },
-      { text: "Somewhat - I could with the right framework", score: 1 },
-      { text: "Not sure I could be that open", score: 0 },
+      { text: "Absolutely — we're already open books", score: 3 },
+      { text: "Yeah, I'd share what's necessary", score: 2 },
+      { text: "Maybe — with the right framework", score: 1 },
+      { text: "That would be... uncomfortable", score: 0 },
     ],
   },
-  // Category 3: Living Arrangement (1 question)
+  // Category 3: Living/Lifestyle (1 question) — breather before money
   {
     id: 7,
     category: "living",
-    question: "How do you envision sharing the space with your co-buyer(s)?",
+    question: "Have you ever bought a home before?",
     inputType: "choice",
-    homiPrompt: "Chat w/ Homi",
+    homiPrompt: "First-timer tips",
     options: [
-      { text: "Co-habitate full-time (live together)", score: 3 },
-      { text: "Separate units within the property", score: 3 },
-      { text: "Share periodically (like a vacation home)", score: 2 },
-      { text: "Split time (scheduled rotation)", score: 2 },
-      { text: "Haven't thought about this yet", score: 0 },
+      { text: "Nope, this would be my first", score: 2 },
+      { text: "Yes, I've been through this rodeo", score: 3 },
+      { text: "I own now and would sell to co-buy", score: 3 },
+      { text: "I own now and would keep it", score: 2 },
     ],
   },
-  // Category 4: Financial Readiness (3 questions)
+  // Category 4: Financial Readiness (3 questions) - Warmed up, now let's talk numbers
   {
     id: 8,
     category: "financial",
-    question: "How much have you saved for a down payment?",
+    question: "How much have you set aside for a down payment?",
     subtext: "For reference: 10% of a $500k home is $50k",
     inputType: "hybrid",
     homiPrompt: "How much do I need?",
@@ -199,9 +205,9 @@ export const ASSESSMENT_QUESTIONS: AssessmentQuestion[] = [
   {
     id: 9,
     category: "financial",
-    question: "What's your monthly budget for housing?",
+    question: "What can you comfortably spend on housing each month?",
     inputType: "hybrid",
-    homiPrompt: "Chat w/ Homi",
+    homiPrompt: "Help me figure this out",
     hybridConfig: {
       unit: "currency_monthly",
       placeholder: "Enter exact amount",
@@ -216,34 +222,21 @@ export const ASSESSMENT_QUESTIONS: AssessmentQuestion[] = [
   {
     id: 10,
     category: "financial",
-    question: "How would you describe your current debt and credit situation?",
+    question: "How's your credit looking these days?",
     inputType: "choice",
     homiPrompt: "Will this affect me?",
     options: [
-      { text: "Great - minimal debt, strong credit (750+)", score: 3 },
-      { text: "Good - manageable debt, decent credit (680-750)", score: 2 },
-      { text: "Working on it - some debt or credit challenges", score: 1 },
-      { text: "Not sure - I'd need to check", score: 0 },
+      { text: "Looking good — minimal debt, 750+ credit", score: 3 },
+      { text: "Solid — manageable debt, 680-750 range", score: 2 },
+      { text: "Working on it — some challenges", score: 1 },
+      { text: "Honestly? I'd need to check", score: 0 },
     ],
   },
-  // Category 5: Readiness (2 questions)
+  // Fun closer - ends on a light note
   {
     id: 11,
     category: "readiness",
-    question: "Is this your first time buying a home?",
-    inputType: "choice",
-    homiPrompt: "First-timer tips",
-    options: [
-      { text: "Yes, first time buyer", score: 2 },
-      { text: "No, I've owned before", score: 3 },
-      { text: "I currently own and would sell", score: 3 },
-      { text: "I currently own and would keep it", score: 2 },
-    ],
-  },
-  {
-    id: 12,
-    category: "readiness",
-    question: "Do you know which ownership structure is best for unmarried co-buyers?",
+    question: "Pop quiz: what's the best ownership structure for unmarried co-buyers?",
     subtext: "Take your best guess!",
     inputType: "choice",
     homiPrompt: "What's a TIC?",
@@ -256,13 +249,13 @@ export const ASSESSMENT_QUESTIONS: AssessmentQuestion[] = [
   },
 ];
 
-// Max possible score (12 questions, max 3 each = 36)
-export const MAX_SCORE = 36;
+// Max possible score (11 questions, max 3 each = 33)
+export const MAX_SCORE = 33;
 
-// Calculate result based on score (max 36 points)
+// Calculate result based on score (max 33 points)
 function calculateResult(totalScore: number): AssessmentResult {
-  if (totalScore >= 30) {
-    // 83%+ - Ready to go
+  if (totalScore >= 28) {
+    // 85%+ - Ready to go
     return {
       totalScore,
       maxScore: MAX_SCORE,
@@ -281,8 +274,8 @@ function calculateResult(totalScore: number): AssessmentResult {
         action: "open_chat",
       },
     };
-  } else if (totalScore >= 22) {
-    // 61-83% - Almost there
+  } else if (totalScore >= 20) {
+    // 61-85% - Almost there
     return {
       totalScore,
       maxScore: MAX_SCORE,
@@ -301,7 +294,7 @@ function calculateResult(totalScore: number): AssessmentResult {
         type: "learn_more",
       },
     };
-  } else if (totalScore >= 13) {
+  } else if (totalScore >= 12) {
     // 36-61% - Getting started
     return {
       totalScore,
@@ -360,9 +353,10 @@ function getProjectedGrade(currentScore: number, answeredCount: number): Grade {
 // Answer data stored for each question
 export interface AnswerData {
   score: number;
-  optionIndex: number;
+  optionIndex: number; // -1 for custom text answers
   optionIndices?: number[]; // For multi-select questions
   exactValue?: number | string; // For hybrid inputs - the exact value entered
+  customText?: string; // User's own typed answer (when optionIndex === -1)
 }
 
 // Assessment state type
@@ -495,9 +489,13 @@ export function useAssessment() {
       .map((answer, idx) => {
         if (!answer) return null;
         const q = ASSESSMENT_QUESTIONS[idx];
+        // Use customText for custom answers, otherwise look up the option text
+        const answerText = answer.customText
+          ? `(Custom) ${answer.customText}`
+          : q.options[answer.optionIndex]?.text || "";
         return {
           question: q.question,
-          answer: q.options[answer.optionIndex]?.text || "",
+          answer: answerText,
           score: answer.score,
           category: q.category,
         };
@@ -547,6 +545,38 @@ export function useAssessment() {
         };
 
         // Check if this was the last question
+        const isLastQuestion =
+          state.currentQuestionIndex === ASSESSMENT_QUESTIONS.length - 1;
+
+        if (isLastQuestion) {
+          setState((prev) => ({
+            ...prev,
+            answers: newAnswers,
+            showPreResultsGate: true,
+          }));
+        } else {
+          setState((prev) => ({
+            ...prev,
+            answers: newAnswers,
+          }));
+        }
+      } else if (optionIndex === -1 && typeof exactValue === "string") {
+        // Custom text answer
+        trackEvent("assessment_question_answered", {
+          question_number: question.id,
+          question_category: question.category,
+          answer_score: 2,
+          answer_text: exactValue,
+          is_custom_answer: true,
+        });
+
+        const newAnswers = [...state.answers];
+        newAnswers[state.currentQuestionIndex] = {
+          score: 2, // Neutral score for custom answers
+          optionIndex: -1,
+          customText: exactValue,
+        };
+
         const isLastQuestion =
           state.currentQuestionIndex === ASSESSMENT_QUESTIONS.length - 1;
 

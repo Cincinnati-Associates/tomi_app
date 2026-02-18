@@ -70,6 +70,13 @@ Provider is controlled by `AI_PROVIDER` env var (google/openai/anthropic). See `
 - `useTypewriter` - Text typing animation effect
 - `useAnimatedValue` - Smooth number animations
 
+**Homi Exercise Context Registry (`src/lib/exercise-contexts.ts`):**
+When adding a new page, CTA path, or exercise where Homi chat is available, you MUST:
+1. Pass `currentPage` (the URL path, e.g. `"/assessment"`) to `useHomiChat` in the component
+2. Add a corresponding entry in `src/lib/exercise-contexts.ts` with exercise-specific behavioral instructions
+3. The context block should tell Homi: what the exercise is, what help is appropriate, and that it must NOT generate markdown links or promote other resources while the user is mid-exercise
+4. Resources in `src/lib/resources.ts` are auto-suppressed for the current page via `formatResourcesForPrompt(currentPage)`, but the exercise context provides deeper behavioral guidance
+
 ### Scroll Animations
 
 Several components use Framer Motion's `useScroll` + `useTransform` for scroll-triggered effects (e.g., HowItWorks horizontal panels, UnlockSection reveals). The pattern:
