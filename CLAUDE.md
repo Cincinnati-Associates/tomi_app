@@ -30,6 +30,37 @@ npm run db:studio    # Open Drizzle Studio GUI
 - `/db-migrate --studio` - Migrate and open Drizzle Studio
 - `/blog` - Create a new blog post (interactive prompts for title, tags, etc.)
 - `/blog "Post Title"` - Create a new blog post with the given title
+- `/ralph-loop:start --agent <name>` - Initialize a Ralph loop for a specific agent
+- `/ralph-loop:continue` - Continue working on an active Ralph loop
+- `/ralph-loop:status` - Check Ralph loop progress
+- `/ralph-loop:sync-github` - Sync completion to GitHub and create PR
+
+## Ralph Loop (Iterative Development)
+
+Single-agent, multi-session iterative development system. Extracts GitHub issues into a task registry (`prp.json`), tracks progress across sessions via `progress.txt`, and documents decisions in ADRs.
+
+### Workflow
+1. **Start:** `/ralph-loop:start --agent schema-architect` — fetches issues with `ralph-ready` + `agent:<name>` labels, generates `prp.json`, creates ADR/implementation stubs
+2. **Iterate:** `/ralph-loop:continue` — reads context, works on acceptance criteria, updates docs, commits
+3. **Check:** `/ralph-loop:status` — reports progress (criteria met, iteration count)
+4. **Sync:** `/ralph-loop:sync-github` — updates issue labels, pushes branch, creates PR
+
+### Key Files
+- `prp.json` — Task registry with acceptance criteria, iteration state, agent assignments
+- `progress.txt` — Append-only log of each iteration's work, blockers, commits
+- `PRPs/adr/GH-{N}-adr.md` — Architectural Decision Records per issue
+- `PRPs/implementation-details/GH-{N}-implementation.md` — Implementation approach per issue
+- `PRPs/templates/` — Templates for ADR and implementation docs
+- `.ralph/config.json` — Loop settings (max iterations, validation commands, base branch)
+- `scripts/ralph-loop/` — Shell scripts and TypeScript tooling
+
+### GitHub Labels
+- `ralph-ready` — Issue queued for Ralph loop
+- `ralph-in-progress` — Agent actively working
+- `ralph-complete` — Agent finished, awaiting merge
+
+### Agent Integration
+All agents in `.claude/agents/` have a Ralph Loop Integration section. When working in a loop, agents must: read context on start, update ADR/implementation docs during work, and append to `progress.txt` + update `prp.json` before finishing each session.
 
 ## Architecture
 

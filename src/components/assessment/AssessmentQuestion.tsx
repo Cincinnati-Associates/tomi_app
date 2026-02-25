@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -15,7 +15,49 @@ interface AssessmentQuestionProps {
   onAnimationComplete: () => void;
 }
 
-// Option card component for standard choice questions - compact for mobile
+/**
+ * Typewriter hook — types out text character by character.
+ * Returns the visible portion and whether typing is done.
+ */
+function useQuestionTypewriter(text: string, speed = 25, startDelay = 150) {
+  const [displayed, setDisplayed] = useState("");
+  const [isDone, setIsDone] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    setDisplayed("");
+    setIsDone(false);
+
+    // Respect reduced motion
+    if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setDisplayed(text);
+      setIsDone(true);
+      return;
+    }
+
+    let i = 0;
+    timerRef.current = setTimeout(() => {
+      intervalRef.current = setInterval(() => {
+        i++;
+        setDisplayed(text.slice(0, i));
+        if (i >= text.length) {
+          if (intervalRef.current) clearInterval(intervalRef.current);
+          setIsDone(true);
+        }
+      }, speed);
+    }, startDelay);
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [text, speed, startDelay]);
+
+  return { displayed, isDone };
+}
+
+// Option card component for standard choice questions
 function OptionCard({
   option,
   index,
@@ -31,9 +73,9 @@ function OptionCard({
 }) {
   return (
     <motion.button
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.12, delay: index * 0.02 }}
+      transition={{ duration: 0.2, delay: index * 0.08 }}
       onClick={onClick}
       disabled={disabled}
       className={cn(
@@ -41,7 +83,7 @@ function OptionCard({
         "hover:border-primary/50 hover:bg-primary/5",
         "focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-1",
         "active:scale-[0.98]",
-        "min-h-[48px]", // Slightly smaller but still touch-friendly
+        "min-h-[48px]",
         isSelected
           ? "border-primary bg-primary/10"
           : "border-border bg-card",
@@ -49,7 +91,7 @@ function OptionCard({
       )}
     >
       <div className="flex items-center gap-2.5">
-        {/* Selection indicator - smaller */}
+        {/* Selection indicator */}
         <div
           className={cn(
             "flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200",
@@ -93,6 +135,13 @@ export function AssessmentQuestion({
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
 
+  // Typewriter for the question text
+  const { displayed: typedQuestion, isDone: questionTyped } = useQuestionTypewriter(
+    question.question,
+    25,
+    150
+  );
+
   // Reset selected index when question changes
   useEffect(() => {
     setSelectedIndex(null);
@@ -135,59 +184,70 @@ export function AssessmentQuestion({
         transition={{ duration: 0.15, ease: "easeOut" }}
         className="w-full max-w-lg mx-auto"
       >
-        {/* Question text - compact */}
-        <motion.h2
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.15 }}
-          className="font-heading text-base sm:text-lg md:text-xl font-bold text-foreground text-center mb-2"
-        >
-          {question.question}
-        </motion.h2>
-
-        {/* Subtext for financial questions */}
-        {question.subtext && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.1, delay: 0.05 }}
-            className="text-xs sm:text-sm text-muted-foreground text-center mb-4"
-          >
-            {question.subtext}
-          </motion.p>
-        )}
-
-        {/* Hybrid input for financial questions */}
-        {isHybrid && question.hybridConfig ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.12 }}
-            className="mt-4"
-          >
-            <HybridInput
-              options={question.options}
-              hybridConfig={question.hybridConfig}
-              selectedIndex={selectedIndex}
-              onSelect={handleSelectOption}
-              disabled={isAnimatingOut}
+        {/* Question text — typed out character by character */}
+        <h2 className="font-heading text-base sm:text-lg md:text-xl font-bold text-foreground text-center mb-2 min-h-[2em]">
+          {typedQuestion}
+          {!questionTyped && (
+            <motion.span
+              animate={{ opacity: [1, 0] }}
+              transition={{ duration: 0.5, repeat: Infinity }}
+              className="inline-block ml-0.5 w-[2px] h-[0.9em] bg-foreground/60 align-middle"
             />
-          </motion.div>
-        ) : (
-          /* Standard choice options - tighter spacing */
-          <div className="space-y-2 mt-4">
-            {question.options.map((option, index) => (
-              <OptionCard
-                key={`${questionIndex}-${index}`}
-                option={option}
-                index={index}
-                isSelected={selectedIndex === index}
-                onClick={() => handleSelectOption(index)}
-                disabled={isAnimatingOut}
-              />
-            ))}
-          </div>
+          )}
+        </h2>
+
+        {/* Subtext */}
+        {question.subtext && (
+          <AnimatePresence>
+            {questionTyped && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.2 }}
+                className="text-xs sm:text-sm text-muted-foreground text-center mb-4"
+              >
+                {question.subtext}
+              </motion.p>
+            )}
+          </AnimatePresence>
         )}
+
+        {/* Options — appear after question finishes typing */}
+        <AnimatePresence>
+          {questionTyped && (
+            <>
+              {isHybrid && question.hybridConfig ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.15 }}
+                  className="mt-4"
+                >
+                  <HybridInput
+                    options={question.options}
+                    hybridConfig={question.hybridConfig}
+                    selectedIndex={selectedIndex}
+                    onSelect={handleSelectOption}
+                    disabled={isAnimatingOut}
+                  />
+                </motion.div>
+              ) : (
+                <div className="space-y-2 mt-4">
+                  {question.options.map((option, index) => (
+                    <OptionCard
+                      key={`${questionIndex}-${index}`}
+                      option={option}
+                      index={index}
+                      isSelected={selectedIndex === index}
+                      onClick={() => handleSelectOption(index)}
+                      disabled={isAnimatingOut}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </AnimatePresence>
       </motion.div>
     </AnimatePresence>
   );

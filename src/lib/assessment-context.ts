@@ -49,31 +49,35 @@ export function buildAssessmentContextForHomi(assessment: StoredAssessment): str
   const contextParts = [
     `This user recently completed the co-ownership readiness assessment.`,
     `Grade: ${grade} (${gradeDescriptions[grade]})`,
-    `Score: ${score}/36`,
+    `Score: ${score}/42`,
   ];
 
   // Add insights based on score ranges for different areas
   const insights: string[] = [];
 
   // Calculate rough category insights from answer indices
-  // Questions are organized: intent (0-2), cobuyer (3-5), living (6), financial (7-9), readiness (10-11)
-  const intentScores = answers.slice(0, 3).filter(Boolean).reduce((sum, a) => sum + (a?.score || 0), 0);
-  const cobuyerScores = answers.slice(3, 6).filter(Boolean).reduce((sum, a) => sum + (a?.score || 0), 0);
-  const financialScores = answers.slice(7, 10).filter(Boolean).reduce((sum, a) => sum + (a?.score || 0), 0);
-  const readinessScores = answers.slice(10, 12).filter(Boolean).reduce((sum, a) => sum + (a?.score || 0), 0);
+  // Questions are organized: the_why (0-2), the_who (3-5), the_what (6-8), the_money (9-11), the_readiness (12-13)
+  const whyScores = answers.slice(0, 3).filter(Boolean).reduce((sum, a) => sum + (a?.score || 0), 0);
+  const whoScores = answers.slice(3, 6).filter(Boolean).reduce((sum, a) => sum + (a?.score || 0), 0);
+  const whatScores = answers.slice(6, 9).filter(Boolean).reduce((sum, a) => sum + (a?.score || 0), 0);
+  const moneyScores = answers.slice(9, 12).filter(Boolean).reduce((sum, a) => sum + (a?.score || 0), 0);
+  const readinessScores = answers.slice(12, 14).filter(Boolean).reduce((sum, a) => sum + (a?.score || 0), 0);
 
-  // Max possible: intent 9, cobuyer 9, financial 9, readiness 6
-  if (intentScores >= 7) insights.push("Strong timeline clarity and intent");
-  else if (intentScores <= 3) insights.push("Still exploring timeline and intent - good area for follow-up");
+  // Max possible: the_why 9, the_who 9, the_what 9, the_money 9, the_readiness 6
+  if (whyScores >= 7) insights.push("Strong motivation and understanding of co-ownership benefits");
+  else if (whyScores <= 3) insights.push("Still exploring what co-ownership means for them - good area for education");
 
-  if (cobuyerScores >= 7) insights.push("Has co-buyers identified and relationship clarity");
-  else if (cobuyerScores <= 3) insights.push("Co-buyer situation unclear - may need help finding or evaluating co-buyers");
+  if (whoScores >= 7) insights.push("Has co-buyers identified with good relationship clarity");
+  else if (whoScores <= 3) insights.push("Co-buyer situation unclear - may need help finding or evaluating co-buyers");
 
-  if (financialScores >= 7) insights.push("Strong financial readiness");
-  else if (financialScores <= 3) insights.push("Financial preparation may need work - discuss savings, debt, or credit");
+  if (whatScores >= 7) insights.push("Clear vision for their shared home and experienced with home buying");
+  else if (whatScores <= 3) insights.push("Still forming their vision - help them explore what shared living could look like");
 
-  if (readinessScores >= 5) insights.push("Feels ready to take action");
-  else if (readinessScores <= 2) insights.push("May have concerns or hesitations - explore what's holding them back");
+  if (moneyScores >= 7) insights.push("Strong financial readiness");
+  else if (moneyScores <= 3) insights.push("Financial preparation may need work - discuss savings, debt, or credit");
+
+  if (readinessScores >= 4) insights.push("Good knowledge base and aware of their concerns");
+  else if (readinessScores <= 2) insights.push("May have concerns or knowledge gaps - explore what's holding them back");
 
   if (insights.length > 0) {
     contextParts.push(`\nKey observations from their answers:`);
