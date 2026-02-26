@@ -19,6 +19,7 @@ export interface HeroVariantProps {
     text: string;
     href: string;
   };
+  ctaLabel?: string;
   onOpenChat: (question: string) => void;
   showTypewriter?: boolean;
 }
@@ -28,6 +29,7 @@ export function HeroVariant({
   subheadline,
   primaryCta,
   secondaryCta,
+  ctaLabel,
   onOpenChat,
   showTypewriter = false,
 }: HeroVariantProps) {
@@ -81,6 +83,11 @@ export function HeroVariant({
           transition={{ duration: 0.6, delay: 0.2 }}
           className="mt-8 flex flex-col items-center gap-4 sm:mt-10"
         >
+          {/* CTA Label */}
+          {ctaLabel && (
+            <p className="text-sm text-muted-foreground">{ctaLabel}</p>
+          )}
+
           {/* Primary CTA */}
           {primaryCta.onClick ? (
             <Button size="lg" className="rounded-full px-8 text-base" onClick={primaryCta.onClick}>

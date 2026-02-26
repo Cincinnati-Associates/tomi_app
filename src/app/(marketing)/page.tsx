@@ -46,8 +46,9 @@ export default function Home() {
           </>
         }
         subheadline={<>Introducing the easiest, most affordable, and rewarding way to<br className="hidden md:inline" /> own a home with someone you aren&apos;t married to.</>}
+        ctaLabel="See if you qualify for a"
         primaryCta={{
-          text: "See if You Qualify",
+          text: "Free Tomi TIC Agreement",
           href: "/assessment",
         }}
         onOpenChat={handleOpenChat}
