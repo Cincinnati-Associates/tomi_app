@@ -25,7 +25,7 @@ interface CompactHomiChatProps {
 // Sub-components (internal)
 // ---------------------------------------------------------------------------
 
-function CompactChatHeader({
+export function CompactChatHeader({
   contextLabel,
   onClose,
 }: {
@@ -54,7 +54,7 @@ function CompactChatHeader({
   );
 }
 
-function CompactChatMessages({
+export function CompactChatMessages({
   messages,
   isLoading,
 }: {
@@ -65,10 +65,13 @@ function CompactChatMessages({
   const endRef = useRef<HTMLDivElement>(null);
   const [userHasScrolled, setUserHasScrolled] = useState(false);
 
-  // Auto-scroll on new messages unless user scrolled up
+  // Auto-scroll within the chat container (not the page) on new messages
   useEffect(() => {
-    if (!userHasScrolled) {
-      endRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!userHasScrolled && containerRef.current) {
+      containerRef.current.scrollTo({
+        top: containerRef.current.scrollHeight,
+        behavior: "smooth",
+      });
     }
   }, [messages, userHasScrolled]);
 
@@ -152,7 +155,7 @@ function CompactChatMessages({
   );
 }
 
-function CompactChatInput({
+export function CompactChatInput({
   inputValue,
   setInputValue,
   onSubmit,

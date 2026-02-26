@@ -10,6 +10,8 @@ interface UseHomiChatOptions {
   userContext?: AnonymousUserContext | null;
   /** When true, skip sending userContext in the body (server fetches it from DB) */
   isAuthenticated?: boolean;
+  /** Current page path — tells Homi not to promote resources the user is already on */
+  currentPage?: string;
 }
 
 /**
@@ -21,7 +23,7 @@ interface UseHomiChatOptions {
  * For anonymous users, we send the client-side context as before.
  */
 export function useHomiChat(options: UseHomiChatOptions = {}) {
-  const { userContext, isAuthenticated = false } = options;
+  const { userContext, isAuthenticated = false, currentPage } = options;
   const [assessmentContext, setAssessmentContext] = useState<StoredAssessment | null>(null);
 
   // Load assessment context on mount
@@ -50,8 +52,12 @@ export function useHomiChat(options: UseHomiChatOptions = {}) {
       // Authenticated: server has assessment data via visitor_user_links.merged_context
     }
 
+    if (currentPage) {
+      bodyData.currentPage = currentPage;
+    }
+
     return Object.keys(bodyData).length > 0 ? bodyData : undefined;
-  }, [userContext, assessmentContext, isAuthenticated]);
+  }, [userContext, assessmentContext, isAuthenticated, currentPage]);
 
   const {
     messages: aiMessages,

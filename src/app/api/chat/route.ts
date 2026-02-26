@@ -64,6 +64,7 @@ export async function POST(request: NextRequest) {
       userContext,
       assessmentContext,
       assessmentData,
+      currentPage,
     } = body as {
       messages?: Array<{ role: string; content: string }>;
       message?: string;
@@ -72,6 +73,7 @@ export async function POST(request: NextRequest) {
       userContext?: AnonymousUserContext;
       assessmentContext?: string;
       assessmentData?: StoredAssessment;
+      currentPage?: string;
     };
 
     // --- Input validation ---
@@ -142,9 +144,10 @@ export async function POST(request: NextRequest) {
       knowledgeSection,
       // Legacy fallback: if knowledgeSection wasn't built but we have raw context
       assessmentContext: knowledgeSection ? undefined : assessmentContext,
+      currentPage,
     });
 
-    // Stream the response
+    // Stream the response with smoothed pacing for readability
     const result = await streamText({
       model: getAIModel(),
       system: systemPrompt,
@@ -152,7 +155,23 @@ export async function POST(request: NextRequest) {
       ...MODEL_CONFIG,
     });
 
-    return result.toDataStreamResponse();
+    const response = result.toDataStreamResponse();
+
+    // Slow down the stream slightly so text appears at a readable pace.
+    // Each SSE chunk is delayed by CHUNK_DELAY_MS before being forwarded.
+    const CHUNK_DELAY_MS = 18;
+    const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+    const smoothed = new TransformStream<Uint8Array, Uint8Array>({
+      async transform(chunk, controller) {
+        await delay(CHUNK_DELAY_MS);
+        controller.enqueue(chunk);
+      },
+    });
+
+    return new Response(response.body!.pipeThrough(smoothed), {
+      headers: response.headers,
+    });
   } catch (error) {
     console.error("Chat API error:", error);
 
