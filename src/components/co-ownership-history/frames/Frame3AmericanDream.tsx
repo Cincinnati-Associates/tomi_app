@@ -364,7 +364,7 @@ export function Frame3AmericanDream({ progress }: Frame3AmericanDreamProps) {
       <div className="max-w-4xl w-full">
         {/* Title */}
         <motion.h2
-          className="font-heading text-3xl md:text-5xl lg:text-6xl font-bold text-foreground text-center mb-8 md:mb-12"
+          className="font-heading text-2xl md:text-4xl lg:text-5xl font-bold text-foreground text-center mb-4 md:mb-6"
           style={{ opacity: titleOpacity }}
         >
           The American Dream<sup className="text-2xl md:text-3xl">TM</sup>
@@ -408,7 +408,7 @@ export function Frame3AmericanDream({ progress }: Frame3AmericanDreamProps) {
           className="text-center max-w-2xl mx-auto"
           style={{ opacity: narrativeOpacity }}
         >
-          <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground leading-relaxed">
+          <p className="text-base md:text-lg lg:text-xl text-muted-foreground leading-relaxed">
             Somewhere along the way, we were told a different story.
             <span className="block mt-4 text-foreground font-medium">
               That success meant doing it alone.

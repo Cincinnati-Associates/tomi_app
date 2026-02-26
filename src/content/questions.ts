@@ -97,7 +97,7 @@ export const howItWorksSteps = [
     number: "05",
     title: "Create",
     description:
-      "Live, manage, and grow- together. For the rest (expenses, decisions, disputes, and admin), well we have AI for that.",
+      "Own long and prosper. At least thats what your Homi agent will be designed to help you do. Everything from decisions to deductions from disagreements to dispositions, your shared home concierge is there to help you navigate the waters every step of the way. (coming soon)",
     icon: "Home",
     cta: { text: "See How It Works", href: "/demo" },
     imageDirection: "left" as const,

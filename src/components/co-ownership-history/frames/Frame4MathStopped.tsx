@@ -293,7 +293,7 @@ export function Frame4MathStopped({ progress, isActive }: Frame4MathStoppedProps
       <div className="max-w-4xl w-full">
         {/* Title */}
         <motion.h2
-          className="font-heading text-3xl md:text-5xl lg:text-6xl font-bold text-foreground text-center mb-6 md:mb-10"
+          className="font-heading text-2xl md:text-4xl lg:text-5xl font-bold text-foreground text-center mb-4 md:mb-6"
           style={{ opacity: titleOpacity }}
         >
           The Math Stopped Working
@@ -336,11 +336,11 @@ export function Frame4MathStopped({ progress, isActive }: Frame4MathStoppedProps
           className="text-center max-w-2xl mx-auto"
           style={{ opacity: textOpacity }}
         >
-          <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground leading-relaxed">
+          <p className="text-base md:text-lg lg:text-xl text-muted-foreground leading-relaxed">
             In <span className="text-foreground font-semibold">1970</span>, the average home cost{" "}
             <span className="text-foreground font-semibold">2x</span> the median income.
           </p>
-          <p className="text-lg md:text-xl lg:text-2xl text-foreground font-medium mt-4">
+          <p className="text-base md:text-lg lg:text-xl text-foreground font-medium mt-4">
             Today? It&apos;s <span className="text-destructive font-bold">8x</span>.
           </p>
           <p className="text-base md:text-lg text-muted-foreground mt-4">

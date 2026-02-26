@@ -179,7 +179,7 @@ export function Frame5Technology({ progress, isActive }: Frame5TechnologyProps) 
       <div className="max-w-4xl w-full flex flex-col items-center">
         {/* Title */}
         <motion.h2
-          className="font-heading text-3xl md:text-5xl lg:text-6xl font-bold text-foreground text-center mb-4"
+          className="font-heading text-2xl md:text-4xl lg:text-5xl font-bold text-foreground text-center mb-4"
           style={{ opacity: titleOpacity }}
         >
           Technology Changes Everything

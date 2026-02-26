@@ -2,11 +2,12 @@
 
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Target, Lightbulb, Compass, RotateCcw, Share2, Check } from "lucide-react";
+import { Trophy, Target, Lightbulb, Compass, RotateCcw, Share2, Check, TrendingUp, Sprout } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { AssessmentResult as ResultType, Grade } from "@/hooks/useAssessment";
+import type { AssessmentResult as ResultType, Grade, ProfileDimension } from "@/hooks/useAssessment";
+import { DIMENSION_LABELS, DIMENSION_DESCRIPTIONS } from "@/hooks/useAssessment";
 
 interface AssessmentResultProps {
   result: ResultType;
@@ -156,6 +157,32 @@ function ShareButton({
   );
 }
 
+// Dimension badge component
+function DimensionBadge({
+  dimension,
+  variant,
+}: {
+  dimension: ProfileDimension;
+  variant: "strong" | "growth";
+}) {
+  const label = DIMENSION_LABELS[dimension];
+  const desc = DIMENSION_DESCRIPTIONS[dimension][variant === "strong" ? "strong" : "weak"];
+
+  return (
+    <div
+      className={cn(
+        "group relative px-3 py-1.5 rounded-full text-xs font-medium border transition-colors cursor-default",
+        variant === "strong"
+          ? "bg-primary/10 border-primary/20 text-primary"
+          : "bg-white/5 border-white/10 text-muted-foreground"
+      )}
+      title={desc}
+    >
+      {label}
+    </div>
+  );
+}
+
 export function AssessmentResult({
   result,
   onCtaClick,
@@ -258,11 +285,79 @@ export function AssessmentResult({
         {result.message}
       </motion.p>
 
+      {/* Dimension profile */}
+      {result.dimensionProfile && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.7 }}
+          className="mb-6 text-left"
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Primary concerns */}
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <TrendingUp className="w-4 h-4 text-primary" />
+                <span className="text-xs font-semibold uppercase tracking-wider text-primary">
+                  Your Strengths
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {result.dimensionProfile.primaryConcerns.map((dim: ProfileDimension) => (
+                  <DimensionBadge key={dim} dimension={dim} variant="strong" />
+                ))}
+              </div>
+            </div>
+
+            {/* Growth areas */}
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Sprout className="w-4 h-4 text-muted-foreground" />
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Growth Areas
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {result.dimensionProfile.growthAreas.map((dim: ProfileDimension) => (
+                  <DimensionBadge key={dim} dimension={dim} variant="growth" />
+                ))}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Custom answers */}
+      {result.customAnswers.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.8 }}
+          className="mb-6 text-left"
+        >
+          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+              Things you told us
+            </p>
+            <ul className="space-y-2">
+              {result.customAnswers.map((ca) => (
+                <li
+                  key={ca.questionId}
+                  className="text-sm text-foreground/80 leading-relaxed pl-3 border-l-2 border-primary/30"
+                >
+                  &ldquo;{ca.text}&rdquo;
+                </li>
+              ))}
+            </ul>
+          </div>
+        </motion.div>
+      )}
+
       {/* Share button */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.7 }}
+        transition={{ delay: 0.9 }}
         className="mb-8"
       >
         <ShareButton
@@ -277,7 +372,7 @@ export function AssessmentResult({
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.8 }}
+        transition={{ duration: 0.4, delay: 1.0 }}
         className="flex flex-col gap-3"
       >
         {/* Primary CTA */}
@@ -331,7 +426,7 @@ export function AssessmentResult({
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.4, delay: 1 }}
+        transition={{ duration: 0.4, delay: 1.2 }}
         className="mt-8"
       >
         <button

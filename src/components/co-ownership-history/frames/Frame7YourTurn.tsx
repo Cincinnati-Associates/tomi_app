@@ -166,7 +166,7 @@ export function Frame7YourTurn({
 
         {/* Title */}
         <motion.h2
-          className="font-heading text-3xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4"
+          className="font-heading text-2xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}

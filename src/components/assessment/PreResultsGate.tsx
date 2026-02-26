@@ -5,7 +5,8 @@ import { motion } from "framer-motion";
 import { Sparkles, Mail, Loader2, CheckCircle, AlertCircle, User, Share2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import type { Grade, AnswerData } from "@/hooks/useAssessment";
+import type { Grade, AnswerData, DimensionProfile, CustomAnswer } from "@/hooks/useAssessment";
+import { computeDimensionProfile } from "@/hooks/useAssessment";
 
 interface PreResultsGateProps {
   onContinue: () => void;
@@ -21,6 +22,8 @@ function storeAssessmentForSignup(data: {
   grade: Grade;
   score: number;
   answers: (AnswerData | null)[];
+  dimensionProfile: DimensionProfile;
+  customAnswers: CustomAnswer[];
 }) {
   if (typeof window !== "undefined") {
     sessionStorage.setItem("pendingAssessment", JSON.stringify(data));
@@ -37,6 +40,14 @@ export function PreResultsGate({
   const [status, setStatus] = useState<SubmitStatus>("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [copied, setCopied] = useState(false);
+
+  // Compute dimension profile and custom answers for persistence
+  const dimensionProfile = computeDimensionProfile(answers);
+  const customAnswers: CustomAnswer[] = answers
+    .map((a, idx) =>
+      a?.isCustom && a.customText ? { questionId: idx + 1, text: a.customText } : null
+    )
+    .filter((c): c is CustomAnswer => c !== null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,6 +74,8 @@ export function PreResultsGate({
           assessmentGrade: projectedGrade,
           assessmentScore: totalScore,
           assessmentAnswers: answers,
+          assessmentDimensionProfile: dimensionProfile,
+          assessmentCustomAnswers: customAnswers,
           utmSource: urlParams.get("utm_source") || undefined,
           utmMedium: urlParams.get("utm_medium") || undefined,
           utmCampaign: urlParams.get("utm_campaign") || undefined,
@@ -78,7 +91,7 @@ export function PreResultsGate({
       setStatus("success");
 
       // Store for potential later signup
-      storeAssessmentForSignup({ grade: projectedGrade, score: totalScore, answers });
+      storeAssessmentForSignup({ grade: projectedGrade, score: totalScore, answers, dimensionProfile, customAnswers });
 
       // Show success briefly then continue to results
       setTimeout(() => {
@@ -95,12 +108,12 @@ export function PreResultsGate({
 
   const handleCreateAccount = () => {
     // Store assessment data for retrieval after signup
-    storeAssessmentForSignup({ grade: projectedGrade, score: totalScore, answers });
+    storeAssessmentForSignup({ grade: projectedGrade, score: totalScore, answers, dimensionProfile, customAnswers });
   };
 
   const handleSkip = () => {
     // Still store in session for potential later use
-    storeAssessmentForSignup({ grade: projectedGrade, score: totalScore, answers });
+    storeAssessmentForSignup({ grade: projectedGrade, score: totalScore, answers, dimensionProfile, customAnswers });
     onContinue();
   };
 

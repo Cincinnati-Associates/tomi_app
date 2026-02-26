@@ -112,12 +112,7 @@ function DesktopIntroContent({
           </div>
           <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-background" />
         </div>
-        <div>
-          <span className="text-sm font-medium text-foreground">Homi</span>
-          <p className="text-[11px] text-muted-foreground leading-tight">
-            Your co-ownership guide
-          </p>
-        </div>
+        <span className="text-sm font-medium text-foreground">Homi</span>
         <button
           onClick={dismiss}
           className="ml-auto text-muted-foreground hover:text-foreground transition-colors"
@@ -172,12 +167,6 @@ function DesktopIntroContent({
               className="mt-5 flex items-center justify-center gap-4"
             >
               <Button onClick={dismiss}>{ctaText}</Button>
-              <button
-                onClick={dismiss}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Skip intro
-              </button>
             </motion.div>
           )}
         </AnimatePresence>
@@ -208,7 +197,7 @@ export function PageIntro({
   if (isMobile) {
     return (
       <Drawer open={isOpen} onOpenChange={(open) => !open && dismiss()}>
-        <DrawerContent>
+        <DrawerContent className="z-[70]">
           <DrawerHeader className="text-left">
             <div className="flex items-center gap-3 mb-1">
               <div className="relative">
@@ -238,12 +227,6 @@ export function PageIntro({
             <Button onClick={dismiss} className="w-full" size="lg">
               {ctaText}
             </Button>
-            <button
-              onClick={dismiss}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors mt-1"
-            >
-              Dismiss
-            </button>
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
@@ -259,7 +242,7 @@ export function PageIntro({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-background/80 backdrop-blur-sm"
           onClick={dismiss}
         >
           <motion.div

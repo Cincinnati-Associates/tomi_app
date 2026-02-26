@@ -1,14 +1,10 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, Sparkles } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
-import {
-  useAssessment,
-  CATEGORY_TRANSITIONS,
-  ASSESSMENT_QUESTIONS,
-} from "@/hooks/useAssessment";
+import { useAssessment } from "@/hooks/useAssessment";
 import { AssessmentQuestion } from "./AssessmentQuestion";
 import { AssessmentResult } from "./AssessmentResult";
 import { SectionedProgress } from "./SectionedProgress";
@@ -17,18 +13,6 @@ import { HomiMiniInput } from "./HomiMiniInput";
 import { HomiChat } from "@/components/shared/HomiChat";
 import { PageIntro } from "@/components/shared/PageIntro";
 import { Logo } from "@/components/ui/logo";
-
-// Pre-compute which question indices are the first in their category
-const FIRST_IN_SECTION = new Set<number>();
-{
-  let lastCategory: string | null = null;
-  ASSESSMENT_QUESTIONS.forEach((q, i) => {
-    if (q.category !== lastCategory) {
-      FIRST_IN_SECTION.add(i);
-      lastCategory = q.category;
-    }
-  });
-}
 
 export function AssessmentPage() {
   const [isResultsChatOpen, setIsResultsChatOpen] = useState(false);
@@ -54,11 +38,6 @@ export function AssessmentPage() {
     categories,
     getAssessmentContext,
   } = useAssessment();
-
-  const isFirstInSection = useMemo(
-    () => FIRST_IN_SECTION.has(currentQuestionIndex),
-    [currentQuestionIndex]
-  );
 
   const handleOpenResultsChat = useCallback(() => {
     setIsResultsChatOpen(true);
@@ -92,7 +71,7 @@ export function AssessmentPage() {
         title="Co-Ownership Readiness Assessment"
         description="Hey there! I'm Homi — a co-buying concierge whose goal is to help you ask and answer the most important questions about shared homeownership. This isn't a test — it's a conversation starter."
         bullets={[
-          "14 questions, ~3 minutes",
+          "12 questions, ~2 minutes",
           "No account needed",
           "Get your personalized readiness score + next steps",
         ]}
@@ -154,33 +133,10 @@ export function AssessmentPage() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="flex-1 grid grid-rows-[1fr_auto_1fr] items-center"
+                  className="flex-1 flex flex-col"
                 >
-                  {/* Top slot: Homi section intro — reserves space so question doesn't shift */}
-                  <div className="flex items-end justify-center pb-4">
-                    <AnimatePresence mode="wait">
-                      {isFirstInSection && (
-                        <motion.div
-                          key={`homi-${currentSection}`}
-                          initial={{ opacity: 0, y: 6 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0 }}
-                          transition={{ duration: 0.3 }}
-                          className="flex items-start gap-2.5 max-w-lg w-full px-1"
-                        >
-                          <div className="flex-shrink-0 h-6 w-6 rounded-full bg-[hsl(52,65%,70%)]/15 flex items-center justify-center mt-0.5">
-                            <Sparkles className="h-3 w-3 text-[hsl(52,65%,70%)]" />
-                          </div>
-                          <p className="text-sm text-white/50 leading-relaxed italic">
-                            {CATEGORY_TRANSITIONS[currentSection]}
-                          </p>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-
-                  {/* Center slot: Question + options — stays fixed vertically */}
-                  <div className="flex flex-col items-center">
+                  {/* Question + options — pinned toward top */}
+                  <div className="flex flex-col items-center pt-[4vh] md:pt-[6vh]">
                     <AssessmentQuestion
                       question={currentQuestion}
                       questionIndex={currentQuestionIndex}
@@ -190,8 +146,8 @@ export function AssessmentPage() {
                     />
                   </div>
 
-                  {/* Bottom slot: Homi mini input + Previous — appears without pushing question up */}
-                  <div className="flex items-start justify-center pt-5">
+                  {/* Bottom slot: Homi mini input + Previous */}
+                  <div className="mt-auto mb-8 flex justify-center">
                     <div className="w-full max-w-lg space-y-2">
                       <HomiMiniInput currentSection={currentSection} />
 

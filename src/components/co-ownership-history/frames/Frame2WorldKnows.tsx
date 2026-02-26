@@ -308,8 +308,8 @@ export function Frame2WorldKnows({ progress, isActive }: Frame2WorldKnowsProps) 
     >
       <div className="max-w-5xl w-full">
         {/* Title */}
-        <motion.div className="text-center mb-8 md:mb-12" style={{ opacity: titleOpacity }}>
-          <h2 className="font-heading text-3xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4">
+        <motion.div className="text-center mb-4 md:mb-6" style={{ opacity: titleOpacity }}>
+          <h2 className="font-heading text-2xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
             The World Knows Something We Forgot
           </h2>
           <p className="text-lg md:text-xl text-muted-foreground">
@@ -318,7 +318,7 @@ export function Frame2WorldKnows({ progress, isActive }: Frame2WorldKnowsProps) 
         </motion.div>
 
         {/* Globe */}
-        <motion.div className="mb-8 md:mb-12" style={{ opacity: contentOpacity }}>
+        <motion.div className="mb-4 md:mb-6" style={{ opacity: contentOpacity }}>
           <InteractiveGlobe
             activeCulture={activeCulture}
             onCultureClick={handleCultureClick}

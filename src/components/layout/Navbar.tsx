@@ -18,7 +18,7 @@ const navLinks = [
   { href: "/assessment", label: "Assessment" },
 ];
 
-export function Navbar() {
+export function Navbar({ hideOnScroll = false }: { hideOnScroll?: boolean }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -80,7 +80,8 @@ export function Navbar() {
           "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
           isScrolled
             ? "bg-background/95 shadow-sm"
-            : "bg-transparent"
+            : "bg-transparent",
+          hideOnScroll && isScrolled && "-translate-y-full"
         )}
       >
         <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

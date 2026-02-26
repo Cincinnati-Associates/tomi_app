@@ -1,9 +1,12 @@
-import type { Grade, AnswerData } from "@/hooks/useAssessment";
+import type { Grade, AnswerData, DimensionProfile, CustomAnswer, ProfileDimension } from "@/hooks/useAssessment";
+import { DIMENSION_LABELS, DIMENSION_DESCRIPTIONS, MAX_SCORE, computeDimensionProfile } from "@/hooks/useAssessment";
 
 export interface StoredAssessment {
   grade: Grade;
   score: number;
   answers: (AnswerData | null)[];
+  dimensionProfile?: DimensionProfile;
+  customAnswers?: CustomAnswer[];
   timestamp?: number;
 }
 
@@ -38,6 +41,10 @@ export function clearStoredAssessment(): void {
 export function buildAssessmentContextForHomi(assessment: StoredAssessment): string {
   const { grade, score, answers } = assessment;
 
+  // Compute dimension profile if not already stored
+  const profile = assessment.dimensionProfile ?? computeDimensionProfile(answers);
+  const customAnswers = assessment.customAnswers ?? [];
+
   const gradeDescriptions: Record<Grade, string> = {
     A: "highly ready for co-ownership",
     B: "mostly ready but has some areas to work on",
@@ -45,47 +52,37 @@ export function buildAssessmentContextForHomi(assessment: StoredAssessment): str
     D: "in early exploration stages",
   };
 
-  // Build summary based on grade and score
   const contextParts = [
     `This user recently completed the co-ownership readiness assessment.`,
     `Grade: ${grade} (${gradeDescriptions[grade]})`,
-    `Score: ${score}/42`,
+    `Score: ${score}/${MAX_SCORE}`,
   ];
 
-  // Add insights based on score ranges for different areas
-  const insights: string[] = [];
+  // Dimension profile — strengths and growth areas
+  if (profile.primaryConcerns.length > 0) {
+    const strengthLabels = profile.primaryConcerns
+      .map((d: ProfileDimension) => `${DIMENSION_LABELS[d]} — ${DIMENSION_DESCRIPTIONS[d].strong}`)
+      .join("; ");
+    contextParts.push(`\nStrengths: ${strengthLabels}`);
+  }
 
-  // Calculate rough category insights from answer indices
-  // Questions are organized: the_why (0-2), the_who (3-5), the_what (6-8), the_money (9-11), the_readiness (12-13)
-  const whyScores = answers.slice(0, 3).filter(Boolean).reduce((sum, a) => sum + (a?.score || 0), 0);
-  const whoScores = answers.slice(3, 6).filter(Boolean).reduce((sum, a) => sum + (a?.score || 0), 0);
-  const whatScores = answers.slice(6, 9).filter(Boolean).reduce((sum, a) => sum + (a?.score || 0), 0);
-  const moneyScores = answers.slice(9, 12).filter(Boolean).reduce((sum, a) => sum + (a?.score || 0), 0);
-  const readinessScores = answers.slice(12, 14).filter(Boolean).reduce((sum, a) => sum + (a?.score || 0), 0);
+  if (profile.growthAreas.length > 0) {
+    const growthLabels = profile.growthAreas
+      .map((d: ProfileDimension) => `${DIMENSION_LABELS[d]} — ${DIMENSION_DESCRIPTIONS[d].weak}`)
+      .join("; ");
+    contextParts.push(`Growth areas: ${growthLabels}`);
+  }
 
-  // Max possible: the_why 9, the_who 9, the_what 9, the_money 9, the_readiness 6
-  if (whyScores >= 7) insights.push("Strong motivation and understanding of co-ownership benefits");
-  else if (whyScores <= 3) insights.push("Still exploring what co-ownership means for them - good area for education");
-
-  if (whoScores >= 7) insights.push("Has co-buyers identified with good relationship clarity");
-  else if (whoScores <= 3) insights.push("Co-buyer situation unclear - may need help finding or evaluating co-buyers");
-
-  if (whatScores >= 7) insights.push("Clear vision for their shared home and experienced with home buying");
-  else if (whatScores <= 3) insights.push("Still forming their vision - help them explore what shared living could look like");
-
-  if (moneyScores >= 7) insights.push("Strong financial readiness");
-  else if (moneyScores <= 3) insights.push("Financial preparation may need work - discuss savings, debt, or credit");
-
-  if (readinessScores >= 4) insights.push("Good knowledge base and aware of their concerns");
-  else if (readinessScores <= 2) insights.push("May have concerns or knowledge gaps - explore what's holding them back");
-
-  if (insights.length > 0) {
-    contextParts.push(`\nKey observations from their answers:`);
-    insights.forEach((insight) => contextParts.push(`- ${insight}`));
+  // Custom answers — the user's own words
+  if (customAnswers.length > 0) {
+    contextParts.push(`\nThe user provided their own answers to some questions:`);
+    customAnswers.forEach((ca) => {
+      contextParts.push(`- "${ca.text}"`);
+    });
   }
 
   contextParts.push(
-    `\nUse this context to provide personalized advice. Ask follow-up questions about areas where they may need help or seem uncertain.`
+    `\nUse this dimension profile to personalize advice. Focus on their growth areas while acknowledging their strengths. Reference their custom answers naturally if relevant.`
   );
 
   return contextParts.join("\n");
