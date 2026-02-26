@@ -1,9 +1,14 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft } from "lucide-react";
-import { useAssessment } from "@/hooks/useAssessment";
+import { ChevronLeft, Sparkles } from "lucide-react";
+import Link from "next/link";
+import {
+  useAssessment,
+  CATEGORY_TRANSITIONS,
+  ASSESSMENT_QUESTIONS,
+} from "@/hooks/useAssessment";
 import { AssessmentQuestion } from "./AssessmentQuestion";
 import { AssessmentResult } from "./AssessmentResult";
 import { SectionedProgress } from "./SectionedProgress";
@@ -11,6 +16,19 @@ import { PreResultsGate } from "./PreResultsGate";
 import { HomiMiniInput } from "./HomiMiniInput";
 import { HomiChat } from "@/components/shared/HomiChat";
 import { PageIntro } from "@/components/shared/PageIntro";
+import { Logo } from "@/components/ui/logo";
+
+// Pre-compute which question indices are the first in their category
+const FIRST_IN_SECTION = new Set<number>();
+{
+  let lastCategory: string | null = null;
+  ASSESSMENT_QUESTIONS.forEach((q, i) => {
+    if (q.category !== lastCategory) {
+      FIRST_IN_SECTION.add(i);
+      lastCategory = q.category;
+    }
+  });
+}
 
 export function AssessmentPage() {
   const [isResultsChatOpen, setIsResultsChatOpen] = useState(false);
@@ -34,7 +52,13 @@ export function AssessmentPage() {
     currentSection,
     sectionProgress,
     categories,
+    getAssessmentContext,
   } = useAssessment();
+
+  const isFirstInSection = useMemo(
+    () => FIRST_IN_SECTION.has(currentQuestionIndex),
+    [currentQuestionIndex]
+  );
 
   const handleOpenResultsChat = useCallback(() => {
     setIsResultsChatOpen(true);
@@ -44,41 +68,57 @@ export function AssessmentPage() {
     setIsResultsChatOpen(false);
   }, []);
 
-  // Build context-aware initial message for Homi — focused on current question only
+  // Build context-aware initial message for Homi
   const buildInitialMessage = useCallback(() => {
-    if (isComplete && result) {
+    const context = getAssessmentContext();
+
+    if (context.isComplete && result) {
       return `I just completed the co-ownership readiness assessment and got a grade of ${result.grade} (${result.title}). Can you help me understand what this means and what I should focus on next?`;
     }
 
-    return `I'm taking the co-ownership readiness assessment (question ${currentQuestionIndex + 1} of 11, "${currentQuestion.category}" section). The current question is: "${currentQuestion.question}"`;
-  }, [isComplete, result, currentQuestionIndex, currentQuestion]);
+    if (context.answeredQuestions.length > 0) {
+      const recentAnswer =
+        context.answeredQuestions[context.answeredQuestions.length - 1];
+      return `I'm taking the co-ownership readiness assessment. I'm on question ${context.currentQuestion} of ${context.totalQuestions} in the "${context.currentCategory}" section. I just answered "${recentAnswer.question}" with "${recentAnswer.answer}". Can you help me understand what this means for my readiness?`;
+    }
+
+    return `I'm about to start the co-ownership readiness assessment. Can you tell me what to expect and how the assessment works?`;
+  }, [getAssessmentContext, result]);
 
   return (
     <>
       <PageIntro
         pageId="assessment"
-        title="Find Out If Co-Ownership Is Right For You."
-        description="Co-ownership is how regular people are buying homes they actually want — with people they actually like. This quick assessment will tell you where you stand."
+        title="Co-Ownership Readiness Assessment"
+        description="Hey there! I'm Homi — a co-buying concierge whose goal is to help you ask and answer the most important questions about shared homeownership. This isn't a test — it's a conversation starter."
         bullets={[
-          "11 questions, ~2 minutes",
+          "14 questions, ~3 minutes",
           "No account needed",
           "Get your personalized readiness score + next steps",
         ]}
-        ctaText="Let's Go!"
+        ctaText="Let's Do This"
       />
 
-      {/* Full viewport container for mobile */}
-      <div className="min-h-screen bg-background navbar-offset flex flex-col">
-        {/* Compact header with title + progress */}
+      {/* Full viewport fixed overlay — forces dark mode, sits above Navbar (z-50) */}
+      <div className="dark fixed inset-0 z-[60] flex flex-col h-[100dvh] overflow-hidden bg-[hsl(220,15%,10%)]">
+        {/* Subtle gradient background */}
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-[hsl(220,15%,12%)] via-[hsl(220,15%,10%)] to-[hsl(220,15%,8%)]" />
+
+        {/* Own navbar with yellow logo */}
+        <div className="flex-shrink-0 relative z-10 flex items-center justify-center h-14 md:h-16">
+          <Link href="/">
+            <Logo variant="yellow" className="h-6 md:h-7" />
+          </Link>
+        </div>
+
+        {/* Compact header with progress */}
         {!isComplete && !showPreResultsGate && (
-          <div className="flex-shrink-0 bg-background/95 backdrop-blur-sm border-b border-border/50">
-            {/* Page title - more compact, hidden on small mobile */}
-            <div className="px-4 pt-2 pb-1 sm:pt-3 sm:pb-2">
-              <h1 className="font-heading text-sm sm:text-lg md:text-xl font-bold text-foreground text-center">
+          <div className="flex-shrink-0 relative z-10 border-b border-white/8">
+            <div className="px-4 pt-1 pb-0.5 sm:pt-2 sm:pb-1">
+              <h1 className="font-heading text-xs sm:text-sm md:text-base font-bold text-white/90 text-center">
                 Co-Ownership Readiness
               </h1>
             </div>
-            {/* Sectioned progress */}
             <div className="max-w-2xl mx-auto">
               <SectionedProgress
                 categories={categories}
@@ -89,18 +129,17 @@ export function AssessmentPage() {
           </div>
         )}
 
-        {/* Main content - flex to fill remaining space */}
-        <main className="flex-1 flex flex-col px-4 py-1 sm:py-6 overflow-auto">
-          <div className="max-w-2xl mx-auto w-full flex flex-col">
+        {/* Main content — stable vertical positioning via grid */}
+        <main className="flex-1 relative z-10 flex flex-col px-4 min-h-0">
+          <div className="max-w-2xl mx-auto w-full flex-1 flex flex-col">
             <AnimatePresence mode="wait">
               {showPreResultsGate ? (
-                /* Pre-results gate - save/share CTA */
                 <motion.div
                   key="pre-results"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="flex-1 flex flex-col justify-center"
+                  className="flex-1 flex items-center justify-center"
                 >
                   <PreResultsGate
                     onContinue={completeAssessment}
@@ -110,16 +149,38 @@ export function AssessmentPage() {
                   />
                 </motion.div>
               ) : !isComplete ? (
-                /* Questions */
                 <motion.div
                   key={`question-${currentQuestionIndex}`}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="flex-1 flex flex-col min-h-0"
+                  className="flex-1 grid grid-rows-[1fr_auto_1fr] items-center"
                 >
-                  {/* Question - stays at top */}
-                  <div className="flex-shrink-0 pt-1 sm:pt-4">
+                  {/* Top slot: Homi section intro — reserves space so question doesn't shift */}
+                  <div className="flex items-end justify-center pb-4">
+                    <AnimatePresence mode="wait">
+                      {isFirstInSection && (
+                        <motion.div
+                          key={`homi-${currentSection}`}
+                          initial={{ opacity: 0, y: 6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="flex items-start gap-2.5 max-w-lg w-full px-1"
+                        >
+                          <div className="flex-shrink-0 h-6 w-6 rounded-full bg-[hsl(52,65%,70%)]/15 flex items-center justify-center mt-0.5">
+                            <Sparkles className="h-3 w-3 text-[hsl(52,65%,70%)]" />
+                          </div>
+                          <p className="text-sm text-white/50 leading-relaxed italic">
+                            {CATEGORY_TRANSITIONS[currentSection]}
+                          </p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Center slot: Question + options — stays fixed vertically */}
+                  <div className="flex flex-col items-center">
                     <AssessmentQuestion
                       question={currentQuestion}
                       questionIndex={currentQuestionIndex}
@@ -129,22 +190,16 @@ export function AssessmentPage() {
                     />
                   </div>
 
-                  {/* Bottom section: Homi mini input + navigation */}
-                  <div className="flex-1 flex flex-col justify-center items-center py-4 min-h-[120px] sm:min-h-[150px] mt-4 sm:mt-8">
-                    <div className="space-y-3 w-full max-w-lg">
-                      <HomiMiniInput
-                        homiPrompt={currentQuestion.homiPrompt || "Ask Homi anything..."}
-                        contextLabel={`Q${currentQuestionIndex + 1} of 11`}
-                        questionIndex={currentQuestionIndex}
-                        buildInitialMessage={buildInitialMessage}
-                      />
+                  {/* Bottom slot: Homi mini input + Previous — appears without pushing question up */}
+                  <div className="flex items-start justify-center pt-5">
+                    <div className="w-full max-w-lg space-y-2">
+                      <HomiMiniInput currentSection={currentSection} />
 
-                      {/* Previous question link */}
                       {currentQuestionIndex > 0 && (
                         <div className="flex justify-center">
                           <button
                             onClick={previousQuestion}
-                            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors py-1 px-3"
+                            className="flex items-center gap-1 text-xs text-white/40 hover:text-white/70 transition-colors py-1 px-3"
                           >
                             <ChevronLeft className="w-3.5 h-3.5" />
                             Previous
@@ -155,13 +210,12 @@ export function AssessmentPage() {
                   </div>
                 </motion.div>
               ) : (
-                /* Results */
                 <motion.div
                   key="results"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="flex-1"
+                  className="flex-1 overflow-y-auto flex items-start justify-center pt-8"
                 >
                   {result && (
                     <AssessmentResult
@@ -177,12 +231,6 @@ export function AssessmentPage() {
             </AnimatePresence>
           </div>
         </main>
-
-        {/* Background decorations - more subtle */}
-        <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none opacity-50">
-          <div className="absolute -top-40 -right-40 h-60 w-60 rounded-full" style={{ background: "radial-gradient(circle, hsl(var(--primary) / 0.05) 0%, transparent 70%)" }} />
-          <div className="absolute -bottom-40 -left-40 h-60 w-60 rounded-full" style={{ background: "radial-gradient(circle, hsl(var(--accent) / 0.1) 0%, transparent 70%)" }} />
-        </div>
       </div>
 
       {/* Full-screen Homi Chat — used only from results view */}

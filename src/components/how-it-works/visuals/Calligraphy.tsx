@@ -25,7 +25,8 @@ export function Calligraphy({ props }: CalligraphyProps) {
       >
         {/* Background glow */}
         <motion.div
-          className="absolute inset-0 blur-3xl bg-primary/20 rounded-full"
+          className="absolute inset-0 rounded-full"
+          style={{ background: "radial-gradient(circle, hsl(var(--primary) / 0.2) 0%, transparent 70%)" }}
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1.5, opacity: 1 }}
           transition={{ delay: 0.5, duration: 1 }}

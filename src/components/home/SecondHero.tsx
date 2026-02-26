@@ -19,10 +19,10 @@ export function SecondHero({
       ref={ref}
       className="relative py-20 md:py-28 lg:py-32 bg-secondary/30 overflow-hidden"
     >
-      {/* Decorative elements */}
+      {/* Decorative elements (radial gradients instead of blur for performance) */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-primary/5 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-accent/10 blur-3xl" />
+        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full" style={{ background: "radial-gradient(circle, hsl(var(--primary) / 0.05) 0%, transparent 70%)" }} />
+        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full" style={{ background: "radial-gradient(circle, hsl(var(--accent) / 0.1) 0%, transparent 70%)" }} />
       </div>
 
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">

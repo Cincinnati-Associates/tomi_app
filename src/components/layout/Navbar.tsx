@@ -51,15 +51,16 @@ export function Navbar() {
     return () => document.removeEventListener('click', handleClickOutside);
   }, [isUserMenuOpen]);
 
-  // Check for signin query param
+  // Check for signin query param (set by middleware for protected routes)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('signin') === 'true') {
       setIsAuthModalOpen(true);
-      // Clean up URL
+      // Clean up URL but preserve redirect param for the auth flow
       const url = new URL(window.location.href);
       url.searchParams.delete('signin');
-      window.history.replaceState({}, '', url.pathname);
+      const remaining = url.searchParams.toString();
+      window.history.replaceState({}, '', remaining ? `${url.pathname}?${remaining}` : url.pathname);
     }
   }, []);
 
@@ -78,7 +79,7 @@ export function Navbar() {
         className={cn(
           "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
           isScrolled
-            ? "bg-background/90 backdrop-blur-md shadow-sm"
+            ? "bg-background/95 shadow-sm"
             : "bg-transparent"
         )}
       >

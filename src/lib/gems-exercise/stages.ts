@@ -12,7 +12,7 @@ export const GEMS_STAGES: ExerciseStageDef[] = [
     questions: [
       {
         key: "primary_goal",
-        prompt: "What's your #1 goal with co-ownership?",
+        prompt: "If co-ownership could solve one thing for you, what would it be?",
         type: "chips",
         options: [
           { label: "Build wealth", value: "build_wealth" },
@@ -25,7 +25,7 @@ export const GEMS_STAGES: ExerciseStageDef[] = [
       },
       {
         key: "timeline",
-        prompt: "When do you want this to happen?",
+        prompt: "What kind of timeline feels right for you?",
         type: "chips",
         options: [
           { label: "ASAP (3-6 months)", value: "asap" },
@@ -37,26 +37,55 @@ export const GEMS_STAGES: ExerciseStageDef[] = [
       {
         key: "goal_depth",
         dynamicPrompt: (answers) => {
-          const goalLabels: Record<string, string> = {
-            build_wealth: "building wealth",
-            afford_better: "affording a better home",
-            stop_renting: "stopping renting",
-            near_people: "living near family or friends",
-            investment: "investing in property",
-            other: "this",
+          const goalFollowUps: Record<string, string> = {
+            build_wealth:
+              "Building wealth through real estate is one of the most proven paths to financial security. What's driving that for you — long-term stability, wanting to stop feeling like rent is wasted money, or something else?",
+            afford_better:
+              "A lot of people discover they can get the home they actually want — not just what they can afford alone. What does 'a better home' look like for you?",
+            stop_renting:
+              "That feeling of paying someone else's mortgage every month is exhausting. What would it mean for you to finally have a place that's yours?",
+            near_people:
+              "Being close to the people who matter most can change everything about daily life. Who are you hoping to be closer to, and what would that look like?",
+            investment:
+              "Real estate has always been one of the best ways to build wealth, and co-ownership makes the entry point much more accessible. What got you thinking about property as an investment?",
+            other:
+              "I'd love to hear more about what's on your mind. What's drawing you to co-ownership?",
           }
-          const goal = goalLabels[answers.primary_goal as string] || "co-ownership"
-          return `Tell me more about why ${goal} matters to you right now.`
+          return (
+            goalFollowUps[answers.primary_goal as string] ||
+            "I'd love to hear more about what's on your mind. What's drawing you to co-ownership?"
+          )
         },
-        prompt: "Tell me more about why this matters to you right now.",
+        prompt: "I'd love to hear more about what's on your mind. What's drawing you to co-ownership?",
         type: "text_with_skip",
-        skipLabel: "I'd rather not say",
+        skipLabel: "I'll share more later",
       },
     ],
     transitionPrompt: (answers) => {
-      const goal = answers.primary_goal as string
-      const timeline = answers.timeline as string
-      return `The user's primary goal is "${goal}" with a timeline of "${timeline}". Generate a brief 1-2 sentence warm transition acknowledging their goal and moving to expectations. Be encouraging and natural.`
+      const goalLabels: Record<string, string> = {
+        build_wealth: "building wealth through real estate",
+        afford_better: "getting a better home than they could alone",
+        stop_renting: "moving on from renting",
+        near_people: "living closer to family or friends",
+        investment: "real estate investment",
+        other: "their co-ownership goals",
+      }
+      const timelineLabels: Record<string, string> = {
+        asap: "they want to move quickly (3-6 months)",
+        this_year: "they're aiming for this year",
+        "1_2_years": "they're thinking 1-2 years out",
+        exploring: "they're in an exploration phase with no rush",
+      }
+      const goal = goalLabels[answers.primary_goal as string] || "co-ownership"
+      const timeline = timelineLabels[answers.timeline as string] || "their own pace"
+      const depth = answers.goal_depth as string | undefined
+
+      let prompt = `[TRANSITION] The user's primary goal is ${goal}, and ${timeline}.`
+      if (depth && depth !== "(skipped)") {
+        prompt += ` They also shared this about why it matters to them: "${depth}".`
+      }
+      prompt += ` Generate a 2-3 sentence warm transition that: (1) reflects back the feeling behind their goal — not just the label, (2) includes one brief educational insight about why knowing your goals matters in co-ownership, and (3) naturally introduces the next section: "Now let's talk about what the experience itself would look like for you." Don't say "Great choice" or evaluate their answer.`
+      return prompt
     },
   },
   {
@@ -64,7 +93,8 @@ export const GEMS_STAGES: ExerciseStageDef[] = [
     questions: [
       {
         key: "commitment_duration",
-        prompt: "How long do you see yourself co-owning?",
+        prompt:
+          "Co-ownership works best when everyone's on the same page about timing. How long could you see yourself in a co-owned home?",
         type: "chips",
         options: [
           { label: "2-3 years", value: "2_3_years" },
@@ -77,7 +107,7 @@ export const GEMS_STAGES: ExerciseStageDef[] = [
       {
         key: "involvement_level",
         prompt:
-          "How involved do you want to be in managing the property?",
+          "Some co-owners love being hands-on with their home, others prefer to split duties or hire help. What sounds more like you?",
         type: "chips",
         options: [
           { label: "Very hands-on", value: "hands_on" },
@@ -88,20 +118,45 @@ export const GEMS_STAGES: ExerciseStageDef[] = [
       },
       {
         key: "success_vision",
-        prompt: "What does success look like for you in 5 years?",
+        prompt:
+          "Imagine it's a few years from now and this co-ownership has worked out exactly how you hoped. What does that look like?",
         type: "text_with_skip",
         skipLabel: "I'll think about this later",
       },
     ],
-    transitionPrompt: () =>
-      "The user has shared their co-ownership expectations. Generate a brief 1-2 sentence warm transition moving to motivations. Acknowledge what they shared and note that understanding their motivations will help personalize everything.",
+    transitionPrompt: (answers) => {
+      const durationLabels: Record<string, string> = {
+        "2_3_years": "2-3 years",
+        "3_5_years": "3-5 years",
+        "5_10_years": "5-10 years",
+        "10_plus": "10+ years",
+        unsure: "not sure yet about duration",
+      }
+      const involvementLabels: Record<string, string> = {
+        hands_on: "very hands-on",
+        moderate: "splitting duties",
+        minimal: "hiring help for management",
+        unsure: "not sure yet about involvement",
+      }
+      const duration = durationLabels[answers.commitment_duration as string] || "their timeframe"
+      const involvement = involvementLabels[answers.involvement_level as string] || "their involvement level"
+      const vision = answers.success_vision as string | undefined
+      const goal = answers.primary_goal as string
+
+      let prompt = `[TRANSITION] The user is thinking about ${duration} of co-ownership, with a preference for ${involvement}. Their original goal was "${goal}".`
+      if (vision && vision !== "(skipped)") {
+        prompt += ` Their vision of success: "${vision}".`
+      }
+      prompt += ` Generate a 2-3 sentence warm transition that: (1) reflects what their expectations tell you about how they approach things, (2) references their original goal if it connects naturally, and (3) introduces the final section: "One more short section — this one's about what's driving you right now and any hesitations you might have. Being honest about both is really valuable." Don't evaluate or rank their answers.`
+      return prompt
+    },
   },
   {
     name: "Motivations",
     questions: [
       {
         key: "trigger",
-        prompt: "What prompted you to explore co-ownership now?",
+        prompt: "What was the moment or situation that got you thinking about co-ownership?",
         type: "chips",
         options: [
           { label: "Priced out of market", value: "priced_out" },
@@ -114,7 +169,7 @@ export const GEMS_STAGES: ExerciseStageDef[] = [
       },
       {
         key: "urgency",
-        prompt: "How urgent does this feel for you?",
+        prompt: "There's no wrong pace here. How does the timing feel for you right now?",
         type: "chips",
         options: [
           { label: "Very — I need to act soon", value: "very" },
@@ -125,16 +180,16 @@ export const GEMS_STAGES: ExerciseStageDef[] = [
       {
         key: "concerns",
         prompt:
-          "What's your biggest concern or hesitation about co-ownership?",
+          "Everyone has questions or hesitations about co-ownership — that's completely normal and healthy. What's on your mind?",
         type: "text_with_skip",
-        skipLabel: "Nothing comes to mind",
+        skipLabel: "Nothing right now",
       },
     ],
   },
 ]
 
 export const GEMS_GREETING =
-  "Hey! I'm Homi — I'll be walking you through this together."
+  "Hey there! I'm Homi — think of me as your co-ownership thinking partner."
 
 export const GEMS_INTRO_PROMPT =
-  "Generate an [INTRO] message for the GEMs discovery exercise. The user just arrived and saw a brief hello from you. Now set the stage: explain what GEMs are, why honest self-knowledge matters for co-ownership communication, and that there are no wrong answers. Keep it warm and grounded — 3-5 sentences, no bullet points."
+  "Generate an [INTRO] message for the GEMs discovery exercise. The user just arrived and saw your greeting. Now set the stage warmly in 3-5 sentences: explain that this is a short discovery conversation (not a quiz) that helps them get clear on their Goals, Expectations, and Motivations for co-ownership. Mention that most people haven't had a chance to think deeply about what they actually want from homeownership — and that's exactly what this is for. Emphasize there are no wrong answers and everything they share helps personalize their journey. Note it takes about 5 minutes across 3 short sections. Keep it conversational and grounded — like a thoughtful friend, not a corporate onboarding flow. No bullet points."

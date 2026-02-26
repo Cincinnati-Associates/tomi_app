@@ -87,7 +87,7 @@ export const howItWorksSteps = [
     number: "04",
     title: "Close",
     description:
-      "Buy your home with confidence. We coordinate with lenders, agents, and attorneys to get you to the finish line.",
+      "Close on your home with confidence. As your co-ownership concierge, we help you connect and coordinate with lenders, agents, and attorneys who understand the co-buying process.",
     icon: "Key",
     cta: { text: "Run the Numbers", href: "/calc" },
     imageDirection: "bottom" as const,
@@ -97,7 +97,7 @@ export const howItWorksSteps = [
     number: "05",
     title: "Create",
     description:
-      "Live, manage, and grow together. Track expenses, make decisions, and plan for the future—including eventual transitions.",
+      "Live, manage, and grow- together. For the rest (expenses, decisions, disputes, and admin), well we have AI for that.",
     icon: "Home",
     cta: { text: "See How It Works", href: "/demo" },
     imageDirection: "left" as const,

@@ -27,13 +27,17 @@ export function JourneyChatPanel({
 }: JourneyChatPanelProps) {
   const [inputValue, setInputValue] = useState("")
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesScrollRef = useRef<HTMLDivElement>(null)
   const [userHasScrolled, setUserHasScrolled] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  // Auto-scroll on new messages
+  // Scroll within the chat container (not the page) on new messages
   useEffect(() => {
-    if (!userHasScrolled) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    if (!userHasScrolled && messagesScrollRef.current) {
+      messagesScrollRef.current.scrollTo({
+        top: messagesScrollRef.current.scrollHeight,
+        behavior: "smooth",
+      })
     }
   }, [messages, userHasScrolled])
 
@@ -86,6 +90,7 @@ export function JourneyChatPanel({
 
       {/* Messages area */}
       <div
+        ref={messagesScrollRef}
         onScroll={handleScroll}
         className="flex-1 overflow-y-auto px-4 py-3 overscroll-contain"
       >

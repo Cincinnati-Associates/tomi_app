@@ -3,4 +3,5 @@ export { AssessmentQuestion } from "./AssessmentQuestion";
 export { AssessmentResult } from "./AssessmentResult";
 export { SectionedProgress } from "./SectionedProgress";
 export { HybridInput } from "./HybridInput";
+export { HomiMiniInput } from "./HomiMiniInput";
 export { PreResultsGate } from "./PreResultsGate";
