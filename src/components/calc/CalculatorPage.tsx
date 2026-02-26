@@ -11,6 +11,7 @@ import { GatedSection } from './GatedSection';
 import { HomiChat } from '@/components/shared/HomiChat';
 import { HomiChatTrigger } from '@/components/shared/HomiChatTrigger';
 import { PageIntro } from '@/components/shared/PageIntro';
+import { Navbar } from '@/components/layout/Navbar';
 import { calculateMonthlyPayment, calculateRemainingBalance } from '@/services/calculatorService';
 import { getStateFromUrl, generateShareUrl, updateUrlWithState } from '@/lib/calculatorState';
 
@@ -47,12 +48,20 @@ const CalculatorPage: React.FC = () => {
       setMortgageDetails(stateFromUrl.mortgageDetails);
       setScenarios(stateFromUrl.scenarios);
     } else {
-      setPeople([{
-        id: '1',
-        name: 'Co-Owner 1',
-        downPaymentContribution: 0,
-        estimatedMonthlyContribution: 0,
-      }]);
+      setPeople([
+        {
+          id: '1',
+          name: 'Co-Owner 1',
+          downPaymentContribution: 50000,
+          estimatedMonthlyContribution: 2000,
+        },
+        {
+          id: '2',
+          name: 'Co-Owner 2',
+          downPaymentContribution: 50000,
+          estimatedMonthlyContribution: 2000,
+        },
+      ]);
     }
   }, []);
 
@@ -71,7 +80,7 @@ const CalculatorPage: React.FC = () => {
     if (!sentinel) return;
     const observer = new IntersectionObserver(
       ([entry]) => setIsSticky(!entry.isIntersecting),
-      { threshold: 0, rootMargin: '-56px 0px 0px 0px' }
+      { threshold: 0, rootMargin: '-80px 0px 0px 0px' }
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
@@ -190,10 +199,12 @@ const CalculatorPage: React.FC = () => {
   }, [people, mortgageDetails, scenarios, selectedScenarioId]);
 
   return (
-    <div className="min-h-screen bg-background navbar-offset">
+    <>
+      <Navbar hideOnScroll />
+      <div className="min-h-screen bg-background navbar-offset">
       <PageIntro
         pageId="calculator"
-        title="Co-Buying Power Calculator"
+        title="Welcome to the Co-Ownership Calculator"
         description="See exactly how much more home you could afford by co-buying with friends or family."
         bullets={[
           "Enter your financials",
@@ -208,7 +219,7 @@ const CalculatorPage: React.FC = () => {
 
       {/* Sticky Output Bar */}
       <div
-        className={`sticky top-[56px] z-30 transition-shadow duration-200 ${
+        className={`sticky z-40 transition-shadow duration-200 top-0 ${
           isSticky
             ? 'bg-background/95 backdrop-blur-md border-b border-border shadow-sm'
             : 'bg-transparent'
@@ -313,6 +324,7 @@ const CalculatorPage: React.FC = () => {
         onClose={() => setIsChatOpen(false)}
       />
     </div>
+    </>
   );
 };
 

@@ -17,7 +17,7 @@ function CavePainting({ progress }: { progress: MotionValue<number> }) {
   return (
     <svg
       viewBox="0 0 800 400"
-      className="w-full h-full max-w-3xl"
+      className="w-full h-full max-w-3xl mx-auto"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
@@ -286,38 +286,33 @@ function CavePainting({ progress }: { progress: MotionValue<number> }) {
 }
 
 export function Frame1Together({ progress }: Frame1TogetherProps) {
+  // Text fades in as user scrolls; title + image are visible immediately
   const textOpacity = useTransform(progress, [0.2, 0.5], [0, 1]);
-  const textY = useTransform(progress, [0.2, 0.5], [30, 0]);
+  const textY = useTransform(progress, [0.2, 0.5], [20, 0]);
 
   return (
     <div className="w-full h-full flex flex-col items-center justify-center px-6 md:px-12">
-      <div className="max-w-4xl w-full">
-        {/* Title */}
-        <motion.h1
-          className="font-heading text-3xl md:text-5xl lg:text-6xl font-bold text-foreground text-center mb-8 md:mb-12"
-          style={{
-            opacity: useTransform(progress, [0, 0.15], [0, 1]),
-            y: useTransform(progress, [0, 0.15], [20, 0]),
-          }}
-        >
+      <div className="max-w-4xl w-full text-center">
+        {/* Title — visible immediately */}
+        <h1 className="font-heading text-2xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 md:mb-6">
           We&apos;ve Always Been Together
-        </motion.h1>
+        </h1>
 
-        {/* Cave painting illustration */}
-        <div className="w-full aspect-[2/1] mb-8 md:mb-12">
+        {/* Cave painting illustration — visible immediately, draws on scroll */}
+        <div className="w-full aspect-[2/1] mb-4 md:mb-6 mx-auto flex items-center justify-center">
           <CavePainting progress={progress} />
         </div>
 
-        {/* Text content */}
+        {/* Text content — fades in on scroll */}
         <motion.div
-          className="text-center max-w-2xl mx-auto"
+          className="max-w-2xl mx-auto"
           style={{ opacity: textOpacity, y: textY }}
         >
-          <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground leading-relaxed">
+          <p className="text-base md:text-lg lg:text-xl text-muted-foreground leading-relaxed">
             For <span className="text-foreground font-semibold">300,000 years</span>, humans lived together.
             We hunted together. Built shelter together. Raised children together.
           </p>
-          <p className="text-lg md:text-xl lg:text-2xl text-foreground font-medium mt-4">
+          <p className="text-base md:text-lg lg:text-xl text-foreground font-medium mt-4">
             Living alone? That&apos;s the weird new experiment.
           </p>
         </motion.div>

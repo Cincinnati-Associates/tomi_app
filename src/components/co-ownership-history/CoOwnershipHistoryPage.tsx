@@ -101,27 +101,34 @@ function FrameWrapper({ children, index, scrollYProgress, isActive }: FrameWrapp
   const frameEnd = (index + 1) / TOTAL_FRAMES;
   const frameMid = (frameStart + frameEnd) / 2;
 
-  const opacity = useTransform(
-    scrollYProgress,
-    [
-      frameStart,
-      frameStart + 0.02,
-      frameMid,
-      frameEnd - 0.02,
-      frameEnd,
-    ],
-    index === TOTAL_FRAMES - 1
-      ? [0, 1, 1, 1, 1] // Last frame stays visible
-      : [0, 1, 1, 1, 0]
-  );
+  // Build input/output arrays based on frame position
+  let opacityInput: number[];
+  let opacityOutput: number[];
+  let scaleInput: number[];
+  let scaleOutput: number[];
 
-  const scale = useTransform(
-    scrollYProgress,
-    [frameStart, frameStart + 0.03, frameMid, frameEnd - 0.03, frameEnd],
-    index === TOTAL_FRAMES - 1
-      ? [0.95, 1, 1, 1, 1]
-      : [0.95, 1, 1, 1, 0.95]
-  );
+  if (index === 0) {
+    // First frame: visible on load, fades out on scroll
+    opacityInput = [0, frameMid, frameEnd - 0.02, frameEnd];
+    opacityOutput = [1, 1, 1, 0];
+    scaleInput = [0, frameMid, frameEnd - 0.03, frameEnd];
+    scaleOutput = [1, 1, 1, 0.95];
+  } else if (index === TOTAL_FRAMES - 1) {
+    // Last frame: fades in and stays
+    opacityInput = [frameStart, frameStart + 0.02, frameMid, frameEnd - 0.02, frameEnd];
+    opacityOutput = [0, 1, 1, 1, 1];
+    scaleInput = [frameStart, frameStart + 0.03, frameMid, frameEnd - 0.03, frameEnd];
+    scaleOutput = [0.95, 1, 1, 1, 1];
+  } else {
+    // Middle frames: fade in then out
+    opacityInput = [frameStart, frameStart + 0.02, frameMid, frameEnd - 0.02, frameEnd];
+    opacityOutput = [0, 1, 1, 1, 0];
+    scaleInput = [frameStart, frameStart + 0.03, frameMid, frameEnd - 0.03, frameEnd];
+    scaleOutput = [0.95, 1, 1, 1, 0.95];
+  }
+
+  const opacity = useTransform(scrollYProgress, opacityInput, opacityOutput);
+  const scale = useTransform(scrollYProgress, scaleInput, scaleOutput);
 
   return (
     <motion.div
@@ -232,10 +239,15 @@ export function CoOwnershipHistoryPage() {
         className="relative bg-background"
         style={{ height: `${(TOTAL_FRAMES + 1) * 120}vh` }}
       >
-        {/* Sticky viewport */}
-        {/* Sticky viewport */}
-        <div className="sticky top-0 h-screen overflow-hidden navbar-offset">
-          <div className="relative w-full h-full md:pr-12">
+        {/* Sticky viewport — sits below navbar */}
+        <div
+          className="sticky overflow-hidden"
+          style={{
+            top: "var(--navbar-height-md)",
+            height: "calc(100vh - var(--navbar-height-md))",
+          }}
+        >
+          <div className="relative w-full h-full">
             {/* Frame 1 */}
             <FrameWrapper
               index={0}

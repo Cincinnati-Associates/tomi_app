@@ -255,7 +255,7 @@ export function Frame6ThisIsTomi({ progress }: Frame6ThisIsTomiProps) {
 
         {/* Title */}
         <motion.div className="text-center mb-10" style={{ opacity: titleOpacity }}>
-          <h2 className="font-heading text-3xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4">
+          <h2 className="font-heading text-2xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
             This Is Tomi
           </h2>
           <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto">

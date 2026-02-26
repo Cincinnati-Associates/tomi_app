@@ -311,7 +311,7 @@ const OwnershipCalculator: React.FC<OwnershipCalculatorProps> = ({
               <div key={person.id} className="flex justify-between items-center gap-3 min-w-0">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
                   <div className="w-3 h-3 min-w-[12px] min-h-[12px] max-w-[12px] max-h-[12px] rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                  <span className="text-sm text-muted-foreground truncate">{person.name}</span>
+                  <span className="text-sm text-muted-foreground truncate">{person.name}{index === 0 && ' (You)'}</span>
                 </div>
                 <div className="text-right flex-shrink-0">
                   <div className="text-sm font-bold text-foreground whitespace-nowrap">{person.percentage.toFixed(1)}%</div>
@@ -515,6 +515,7 @@ const OwnershipCalculator: React.FC<OwnershipCalculatorProps> = ({
                 className="font-medium text-foreground bg-transparent border-none outline-none p-0 w-32 sm:w-40 focus:ring-0 focus:border-b focus:border-primary transition-colors placeholder:text-muted-foreground/50"
                 placeholder="Name"
               />
+              {index === 0 && <span className="text-xs text-muted-foreground">(You)</span>}
               {/* Invite button - only show for non-first owners (index > 0) */}
               {index > 0 && (
                 <button
