@@ -240,6 +240,7 @@ export function HomiChatPanel({ onClose }: HomiChatPanelProps) {
           <div className="flex-1 relative">
             <textarea
               ref={textareaRef}
+              data-homi-chat-input
               value={input}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}

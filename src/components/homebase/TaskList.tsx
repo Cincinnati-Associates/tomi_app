@@ -5,6 +5,8 @@ import { ListTodo, Plus, X } from 'lucide-react'
 import { TaskCard, type TaskCardData } from './TaskCard'
 import { TaskDetailPanel } from './TaskDetailPanel'
 import { useHomeBase } from '@/providers/HomeBaseProvider'
+import { useHotkeyEvent } from '@/hooks/useHotkeyEvent'
+import { HOTKEY_EVENTS } from '@/hooks/useHomeBaseHotkeys'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -22,6 +24,27 @@ export function TaskList({ limit, projectId: fixedProjectId, hideProjectFilter }
   const [isLoading, setIsLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
+
+  // Hotkey: N → open create form
+  useHotkeyEvent(HOTKEY_EVENTS.NEW_TASK, useCallback(() => {
+    setShowCreateForm(true)
+  }, []))
+
+  // Hotkey: 1/2/3/4 → switch filter
+  useHotkeyEvent(HOTKEY_EVENTS.TASK_FILTER, useCallback((detail?: unknown) => {
+    const f = detail as 'all' | 'todo' | 'in_progress' | 'done'
+    if (f) setFilter(f)
+  }, []))
+
+  // Hotkey: Escape → close task detail panel, then create form
+  useHotkeyEvent(HOTKEY_EVENTS.CLOSE_PANEL, useCallback(() => {
+    if (selectedTaskId) {
+      setSelectedTaskId(null)
+      triggerRefresh()
+    } else if (showCreateForm) {
+      setShowCreateForm(false)
+    }
+  }, [selectedTaskId, showCreateForm, triggerRefresh]))
 
   const fetchTasks = useCallback(async () => {
     if (!activePartyId) return
