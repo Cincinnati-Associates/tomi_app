@@ -1,5 +1,5 @@
-import type { Grade, AnswerData, DimensionProfile, CustomAnswer, ProfileDimension } from "@/hooks/useAssessment";
-import { DIMENSION_LABELS, DIMENSION_DESCRIPTIONS, MAX_SCORE, computeDimensionProfile } from "@/hooks/useAssessment";
+import type { Grade, AnswerData, DimensionProfile, CustomAnswer, ProfileDimension } from "@/lib/assessment-types";
+import { DIMENSION_LABELS, DIMENSION_DESCRIPTIONS, MAX_SCORE, computeDimensionProfile } from "@/lib/assessment-types";
 
 export interface StoredAssessment {
   grade: Grade;

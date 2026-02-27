@@ -131,23 +131,14 @@ export async function POST(request: NextRequest) {
       knowledgeSection = formatKnowledgeForPrompt(knowledge);
     } else if (userContext) {
       // Anonymous: assemble from client-sent context
-      console.log("[DEBUG] assembleAnonymousKnowledge input:", { hasUserContext: !!userContext, hasAssessment: !!assessmentData });
-      try {
-        const knowledge = assembleAnonymousKnowledge(
-          userContext,
-          assessmentData || null
-        );
-        console.log("[DEBUG] assembleAnonymousKnowledge OK");
-        knowledgeSection = formatKnowledgeForPrompt(knowledge, assessmentData);
-        console.log("[DEBUG] formatKnowledgeForPrompt OK, length:", knowledgeSection?.length);
-      } catch (innerErr) {
-        console.error("[DEBUG] Knowledge assembly crashed:", innerErr);
-        throw innerErr;
-      }
+      const knowledge = assembleAnonymousKnowledge(
+        userContext,
+        assessmentData || null
+      );
+      knowledgeSection = formatKnowledgeForPrompt(knowledge, assessmentData);
     }
 
     // Build system prompt
-    console.log("[DEBUG] Building system prompt...");
     const systemPrompt = buildSystemPrompt({
       calculatorContext,
       knowledgeSection,
@@ -155,17 +146,14 @@ export async function POST(request: NextRequest) {
       assessmentContext: knowledgeSection ? undefined : assessmentContext,
       currentPage,
     });
-    console.log("[DEBUG] System prompt built, length:", systemPrompt.length);
 
     // Stream the response with smoothed pacing for readability
-    console.log("[DEBUG] Calling streamText...");
     const result = await streamText({
       model: getAIModel(),
       system: systemPrompt,
       messages,
       ...MODEL_CONFIG,
     });
-    console.log("[DEBUG] streamText returned OK");
 
     const response = result.toDataStreamResponse();
 
@@ -186,11 +174,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Chat API error:", error);
-    // Temp debug: write error details to file
-    const fs = await import("fs");
-    try {
-      fs.writeFileSync("/tmp/chat-api-error.txt", `${new Date().toISOString()}\n${error instanceof Error ? `${error.message}\n${error.stack}` : JSON.stringify(error)}\n`);
-    } catch {}
 
     // Return a non-streaming error response
     return new Response(
