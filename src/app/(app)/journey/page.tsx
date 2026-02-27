@@ -18,6 +18,7 @@ import type {
   PhaseProgress,
   BlueprintTileData,
   ExerciseProgress,
+  PartyData,
 } from "@/lib/journey/types"
 
 /**
@@ -181,6 +182,7 @@ export default function JourneyPage() {
   const router = useRouter()
   const completedSlug = searchParams.get("completed")
   const [journeyState, setJourneyState] = useState<JourneyState | null>(null)
+  const [partyData, setPartyData] = useState<PartyData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [showWelcome, setShowWelcome] = useState(false)
   const [showCelebration, setShowCelebration] = useState(false)
@@ -188,15 +190,18 @@ export default function JourneyPage() {
   const fetchJourneyData = useCallback(async () => {
     try {
       // Fetch exercises and journey data in parallel
-      const [exercisesRes, journeyRes] = await Promise.all([
+      const [exercisesRes, journeyRes, partyRes] = await Promise.all([
         fetch("/api/exercises"),
         fetch("/api/journey"),
+        fetch("/api/parties/mine"),
       ])
 
       const exercisesData = exercisesRes.ok
         ? await exercisesRes.json()
         : { exercises: [] }
       const journeyData = journeyRes.ok ? await journeyRes.json() : null
+      const partyResult: PartyData | null = partyRes.ok ? await partyRes.json() : null
+      setPartyData(partyResult)
 
       // The /api/journey route returns the journey record directly
       const journeyRecord = journeyData?.id ? journeyData : null
@@ -306,6 +311,7 @@ export default function JourneyPage() {
       <JourneyShell
         state={journeyState}
         userName={profile?.full_name?.split(" ")[0] ?? null}
+        partyData={partyData}
       />
 
       <AnimatePresence>
