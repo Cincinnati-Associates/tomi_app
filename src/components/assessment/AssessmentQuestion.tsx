@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, MessageSquare, ArrowRight } from "lucide-react";
+import { Check, MessageSquare, ArrowRight, ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AssessmentQuestion as QuestionType, AnswerOption, AnswerData } from "@/hooks/useAssessment";
 
@@ -12,6 +12,8 @@ interface AssessmentQuestionProps {
   selectedAnswer: AnswerData | null;
   onSelectAnswer: (optionIndex: number, customText?: string) => void;
   onAnimationComplete: () => void;
+  onPrevious?: () => void;
+  showPrevious?: boolean;
 }
 
 /**
@@ -258,6 +260,8 @@ export function AssessmentQuestion({
   selectedAnswer,
   onSelectAnswer,
   onAnimationComplete,
+  onPrevious,
+  showPrevious,
 }: AssessmentQuestionProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
@@ -361,6 +365,18 @@ export function AssessmentQuestion({
                 onSubmit={handleCustomSubmit}
                 disabled={isAnimatingOut}
               />
+
+              {showPrevious && onPrevious && (
+                <div className="flex justify-center pt-2">
+                  <button
+                    onClick={onPrevious}
+                    className="flex items-center gap-1 text-xs text-white/40 hover:text-white/70 transition-colors py-1 px-3"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                    Previous
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </AnimatePresence>

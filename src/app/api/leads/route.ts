@@ -22,6 +22,8 @@ interface LeadData {
   assessmentGrade?: string;
   assessmentScore?: number;
   assessmentAnswers?: Record<string, unknown>;
+  assessmentDimensionProfile?: Record<string, unknown>;
+  assessmentCustomAnswers?: { questionId: number; text: string }[];
   utmSource?: string;
   utmMedium?: string;
   utmCampaign?: string;
@@ -47,6 +49,16 @@ async function sendNotificationEmail(lead: LeadData) {
     ? `${emoji} New Lead: Grade ${lead.assessmentGrade} (${lead.assessmentScore}/36)`
     : `📬 New Lead from ${lead.source}`;
 
+  const dimensionSummary = lead.assessmentDimensionProfile
+    ? (lead.assessmentDimensionProfile as { summary?: string }).summary || ""
+    : "";
+
+  const customAnswerLines = lead.assessmentCustomAnswers
+    ? lead.assessmentCustomAnswers
+        .map((ca) => `  - Q${ca.questionId}: "${ca.text}"`)
+        .join("\n")
+    : "";
+
   const body = `
 New lead captured from Tomi!
 
@@ -54,6 +66,8 @@ Email: ${lead.email}
 Source: ${lead.source}
 ${lead.assessmentGrade ? `Assessment Grade: ${lead.assessmentGrade}` : ""}
 ${lead.assessmentScore ? `Assessment Score: ${lead.assessmentScore}/36` : ""}
+${dimensionSummary ? `Dimension Profile: ${dimensionSummary}` : ""}
+${customAnswerLines ? `Custom Answers:\n${customAnswerLines}` : ""}
 
 ${lead.utmSource ? `UTM Source: ${lead.utmSource}` : ""}
 ${lead.utmMedium ? `UTM Medium: ${lead.utmMedium}` : ""}
@@ -127,6 +141,8 @@ export async function POST(request: NextRequest) {
           assessment_grade: data.assessmentGrade || null,
           assessment_score: data.assessmentScore || null,
           assessment_answers: data.assessmentAnswers || null,
+          assessment_dimension_profile: data.assessmentDimensionProfile || null,
+          assessment_custom_answers: data.assessmentCustomAnswers || null,
           utm_source: data.utmSource || null,
           utm_medium: data.utmMedium || null,
           utm_campaign: data.utmCampaign || null,

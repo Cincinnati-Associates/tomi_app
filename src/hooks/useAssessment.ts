@@ -195,7 +195,7 @@ export const ASSESSMENT_QUESTIONS: AssessmentQuestion[] = [
       { text: "How we'd handle disagreements on big decisions", score: 3, dimensions: ["relational", "legal"] },
       { text: "What happens if someone can't pay their share", score: 2, dimensions: ["financial", "relational"] },
       { text: "What happens if one of us wants out", score: 1, dimensions: ["legal", "emotional"] },
-      { text: "I don't know enough to know what to worry about", score: 0, dimensions: ["knowledge"] },
+      { text: "How does the financing work?", score: 0, dimensions: ["knowledge", "financial"] },
     ],
   },
 
@@ -215,7 +215,8 @@ export const ASSESSMENT_QUESTIONS: AssessmentQuestion[] = [
   {
     id: 8,
     category: "finances",
-    question: "What can you comfortably spend on housing each month?",
+    question: "What's your monthly housing budget?",
+    subtext: "Include rent or mortgage, electric, gas, water, and internet",
     customInputPlaceholder: "It's hard to say...",
     options: [
       { text: "$3,000+ per month", score: 3, dimensions: ["financial"] },
@@ -241,13 +242,13 @@ export const ASSESSMENT_QUESTIONS: AssessmentQuestion[] = [
   {
     id: 10,
     category: "readiness",
-    question: "What type of ownership structure sounds most appealing to you?",
-    customInputPlaceholder: "I've heard of something else...",
+    question: "What type of co-ownership sounds most like you?",
+    customInputPlaceholder: "I have a different situation...",
     options: [
-      { text: "Tenants in Common (TIC)", score: 3, dimensions: ["legal", "knowledge"] },
-      { text: "LLC Partnership", score: 2, dimensions: ["legal", "knowledge"] },
-      { text: "Land Trust", score: 1, dimensions: ["legal", "knowledge"] },
-      { text: "I don't know yet", score: 0, dimensions: ["knowledge"] },
+      { text: "Living together full- or part-time", score: 3, dimensions: ["relational", "emotional"] },
+      { text: "Splitting a vacation home I couldn't afford alone", score: 2, dimensions: ["financial", "emotional"] },
+      { text: "A timeshare-style arrangement with scheduled access", score: 1, dimensions: ["legal", "knowledge"] },
+      { text: "Helping someone I care about get a leg up", score: 0, dimensions: ["relational", "financial"] },
     ],
   },
   {
@@ -294,8 +295,10 @@ export function computeDimensionProfile(answers: (AnswerData | null)[]): Dimensi
 
   for (const answer of answers) {
     if (!answer) continue;
-    for (const dim of answer.dimensions) {
-      tallies[dim]++;
+    if (Array.isArray(answer.dimensions)) {
+      for (const dim of answer.dimensions) {
+        tallies[dim]++;
+      }
     }
   }
 
