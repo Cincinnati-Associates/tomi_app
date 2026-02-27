@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { AppNavbar } from '@/components/layout/AppNavbar'
 import { useAuthContext } from '@/providers/AuthProvider'
@@ -8,9 +8,17 @@ import { HomeBaseProvider, useHomeBase } from '@/providers/HomeBaseProvider'
 import { HomiChatProvider, useHomiChatContext } from '@/providers/HomiChatProvider'
 import { AppSwipeShell } from '@/components/shared/AppSwipeShell'
 import { HomiChatTrigger } from '@/components/shared/HomiChatTrigger'
+import { useHomeBaseHotkeys, HOTKEY_EVENTS } from '@/hooks/useHomeBaseHotkeys'
+import { useHotkeyEvent } from '@/hooks/useHotkeyEvent'
 
 function HomeBaseContent({ children }: { children: React.ReactNode }) {
-  const { openChat, isChatOpen } = useHomiChatContext()
+  const { openChat, closeChat, isChatOpen } = useHomiChatContext()
+  useHomeBaseHotkeys()
+
+  // Hotkey: Escape → close Homi chat panel (lowest priority fallback)
+  useHotkeyEvent(HOTKEY_EVENTS.CLOSE_PANEL, useCallback(() => {
+    if (isChatOpen) closeChat()
+  }, [isChatOpen, closeChat]))
 
   return (
     <>

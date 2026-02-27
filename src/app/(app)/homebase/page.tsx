@@ -4,9 +4,12 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Home } from 'lucide-react'
 import { useHomeBase } from '@/providers/HomeBaseProvider'
+import { useHotkeyEvent } from '@/hooks/useHotkeyEvent'
+import { HOTKEY_EVENTS } from '@/hooks/useHomeBaseHotkeys'
 import { PropertySwitcher } from '@/components/homebase/PropertySwitcher'
 import { ProjectCard, AddProjectCard, type ProjectCardData } from '@/components/homebase/ProjectCard'
 import { CreateProjectSheet } from '@/components/homebase/CreateProjectSheet'
+import { DocumentUpload } from '@/components/homebase/DocumentUpload'
 import { TaskList } from '@/components/homebase/TaskList'
 import { DocumentList } from '@/components/homebase/DocumentList'
 
@@ -16,6 +19,26 @@ export default function HomeBasePage() {
   const [projects, setProjects] = useState<ProjectCardData[]>([])
   const [isLoadingProjects, setIsLoadingProjects] = useState(true)
   const [showCreateProject, setShowCreateProject] = useState(false)
+  const [showDocumentUpload, setShowDocumentUpload] = useState(false)
+
+  // Hotkey: P → open create project sheet
+  useHotkeyEvent(HOTKEY_EVENTS.NEW_PROJECT, useCallback(() => {
+    setShowCreateProject(true)
+  }, []))
+
+  // Hotkey: U → open document upload
+  useHotkeyEvent(HOTKEY_EVENTS.UPLOAD_DOCUMENT, useCallback(() => {
+    setShowDocumentUpload(true)
+  }, []))
+
+  // Hotkey: Escape → close project sheet or upload modal
+  useHotkeyEvent(HOTKEY_EVENTS.CLOSE_PANEL, useCallback(() => {
+    if (showDocumentUpload) {
+      setShowDocumentUpload(false)
+    } else if (showCreateProject) {
+      setShowCreateProject(false)
+    }
+  }, [showDocumentUpload, showCreateProject]))
 
   const activeParty = parties.find((p) => p.id === activePartyId)
 
@@ -131,6 +154,16 @@ export default function HomeBasePage() {
         onCreated={() => {
           triggerRefresh()
           fetchProjects()
+        }}
+      />
+
+      {/* Document upload modal */}
+      <DocumentUpload
+        isOpen={showDocumentUpload}
+        onClose={() => setShowDocumentUpload(false)}
+        onUploaded={() => {
+          setShowDocumentUpload(false)
+          triggerRefresh()
         }}
       />
     </div>
