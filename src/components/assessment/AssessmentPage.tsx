@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { useAssessment } from "@/hooks/useAssessment";
 import { AssessmentQuestion } from "./AssessmentQuestion";
@@ -143,25 +142,15 @@ export function AssessmentPage() {
                       selectedAnswer={answers[currentQuestionIndex]}
                       onSelectAnswer={selectAnswer}
                       onAnimationComplete={nextQuestion}
+                      onPrevious={previousQuestion}
+                      showPrevious={currentQuestionIndex > 0}
                     />
                   </div>
 
-                  {/* Bottom slot: Homi mini input + Previous */}
+                  {/* Bottom slot: Homi mini input */}
                   <div className="mt-auto mb-8 flex justify-center">
-                    <div className="w-full max-w-lg space-y-2">
+                    <div className="w-full max-w-lg">
                       <HomiMiniInput currentSection={currentSection} />
-
-                      {currentQuestionIndex > 0 && (
-                        <div className="flex justify-center">
-                          <button
-                            onClick={previousQuestion}
-                            className="flex items-center gap-1 text-xs text-white/40 hover:text-white/70 transition-colors py-1 px-3"
-                          >
-                            <ChevronLeft className="w-3.5 h-3.5" />
-                            Previous
-                          </button>
-                        </div>
-                      )}
                     </div>
                   </div>
                 </motion.div>
@@ -171,7 +160,7 @@ export function AssessmentPage() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="flex-1 overflow-y-auto flex items-start justify-center pt-8"
+                  className="flex-1 overflow-y-auto flex items-start justify-center pt-6"
                 >
                   {result && (
                     <AssessmentResult

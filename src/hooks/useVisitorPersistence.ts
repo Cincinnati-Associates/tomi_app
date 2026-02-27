@@ -106,6 +106,8 @@ export function useVisitorPersistence() {
             grade: assessment.grade,
             score: assessment.score,
             answers: assessment.answers,
+            dimensionProfile: assessment.dimensionProfile,
+            customAnswers: assessment.customAnswers,
           }
         : null;
 

@@ -48,7 +48,7 @@ export function HomiMiniInput({ currentSection, className }: HomiMiniInputProps)
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { onChatMessage, getContextForAPI } = useAnonymousContext();
-  const { messages, isLoading, sendMessage, clearChat } = useHomiChat({
+  const { messages, isLoading, error, sendMessage, clearChat } = useHomiChat({
     userContext: getContextForAPI(),
     currentPage: "/assessment",
   });
@@ -266,6 +266,18 @@ export function HomiMiniInput({ currentSection, className }: HomiMiniInputProps)
                     <p className="text-sm text-white/80">{submittedQuestion}</p>
                   </div>
                 </div>
+
+                {/* Error state */}
+                {error && (
+                  <div className="flex items-start gap-2.5">
+                    <div className="flex-shrink-0 h-6 w-6 rounded-full bg-red-500/10 flex items-center justify-center mt-0.5">
+                      <Sparkles className="h-3 w-3 text-red-400" />
+                    </div>
+                    <div className="flex-1 bg-red-500/[0.05] rounded-2xl rounded-tl-sm px-4 py-3">
+                      <p className="text-sm text-red-300">{error}</p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Loading state */}
                 {isLoading && !assistantMessage && (

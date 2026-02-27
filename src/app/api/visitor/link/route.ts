@@ -30,6 +30,8 @@ export async function POST(request: NextRequest) {
         grade: string;
         score: number;
         answers: unknown[];
+        dimensionProfile?: Record<string, unknown>;
+        customAnswers?: { questionId: number; text: string }[];
       } | null;
     };
 
