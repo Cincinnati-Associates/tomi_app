@@ -11,6 +11,7 @@ import {
   Building,
   ClipboardCheck,
   Shield,
+  Mail,
   ChevronDown,
   ArrowLeft,
 } from "lucide-react";
@@ -24,6 +25,7 @@ const adminNavLinks = [
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/parties", label: "Parties", icon: Building },
   { href: "/admin/exercises", label: "Exercises", icon: ClipboardCheck },
+  { href: "/admin/emails", label: "Emails", icon: Mail },
   { href: "/admin/audit", label: "Audit Log", icon: Shield },
 ];
 

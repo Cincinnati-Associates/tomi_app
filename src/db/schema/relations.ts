@@ -18,6 +18,7 @@ import {
   homeTaskLabels,
   homeTaskActivity,
 } from './homebase'
+import { emailSends, emailSequences } from './email'
 
 // =============================================================================
 // APP-OWNED RELATIONS
@@ -190,5 +191,27 @@ export const homeTaskActivityRelations = relations(homeTaskActivity, ({ one }) =
   actor: one(profiles, {
     fields: [homeTaskActivity.actorId],
     references: [profiles.id],
+  }),
+}))
+
+// =============================================================================
+// EMAIL RELATIONS
+// =============================================================================
+
+export const emailSendsRelations = relations(emailSends, ({ one }) => ({
+  user: one(profiles, {
+    fields: [emailSends.userId],
+    references: [profiles.id],
+  }),
+}))
+
+export const emailSequencesRelations = relations(emailSequences, ({ one }) => ({
+  user: one(profiles, {
+    fields: [emailSequences.userId],
+    references: [profiles.id],
+  }),
+  emailSend: one(emailSends, {
+    fields: [emailSequences.emailSendId],
+    references: [emailSends.id],
   }),
 }))

@@ -11,6 +11,8 @@ import { useAuthContext } from "@/providers/AuthProvider";
 interface CreatedParty {
   party: { id: string; name: string };
   inviteUrl: string | null;
+  emailSent?: boolean;
+  inviteEmail?: string;
 }
 
 export default function NewPartyPage() {
@@ -19,6 +21,7 @@ export default function NewPartyPage() {
   const [name, setName] = useState("");
   const [targetCity, setTargetCity] = useState("");
   const [targetBudget, setTargetBudget] = useState("");
+  const [inviteEmail, setInviteEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<CreatedParty | null>(null);
@@ -39,6 +42,7 @@ export default function NewPartyPage() {
           name: name.trim(),
           targetCity: targetCity.trim() || undefined,
           targetBudget: targetBudget ? Number(targetBudget) : undefined,
+          inviteEmail: inviteEmail.trim() || undefined,
         }),
       });
 
@@ -51,6 +55,8 @@ export default function NewPartyPage() {
       setCreated({
         party: data.party,
         inviteUrl: data.inviteUrl || null,
+        emailSent: data.emailSent,
+        inviteEmail: inviteEmail.trim() || undefined,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -70,6 +76,7 @@ export default function NewPartyPage() {
     setName("");
     setTargetCity("");
     setTargetBudget("");
+    setInviteEmail("");
     setCreated(null);
     setError(null);
   };
@@ -103,6 +110,13 @@ export default function NewPartyPage() {
             <p className="text-muted-foreground mt-2">
               <span className="font-medium text-foreground">{created.party.name}</span> has been created. You&apos;re the admin.
             </p>
+
+            {/* Email sent confirmation */}
+            {created.emailSent && created.inviteEmail && (
+              <div className="mt-4 rounded-lg bg-primary/10 px-4 py-3 text-sm text-primary">
+                Invite sent to <strong>{created.inviteEmail}</strong>
+              </div>
+            )}
 
             {/* Invite link card */}
             {created.inviteUrl && (
@@ -260,6 +274,29 @@ export default function NewPartyPage() {
                     min={0}
                   />
                 </div>
+              </div>
+
+              {/* Invite email */}
+              <div>
+                <label
+                  htmlFor="invite-email"
+                  className="block text-sm font-medium text-foreground mb-1.5"
+                >
+                  Invite a Co-Owner by Email{" "}
+                  <span className="text-muted-foreground font-normal">
+                    (optional)
+                  </span>
+                </label>
+                <Input
+                  id="invite-email"
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  placeholder="cobuyer@example.com"
+                />
+                <p className="text-xs text-muted-foreground mt-1.5">
+                  They&apos;ll receive an email with a link to join your party.
+                </p>
               </div>
 
               {/* Error */}
