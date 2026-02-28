@@ -4,6 +4,7 @@ import { registerSchema, formatZodErrors } from '@/lib/validators/auth-schemas'
 import { isPasswordValid } from '@/lib/auth/password-validator'
 import { logRegistration } from '@/lib/auth/audit-logger'
 import { getSiteUrl } from '@/lib/site-url'
+import { sendEmail, scheduleEmail, cancelSequences, daysFromNow } from '@/lib/email'
 
 /**
  * POST /api/auth/register
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest) {
 
       console.error('Registration error:', error)
       return NextResponse.json(
-        { error: 'Registration failed' },
+        { error: error.message || 'Registration failed' },
         { status: 400 }
       )
     }
@@ -72,6 +73,30 @@ export async function POST(request: NextRequest) {
 
     // Log the registration event
     await logRegistration(data.user.id, email)
+
+    // Send welcome email + schedule onboarding nudge (fire-and-forget)
+    const userId = data.user.id
+    Promise.all([
+      sendEmail({
+        type: 'welcome',
+        to: email,
+        data: { fullName: fullName || '' },
+        userId,
+      }),
+      scheduleEmail({
+        type: 'onboarding_nudge',
+        to: email,
+        scheduledFor: daysFromNow(3),
+        data: { fullName: fullName || '' },
+        userId,
+        cancelCondition: { type: 'user_started_journey', userId },
+      }),
+      // Cancel any lead nurture sequences for this email (they signed up)
+      cancelSequences({
+        toAddress: email,
+        emailTypes: ['lead_nurture_1', 'lead_nurture_2', 'lead_nurture_3'],
+      }),
+    ]).catch((err) => console.error('Post-registration email error:', err))
 
     // Check if email confirmation is required
     const requiresConfirmation = !data.session

@@ -23,35 +23,28 @@ import {
 import { cn } from "@/lib/utils"
 import type { TrailNodeData } from "@/lib/journey/types"
 
+export interface TrailNodeMemberAvatar {
+  userId: string
+  name: string
+  avatarUrl: string | null
+}
+
 const iconMap: Record<string, React.ElementType> = {
-  Sparkles,
-  Map,
-  Users,
-  DollarSign,
-  Eye,
-  Shield,
-  Home,
-  Gem,
-  Route,
-  UserCheck,
-  PiggyBank,
-  Search,
-  ArrowRightLeft,
+  Sparkles, Map, Users, DollarSign, Eye, Shield, Home, Gem, Route, UserCheck, PiggyBank, Search, ArrowRightLeft,
 }
 
 interface TrailNodeProps {
   node: TrailNodeData
   index: number
+  memberAvatars?: TrailNodeMemberAvatar[]
 }
 
-export function TrailNode({ node, index }: TrailNodeProps) {
+export function TrailNode({ node, index, memberAvatars }: TrailNodeProps) {
   const router = useRouter()
   const Icon = iconMap[node.icon] || Sparkles
   const isPhase = node.type === "phase"
   const size = isPhase ? "h-[52px] w-[52px]" : "h-10 w-10"
   const iconSize = isPhase ? "h-6 w-6" : "h-4 w-4"
-
-  // Alternate left/right offset for winding trail feel
   const offset = index % 2 === 0 ? -30 : 30
 
   const isClickable =
@@ -73,26 +66,19 @@ export function TrailNode({ node, index }: TrailNodeProps) {
       className="flex flex-col items-center relative"
       style={{ transform: `translateX(${offset}px)` }}
     >
-      {/* Node circle */}
       <button
         onClick={handleClick}
         disabled={!isClickable}
         className={cn(
           "relative rounded-full flex items-center justify-center transition-all",
           size,
-          // Completed
           node.status === "completed" && "bg-primary",
-          // Current
           node.status === "current" && "bg-primary trail-node-current",
-          // Unlocked
           node.status === "unlocked" && "bg-muted border-2 border-border",
-          // Locked
           node.status === "locked" && "bg-muted/50 opacity-40",
-          // Clickable cursor
           isClickable && "cursor-pointer hover:scale-105 active:scale-95"
         )}
       >
-        {/* Glow ring for current node */}
         {node.status === "current" && (
           <motion.div
             className="absolute inset-[-4px] rounded-full border-2 border-primary/50"
@@ -100,8 +86,6 @@ export function TrailNode({ node, index }: TrailNodeProps) {
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           />
         )}
-
-        {/* Check overlay for completed */}
         {node.status === "completed" ? (
           <div className="relative">
             <Icon className={cn(iconSize, "text-primary-foreground opacity-50")} />
@@ -120,12 +104,36 @@ export function TrailNode({ node, index }: TrailNodeProps) {
         )}
       </button>
 
-      {/* Label */}
+      {/* Party member avatar dots */}
+      {memberAvatars && memberAvatars.length > 0 && node.type === "exercise" && (
+        <div className="absolute left-full ml-2 top-1 flex -space-x-1">
+          {memberAvatars.slice(0, 4).map((member) => (
+            <div
+              key={member.userId}
+              className="h-5 w-5 rounded-full bg-muted border border-background flex items-center justify-center overflow-hidden"
+              title={member.name}
+            >
+              {member.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={member.avatarUrl} alt={member.name} className="h-full w-full object-cover" />
+              ) : (
+                <span className="text-[7px] font-bold text-muted-foreground">
+                  {member.name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase()}
+                </span>
+              )}
+            </div>
+          ))}
+          {memberAvatars.length > 4 && (
+            <div className="h-5 w-5 rounded-full bg-muted border border-background flex items-center justify-center">
+              <span className="text-[7px] font-bold text-muted-foreground">+{memberAvatars.length - 4}</span>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="mt-1.5 text-center max-w-[120px]">
         {isPhase && (
-          <span className="text-[10px] font-medium text-muted-foreground/70 block">
-            Phase {node.phaseId}
-          </span>
+          <span className="text-[10px] font-medium text-muted-foreground/70 block">Phase {node.phaseId}</span>
         )}
         <span
           className={cn(

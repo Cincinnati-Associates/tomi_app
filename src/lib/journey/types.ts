@@ -111,6 +111,30 @@ export interface JourneyState {
 }
 
 // =============================================================================
+// PARTY PROGRESS TYPES
+// =============================================================================
+
+export interface PartyMemberProgress {
+  userId: string
+  name: string
+  avatarUrl: string | null
+  role: 'admin' | 'member'
+  exerciseProgress: { slug: string; status: string }[]
+  completedCount: number
+  lastActive: string | null
+}
+
+export interface PartyData {
+  party: {
+    id: string
+    name: string
+    status: string
+    targetCity: string | null
+  } | null
+  members: PartyMemberProgress[]
+}
+
+// =============================================================================
 // TRAIL NODE TYPES (Board Game Trail)
 // =============================================================================
 

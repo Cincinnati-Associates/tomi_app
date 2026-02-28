@@ -5,6 +5,7 @@ import {
   getClientIp,
   rateLimitResponse,
 } from "@/lib/rate-limit";
+import { sendEmail, scheduleEmail, daysFromNow } from "@/lib/email";
 
 const checkRateLimit = createRateLimiter({
   name: "leads",
@@ -173,6 +174,58 @@ export async function POST(request: NextRequest) {
         .update({ notified_at: new Date().toISOString() })
         .eq("id", lead.id);
     });
+
+    // Send assessment results email + schedule lead nurture sequence
+    const leadEmail = data.email.toLowerCase().trim();
+    if (data.source === "assessment" && data.assessmentGrade) {
+      const dimensionProfile = data.assessmentDimensionProfile as {
+        strengths?: string[];
+        growthAreas?: string[];
+      } | undefined;
+
+      // Assessment results email (immediate)
+      sendEmail({
+        type: "assessment_results",
+        to: leadEmail,
+        data: {
+          email: leadEmail,
+          grade: data.assessmentGrade,
+          score: data.assessmentScore ?? 0,
+          strengths: dimensionProfile?.strengths ?? [],
+          growthAreas: dimensionProfile?.growthAreas ?? [],
+        },
+        leadEmail,
+      }).catch((err) => console.error("Assessment results email error:", err));
+    }
+
+    // Schedule lead nurture sequence (for all lead sources)
+    const cancelCondition = { type: "user_signed_up" as const, email: leadEmail };
+    Promise.all([
+      scheduleEmail({
+        type: "lead_nurture_1",
+        to: leadEmail,
+        scheduledFor: daysFromNow(3),
+        data: { email: leadEmail },
+        leadEmail,
+        cancelCondition,
+      }),
+      scheduleEmail({
+        type: "lead_nurture_2",
+        to: leadEmail,
+        scheduledFor: daysFromNow(7),
+        data: { email: leadEmail },
+        leadEmail,
+        cancelCondition,
+      }),
+      scheduleEmail({
+        type: "lead_nurture_3",
+        to: leadEmail,
+        scheduledFor: daysFromNow(14),
+        data: { email: leadEmail },
+        leadEmail,
+        cancelCondition,
+      }),
+    ]).catch((err) => console.error("Lead nurture scheduling error:", err));
 
     return NextResponse.json({ success: true, id: lead.id });
   } catch (error) {

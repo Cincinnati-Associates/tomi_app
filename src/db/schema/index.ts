@@ -20,5 +20,8 @@ export * from './audit'
 // HomeBase System
 export * from './homebase'
 
+// Email System
+export * from './email'
+
 // Relations (must be last to avoid circular imports)
 export * from './relations'
