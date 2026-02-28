@@ -554,7 +554,7 @@ function GroupChatSimulation({
 
       {/* Hint */}
       <p className="text-center text-xs text-muted-foreground mt-4">
-        Tap any message to chat with Homi
+        Tap any message to chat with Homi (Functionality Coming Soon)
       </p>
     </div>
   );
