@@ -32,11 +32,15 @@ export async function POST(request: NextRequest) {
     })
 
     if (error) {
-      // Generic error message to prevent email enumeration
-      if (
-        error.message.includes('Invalid login credentials') ||
-        error.message.includes('Email not confirmed')
-      ) {
+      // Distinguish unconfirmed email so the client can offer to resend
+      if (error.message.includes('Email not confirmed')) {
+        return NextResponse.json(
+          { error: 'Email not confirmed', code: 'EMAIL_NOT_CONFIRMED' },
+          { status: 403 }
+        )
+      }
+
+      if (error.message.includes('Invalid login credentials')) {
         return NextResponse.json(
           { error: 'Invalid email or password' },
           { status: 401 }

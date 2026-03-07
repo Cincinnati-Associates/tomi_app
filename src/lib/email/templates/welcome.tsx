@@ -9,24 +9,28 @@ type Props = EmailDataMap['welcome']
 export function WelcomeEmail({ fullName }: Props) {
   const displayName = fullName || 'there'
   return (
-    <EmailLayout previewText="Great things are built together — welcome to Tomi">
+    <EmailLayout previewText="Your co-buying journey starts now — welcome to Tomi">
       <Text style={greeting}>Hey {displayName} from Tomi 👋</Text>
 
-      <Text style={heading}>Great things are built together.</Text>
+      <Text style={heading}>Your path to homeownership just got clearer.</Text>
 
       <Text style={paragraph}>
-        You&apos;re joining a growing movement of people who believe that with
-        the right people, incentives, and technology, we can unlock a more
-        fulfilled and rewarding life — together.
+        Most people think buying a home alone is the only option. Tomi shows
+        you a smarter way — buy together, build wealth together, and actually
+        afford the home you want.
       </Text>
 
-      <Text style={paragraph}>We&apos;re honored to have you with us.</Text>
+      <Text style={paragraph}>
+        Your personalized journey is ready. In just a few minutes, you&apos;ll
+        discover your co-buying style, see what you can actually afford, and
+        get a step-by-step plan tailored to your goals.
+      </Text>
 
       <CtaButton href={`${SITE_URL}/journey`}>Start Your Journey</CtaButton>
 
       <Text style={muted}>
-        Have questions? Chat with Homi, our AI assistant, anytime from your
-        dashboard.
+        Have questions along the way? Homi, your AI co-buying guide, is
+        available anytime from your dashboard.
       </Text>
     </EmailLayout>
   )

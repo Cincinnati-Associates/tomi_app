@@ -1,28 +1,65 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Lock, ArrowRight, Loader2, Check } from 'lucide-react'
+import { Lock, ArrowRight, Loader2, Check, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
+import { createClient } from '@/lib/supabase'
 import { PasswordInput } from './PasswordInput'
 import { PasswordStrengthMeter } from './PasswordStrengthMeter'
 import { validatePassword } from '@/lib/auth/password-validator'
 
+type FormState = 'loading' | 'ready' | 'expired' | 'success'
+
 export function ResetPasswordForm() {
+  const searchParams = useSearchParams()
+  const [formState, setFormState] = useState<FormState>('loading')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSuccess, setIsSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const validation = validatePassword(password)
   const passwordsMatch = password === confirmPassword
 
+  // On mount, exchange the code for a session (PKCE flow)
+  useEffect(() => {
+    const exchangeCode = async () => {
+      const code = searchParams.get('code')
+
+      if (code) {
+        // PKCE flow: exchange code param for a session
+        const supabase = createClient()
+        const { error } = await supabase.auth.exchangeCodeForSession(code)
+        if (error) {
+          console.error('Reset password code exchange error:', error)
+          setFormState('expired')
+          return
+        }
+        setFormState('ready')
+        return
+      }
+
+      // No code — check if there's already an active session
+      // (e.g., implicit flow where the hash fragment was auto-consumed)
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (session) {
+        setFormState('ready')
+      } else {
+        setFormState('expired')
+      }
+    }
+
+    exchangeCode()
+  }, [searchParams])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
 
-    // Client-side validation
     if (!validation.isValid) {
       setError('Password must be at least 8 characters')
       return
@@ -47,7 +84,7 @@ export function ResetPasswordForm() {
       if (!response.ok) {
         setError(data.error || 'Failed to reset password')
       } else {
-        setIsSuccess(true)
+        setFormState('success')
       }
     } catch {
       setError('Something went wrong. Please try again.')
@@ -56,7 +93,44 @@ export function ResetPasswordForm() {
     }
   }
 
-  if (isSuccess) {
+  // Loading state while exchanging code
+  if (formState === 'loading') {
+    return (
+      <div className="text-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-3" />
+        <p className="text-sm text-muted-foreground">Verifying your reset link...</p>
+      </div>
+    )
+  }
+
+  // Expired / invalid token
+  if (formState === 'expired') {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="text-center py-8"
+      >
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-500/10 mb-4">
+          <AlertTriangle className="w-8 h-8 text-amber-500" />
+        </div>
+        <h2 className="text-xl font-semibold text-foreground mb-2">Link expired</h2>
+        <p className="text-sm text-muted-foreground mb-6 max-w-sm mx-auto">
+          This password reset link has expired or is invalid. Please request a new one.
+        </p>
+        <Link
+          href="/auth/forgot-password"
+          className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-colors"
+        >
+          Request new link
+          <ArrowRight className="w-4 h-4" />
+        </Link>
+      </motion.div>
+    )
+  }
+
+  // Success state
+  if (formState === 'success') {
     return (
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
@@ -81,6 +155,7 @@ export function ResetPasswordForm() {
     )
   }
 
+  // Ready — show the password form
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
