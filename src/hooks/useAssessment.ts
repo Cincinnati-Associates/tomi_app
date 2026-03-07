@@ -34,7 +34,7 @@ import type {
   AssessmentQuestion,
 } from "@/lib/assessment-types";
 
-import { CATEGORIES, DIMENSION_LABELS, MAX_SCORE, computeDimensionProfile } from "@/lib/assessment-types";
+import { CATEGORIES, MAX_SCORE, computeDimensionProfile } from "@/lib/assessment-types";
 
 export interface AssessmentResult {
   totalScore: number;

@@ -174,7 +174,7 @@ function DimensionBadge({
         "group relative px-3 py-1.5 rounded-full text-xs font-medium border transition-colors cursor-default",
         variant === "strong"
           ? "bg-primary/10 border-primary/20 text-primary"
-          : "bg-white/5 border-white/10 text-muted-foreground"
+          : "bg-muted/50 border-border text-muted-foreground"
       )}
       title={desc}
     >
@@ -295,7 +295,7 @@ export function AssessmentResult({
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* Primary concerns */}
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="rounded-xl border border-border bg-card p-4">
               <div className="flex items-center gap-2 mb-3">
                 <TrendingUp className="w-4 h-4 text-primary" />
                 <span className="text-xs font-semibold uppercase tracking-wider text-primary">
@@ -310,7 +310,7 @@ export function AssessmentResult({
             </div>
 
             {/* Growth areas */}
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="rounded-xl border border-border bg-card p-4">
               <div className="flex items-center gap-2 mb-3">
                 <Sprout className="w-4 h-4 text-muted-foreground" />
                 <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -335,7 +335,7 @@ export function AssessmentResult({
           transition={{ duration: 0.4, delay: 0.8 }}
           className="mb-4 text-left"
         >
-          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+          <div className="rounded-xl border border-border bg-card p-4">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
               Things you told us
             </p>

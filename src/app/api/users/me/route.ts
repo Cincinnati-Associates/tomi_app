@@ -113,9 +113,12 @@ export async function PATCH(request: NextRequest) {
     if (updates.avatarUrl !== undefined) {
       updateData.avatar_url = updates.avatarUrl
     }
+    if (updates.onboardingCompleted !== undefined) {
+      updateData.onboarding_completed = updates.onboardingCompleted
+    }
 
-    // Check if profile should be marked as complete
-    if (updates.fullName) {
+    // Auto-mark onboarding complete when fullName is set (legacy behavior)
+    if (updates.fullName && updates.onboardingCompleted === undefined) {
       const { data: currentProfile } = await supabase
         .from('profiles')
         .select('onboarding_completed')

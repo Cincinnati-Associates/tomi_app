@@ -105,7 +105,7 @@ export default function WelcomePage() {
         <Button
           variant="outline"
           size="lg"
-          onClick={() => router.push('/dashboard')}
+          onClick={() => router.push('/journey')}
         >
           Skip for now
         </Button>

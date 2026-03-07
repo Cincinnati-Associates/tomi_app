@@ -85,6 +85,31 @@ export default function TermsOfServicePage() {
         </section>
 
         <section>
+          <h2 className="mb-3 text-lg font-semibold text-foreground">SMS Communications and Consent</h2>
+          <p>
+            By providing your phone number and initiating phone-based authentication, you expressly consent to receive SMS messages from Tomi, including one-time verification codes and transactional account notifications.
+          </p>
+          <p className="mt-3">
+            You understand and agree that:
+          </p>
+          <ul className="mt-2 list-disc space-y-2 pl-6">
+            <li>Message and data rates may apply depending on your carrier and plan</li>
+            <li>Message frequency varies based on your account activity</li>
+            <li>You may opt out at any time by replying STOP to any SMS message</li>
+            <li>For help, reply HELP or contact{" "}
+              <a href="mailto:contact@livetomi.com" className="text-primary underline underline-offset-2 hover:text-primary/80">
+                contact@livetomi.com
+              </a>
+            </li>
+            <li>Opting out of SMS will not affect your account, but phone-based authentication will no longer be available</li>
+            <li>Tomi does not send marketing or promotional messages via SMS</li>
+          </ul>
+          <p className="mt-3">
+            Compatible carriers include but are not limited to AT&amp;T, T-Mobile, Verizon, and other major U.S. carriers. Carrier terms and conditions may apply.
+          </p>
+        </section>
+
+        <section>
           <h2 className="mb-3 text-lg font-semibold text-foreground">AI-Assisted Tools and Outputs</h2>
           <p>
             Certain Tomi services may use AI-assisted or automated tools to help organize information, generate summaries, model scenarios, or support coordination workflows.

@@ -9,26 +9,18 @@ type Props = EmailDataMap['welcome']
 export function WelcomeEmail({ fullName }: Props) {
   const displayName = fullName || 'there'
   return (
-    <EmailLayout previewText="Welcome to Tomi — let's find your path to homeownership">
-      <Text style={heading}>Welcome to Tomi, {displayName}!</Text>
+    <EmailLayout previewText="Great things are built together — welcome to Tomi">
+      <Text style={greeting}>Hey {displayName} from Tomi 👋</Text>
+
+      <Text style={heading}>Great things are built together.</Text>
 
       <Text style={paragraph}>
-        You&apos;ve taken the first step toward co-ownership. Tomi helps you
-        buy a home with people you trust — splitting costs, sharing equity, and
-        building wealth together.
+        You&apos;re joining a growing movement of people who believe that with
+        the right people, incentives, and technology, we can unlock a more
+        fulfilled and rewarding life — together.
       </Text>
 
-      <Text style={paragraph}>Here&apos;s what to do next:</Text>
-
-      <Text style={listItem}>
-        <strong>1.</strong> Start your Journey to understand your readiness
-      </Text>
-      <Text style={listItem}>
-        <strong>2.</strong> Explore your Home Blueprint to clarify what you want
-      </Text>
-      <Text style={listItem}>
-        <strong>3.</strong> Invite a co-buyer when you&apos;re ready
-      </Text>
+      <Text style={paragraph}>We&apos;re honored to have you with us.</Text>
 
       <CtaButton href={`${SITE_URL}/journey`}>Start Your Journey</CtaButton>
 
@@ -40,10 +32,17 @@ export function WelcomeEmail({ fullName }: Props) {
   )
 }
 
+const greeting: React.CSSProperties = {
+  fontSize: '18px',
+  fontWeight: 600,
+  color: BRAND.darkText,
+  margin: '0 0 8px',
+}
+
 const heading: React.CSSProperties = {
   fontSize: '22px',
   fontWeight: 700,
-  color: BRAND.darkText,
+  color: BRAND.primaryGreen,
   margin: '0 0 16px',
 }
 
@@ -52,14 +51,6 @@ const paragraph: React.CSSProperties = {
   lineHeight: '24px',
   color: BRAND.darkText,
   margin: '0 0 12px',
-}
-
-const listItem: React.CSSProperties = {
-  fontSize: '15px',
-  lineHeight: '24px',
-  color: BRAND.darkText,
-  margin: '0 0 4px',
-  paddingLeft: '8px',
 }
 
 const muted: React.CSSProperties = {

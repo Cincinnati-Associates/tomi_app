@@ -77,23 +77,23 @@ export function AssessmentPage() {
         ctaText="Let's Do This"
       />
 
-      {/* Full viewport fixed overlay — forces dark mode, sits above Navbar (z-50) */}
-      <div className="dark fixed inset-0 z-[60] flex flex-col h-[100dvh] overflow-hidden bg-[hsl(220,15%,10%)]">
+      {/* Full viewport fixed overlay — sits above Navbar (z-50) */}
+      <div className="fixed inset-0 z-[60] flex flex-col h-[100dvh] overflow-hidden bg-background">
         {/* Subtle gradient background */}
-        <div className="absolute inset-0 z-0 bg-gradient-to-b from-[hsl(220,15%,12%)] via-[hsl(220,15%,10%)] to-[hsl(220,15%,8%)]" />
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-muted/30 via-background to-muted/20" />
 
         {/* Own navbar with yellow logo */}
         <div className="flex-shrink-0 relative z-10 flex items-center justify-center h-14 md:h-16">
           <Link href="/">
-            <Logo variant="yellow" className="h-6 md:h-7" />
+            <Logo variant="auto" className="h-6 md:h-7" />
           </Link>
         </div>
 
         {/* Compact header with progress */}
         {!isComplete && !showPreResultsGate && (
-          <div className="flex-shrink-0 relative z-10 border-b border-white/8">
+          <div className="flex-shrink-0 relative z-10 border-b border-border">
             <div className="px-4 pt-1 pb-0.5 sm:pt-2 sm:pb-1">
-              <h1 className="font-heading text-xs sm:text-sm md:text-base font-bold text-white/90 text-center">
+              <h1 className="font-heading text-xs sm:text-sm md:text-base font-bold text-foreground text-center">
                 Co-Ownership Readiness
               </h1>
             </div>
@@ -147,8 +147,11 @@ export function AssessmentPage() {
                     />
                   </div>
 
+                  {/* Spacer — splits remaining space so Homi sits at midpoint */}
+                  <div className="flex-1" />
+
                   {/* Bottom slot: Homi mini input */}
-                  <div className="mt-auto mb-8 flex justify-center">
+                  <div className="flex-1 flex items-start justify-center">
                     <div className="w-full max-w-lg">
                       <HomiMiniInput currentSection={currentSection} />
                     </div>

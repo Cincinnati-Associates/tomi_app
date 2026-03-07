@@ -1,12 +1,11 @@
 "use client"
 
-import { useState, useCallback, useMemo, useRef } from "react"
+import { useState, useCallback, useRef } from "react"
 import { useIsMobile } from "@/hooks/useIsMobile"
 import { useHomiChat } from "@/hooks/useHomiChat"
-import { JOURNEY_PHASES, flattenPhasesToTrailNodes } from "@/lib/journey/phases"
+import { JOURNEY_ZONES } from "@/lib/journey/phases"
 import type { JourneyState, PartyData } from "@/lib/journey/types"
-import { TrailView } from "./TrailView"
-import { BlueprintHero } from "./BlueprintHero"
+import { ZoneSection } from "./ZoneSection"
 import { PartyProgressBar } from "./PartyProgressBar"
 import { FloatingChatInput } from "./FloatingChatInput"
 import { JourneyChatPanel } from "./JourneyChatPanel"
@@ -17,20 +16,16 @@ interface JourneyShellProps {
   state: JourneyState
   userName?: string | null
   partyData?: PartyData | null
+  /** Content to render above the zone cards (e.g. welcome banner) */
+  topSlot?: React.ReactNode
 }
 
-export function JourneyShell({ state, partyData }: JourneyShellProps) {
+export function JourneyShell({ state, partyData, topSlot }: JourneyShellProps) {
   const isMobile = useIsMobile()
   const { messages, isLoading, sendMessage } = useHomiChat({ isAuthenticated: true })
   const [chatActive, setChatActive] = useState(false)
   const [activePanel, setActivePanel] = useState(0)
-  const [blueprintCollapsed, setBlueprintCollapsed] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
-
-  const trailNodes = useMemo(
-    () => flattenPhasesToTrailNodes(JOURNEY_PHASES, state.phases, state.currentPhaseId, state.recommendedExercise),
-    [state.phases, state.currentPhaseId, state.recommendedExercise]
-  )
 
   const handleFloatingSubmit = useCallback((message: string) => {
     sendMessage(message)
@@ -42,17 +37,24 @@ export function JourneyShell({ state, partyData }: JourneyShellProps) {
   const handleToggleChat = useCallback(() => { setChatActive((prev) => !prev) }, [])
   const handlePanelChange = useCallback((panel: number) => { setActivePanel(panel) }, [])
 
-  const handleScroll = useCallback(() => {
-    if (scrollRef.current) {
-      setBlueprintCollapsed(scrollRef.current.scrollTop > 100)
-    }
-  }, [])
+  const hasParty = Boolean(partyData?.party)
 
   const journeyContent = (
-    <div ref={scrollRef} onScroll={handleScroll} className="h-full overflow-y-auto overscroll-contain" style={{ touchAction: "pan-y" }}>
-      <BlueprintHero state={state} collapsed={blueprintCollapsed} />
+    <div ref={scrollRef} className="h-full overflow-y-auto overscroll-contain" style={{ touchAction: "pan-y" }}>
+      {topSlot}
       {partyData && <PartyProgressBar partyData={partyData} />}
-      <TrailView nodes={trailNodes} className="" partyMembers={partyData?.members} />
+
+      <div className="pt-4 pb-24">
+        {JOURNEY_ZONES.map((zone) => (
+          <ZoneSection
+            key={zone.id}
+            zone={zone}
+            phases={state.phases}
+            locked={zone.requiresParty && !hasParty}
+            partyMembers={partyData?.members}
+          />
+        ))}
+      </div>
     </div>
   )
 

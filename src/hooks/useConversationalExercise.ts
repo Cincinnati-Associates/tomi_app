@@ -1,3 +1,7 @@
+/**
+ * @deprecated Use useExerciseFlow instead.
+ * Kept for walkthrough exercise compatibility. Types are still exported from here.
+ */
 "use client"
 
 import { useState, useCallback, useRef, useEffect } from "react"
@@ -15,13 +19,21 @@ import type { ChipOption } from "@/components/exercise-chat/QuickReplyChips"
 export interface ExerciseQuestionDef {
   key: string
   prompt: string
-  type: "chips" | "multi_chips" | "number_scale" | "text" | "text_with_skip"
+  type: "chips" | "multi_chips" | "number_scale" | "text" | "text_with_skip" | "confirm"
   options?: ChipOption[]
   min?: number
   max?: number
   skipLabel?: string
   /** AI generates the prompt dynamically based on previous answers */
   dynamicPrompt?: (answers: Record<string, unknown>) => string
+  /**
+   * For "confirm" type: resolve the prior answer to show.
+   * Returns { label, value } if a prior answer exists, or null to fall back to
+   * the regular question rendering (chips/text).
+   */
+  carryForward?: (priorContext: Record<string, unknown>) => { label: string; value: string } | null
+  /** For "confirm" type: the fallback type if no prior answer exists */
+  confirmFallbackType?: "chips" | "text_with_skip"
 }
 
 export interface ExerciseStageDef {
@@ -29,6 +41,8 @@ export interface ExerciseStageDef {
   questions: ExerciseQuestionDef[]
   /** AI transition message after stage completes */
   transitionPrompt?: (answers: Record<string, unknown>) => string
+  /** Contextual Homi prompts shown in the ambient assistant during this stage */
+  homiPrompts?: string[]
 }
 
 export interface UseConversationalExerciseOptions {
@@ -125,9 +139,10 @@ export function useConversationalExercise({
       : question.prompt
     addAssistantMessage(prompt)
 
-    // Set up the input type
+    // Set up the input type (confirm type not supported in legacy conversational flow)
+    const inputType = question.type === "confirm" ? (question.confirmFallbackType ?? "chips") : question.type
     setActiveQuestion({
-      type: question.type,
+      type: inputType,
       options: question.options,
       min: question.min,
       max: question.max,

@@ -89,6 +89,33 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section>
+          <h2 className="mb-3 text-lg font-semibold text-foreground">SMS and Phone Communications</h2>
+          <p className="mb-3">
+            If you provide your phone number, you may receive SMS messages from Tomi for the following purposes:
+          </p>
+          <ul className="list-disc space-y-2 pl-6">
+            <li>One-time verification codes (OTP) for account authentication</li>
+            <li>Transactional account notifications, such as party invitations, onboarding reminders, and exercise completions</li>
+          </ul>
+          <p className="mt-3">
+            By providing your phone number and requesting a verification code, you consent to receive these SMS messages. Message and data rates may apply. Message frequency varies based on your account activity.
+          </p>
+          <p className="mt-3">
+            You may opt out of SMS communications at any time by replying STOP to any message. For help, reply HELP or contact us at{" "}
+            <a href="mailto:contact@livetomi.com" className="text-primary underline underline-offset-2 hover:text-primary/80">
+              contact@livetomi.com
+            </a>
+            . Opting out of SMS will not affect your ability to use email-based authentication.
+          </p>
+          <p className="mt-3">
+            Tomi does not send marketing or promotional messages via SMS. We do not sell, rent, or share your phone number with third parties for their marketing purposes. Your phone number is used solely for account verification and transactional notifications as described above.
+          </p>
+          <p className="mt-3">
+            SMS services are provided via third-party messaging providers. Carrier terms and conditions may apply.
+          </p>
+        </section>
+
+        <section>
           <h2 className="mb-3 text-lg font-semibold text-foreground">Cookies and Analytics</h2>
           <p className="mb-3">We use cookies and similar technologies to:</p>
           <ul className="list-disc space-y-2 pl-6">

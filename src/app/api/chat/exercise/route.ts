@@ -82,7 +82,22 @@ export async function POST(request: NextRequest) {
       temperature: 0.7,
     })
 
-    return result.toDataStreamResponse()
+    const response = result.toDataStreamResponse()
+
+    // Smooth the stream so text appears at a readable pace (matches /api/chat)
+    const CHUNK_DELAY_MS = 18
+    const delay = (ms: number) => new Promise((r) => setTimeout(r, ms))
+
+    const smoothed = new TransformStream<Uint8Array, Uint8Array>({
+      async transform(chunk, controller) {
+        await delay(CHUNK_DELAY_MS)
+        controller.enqueue(chunk)
+      },
+    })
+
+    return new Response(response.body!.pipeThrough(smoothed), {
+      headers: response.headers,
+    })
   } catch (error) {
     console.error("Exercise chat error:", error)
     return new Response(
