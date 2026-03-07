@@ -68,7 +68,7 @@ export function EmailLayout({ children, previewText }: EmailLayoutProps) {
               </Link>
             </Text>
             <Text style={footerMuted}>
-              Cincinnati Associates LLC, Cincinnati, OH
+              © {new Date().getFullYear()} Tomi Homes, Inc. All rights reserved.
             </Text>
           </Section>
         </Container>

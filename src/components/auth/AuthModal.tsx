@@ -2,14 +2,14 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Phone, ArrowRight, Check, Loader2, X, Lock } from 'lucide-react';
+import { Mail, Phone, ArrowRight, Check, Loader2, X, Lock, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { PasswordInput } from './PasswordInput';
 import { PasswordStrengthMeter } from './PasswordStrengthMeter';
 
 type AuthMethod = 'email' | 'phone' | 'password';
-type Step = 'input' | 'verify' | 'success';
+type Step = 'input' | 'verify' | 'success' | 'unconfirmed';
 type PasswordMode = 'login' | 'register';
 
 interface AuthModalProps {
@@ -28,8 +28,33 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
   const [otpCode, setOtpCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
 
   const { signInWithEmail, signInWithPhone, verifyOtp, signInWithGoogle } = useAuthContext();
+
+  const handleResendConfirmation = async () => {
+    if (!inputValue || isResending) return;
+    setIsResending(true);
+    setResendSuccess(false);
+
+    try {
+      const response = await fetch('/api/auth/resend-confirmation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: inputValue }),
+      });
+
+      if (response.ok) {
+        setResendSuccess(true);
+        setTimeout(() => setResendSuccess(false), 5000);
+      }
+    } catch {
+      // Silently fail — we don't want to leak info about email existence
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,7 +82,12 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
           const data = await response.json();
 
           if (!response.ok) {
-            setError(data.error || 'Authentication failed');
+            if (data.code === 'EMAIL_NOT_CONFIRMED') {
+              // User exists but email not confirmed — show resend option
+              setStep('unconfirmed');
+            } else {
+              setError(data.error || 'Authentication failed');
+            }
           } else if (data.requiresConfirmation) {
             // Registration successful, email confirmation needed
             setStep('success');
@@ -110,6 +140,8 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
     setPasswordMode('login');
     setOtpCode('');
     setError(null);
+    setIsResending(false);
+    setResendSuccess(false);
   };
 
   const handleClose = useCallback(() => {
@@ -161,7 +193,9 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
           {/* Header */}
           <div className="text-center mb-6">
             <h3 className="text-xl font-heading font-bold text-foreground">
-              {step === 'success' ? 'Check your email' : 'Sign in to Tomi'}
+              {step === 'success' ? 'Check your email' :
+               step === 'unconfirmed' ? 'Verify your email' :
+               'Sign in to Tomi'}
             </h3>
             {step === 'input' && (
               <p className="text-sm text-muted-foreground mt-1">
@@ -408,6 +442,7 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
               </motion.div>
             )}
 
+            {/* Email confirmation needed — after signup */}
             {step === 'success' && (method === 'email' || method === 'password') && (
               <motion.div
                 key="success"
@@ -434,12 +469,80 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
                     </>
                   )}
                 </p>
-                <button
-                  onClick={handleClose}
-                  className="text-sm text-primary hover:underline"
-                >
-                  Close this window
-                </button>
+
+                <div className="space-y-3">
+                  <button
+                    onClick={handleResendConfirmation}
+                    disabled={isResending || resendSuccess}
+                    className="inline-flex items-center gap-2 text-sm text-primary hover:underline disabled:opacity-50 disabled:no-underline"
+                  >
+                    {isResending ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : resendSuccess ? (
+                      <Check className="w-3.5 h-3.5" />
+                    ) : (
+                      <RefreshCw className="w-3.5 h-3.5" />
+                    )}
+                    {resendSuccess ? 'Email sent!' : "Didn't get it? Resend"}
+                  </button>
+
+                  <button
+                    onClick={handleClose}
+                    className="block mx-auto text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Close this window
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Unconfirmed email — tried to login but email not verified */}
+            {step === 'unconfirmed' && (
+              <motion.div
+                key="unconfirmed"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="text-center py-4"
+              >
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-500/10 mb-3">
+                  <Mail className="w-6 h-6 text-amber-500" />
+                </div>
+                <h4 className="text-lg font-semibold text-foreground mb-2">
+                  Verify your email
+                </h4>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Your account for <strong>{inputValue}</strong> hasn&apos;t been verified yet.
+                  <br />Check your inbox for a verification link, or request a new one.
+                </p>
+
+                <div className="space-y-3">
+                  <button
+                    onClick={handleResendConfirmation}
+                    disabled={isResending || resendSuccess}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isResending ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : resendSuccess ? (
+                      <>
+                        <Check className="w-5 h-5" />
+                        Verification email sent!
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-4 h-4" />
+                        Resend verification email
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => { setStep('input'); setError(null); setResendSuccess(false); }}
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Try a different email
+                  </button>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
