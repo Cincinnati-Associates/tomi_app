@@ -7,7 +7,7 @@ import { UnlockSection } from "@/components/home/UnlockSection";
 import { HowItWorks } from "@/components/home/HowItWorks";
 import { AIConciergeSection } from "@/components/home/AIConciergeSection";
 import { StoryPreview } from "@/components/home/StoryPreview";
-import { TomiDifference } from "@/components/home/TomiDifference";
+import { FaqSection } from "@/components/home/FaqSection";
 import { FinalCta } from "@/components/home/FinalCta";
 import { HomiChat } from "@/components/shared/HomiChat";
 import { HomiChatTrigger } from "@/components/shared/HomiChatTrigger";
@@ -59,8 +59,8 @@ export default function Homepage1() {
       <HowItWorks />
       <AIConciergeSection onOpenChat={handleOpenChat} />
       <StoryPreview />
-      <TomiDifference />
-      <FinalCta onOpenChat={() => handleOpenChat()} />
+      <FaqSection onOpenChat={() => handleOpenChat()} />
+      <FinalCta />
 
       {/* Floating chat trigger */}
       <HomiChatTrigger onClick={() => handleOpenChat()} />

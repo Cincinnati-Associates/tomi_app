@@ -4,13 +4,7 @@ import { motion } from "framer-motion";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { MessageCircle } from "lucide-react";
-
-interface FinalCtaProps {
-  onOpenChat: () => void;
-}
-
-export function FinalCta({ onOpenChat }: FinalCtaProps) {
+export function FinalCta() {
   const { ref, isInView } = useIntersectionObserver({ threshold: 0.2 });
 
   return (
@@ -46,15 +40,6 @@ export function FinalCta({ onOpenChat }: FinalCtaProps) {
               <Link href="/calc">Start Your Journey</Link>
             </Button>
 
-            <Button
-              size="lg"
-              variant="outline"
-              className="rounded-full px-8 bg-primary-foreground text-primary border-primary-foreground hover:bg-primary-foreground/90 w-full sm:w-auto"
-              onClick={onOpenChat}
-            >
-              <MessageCircle className="mr-2 h-5 w-5" />
-              Talk to a Homi
-            </Button>
           </div>
         </motion.div>
       </div>

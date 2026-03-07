@@ -12,7 +12,7 @@ const NoCostSection = dynamic(() => import("@/components/home/NoCostSection").th
 const AIConciergeSection = dynamic(() => import("@/components/home/AIConciergeSection").then(mod => ({ default: mod.AIConciergeSection })), { ssr: true });
 const AgreementSection = dynamic(() => import("@/components/home/AgreementSection").then(mod => ({ default: mod.AgreementSection })), { ssr: true });
 const StoryPreview = dynamic(() => import("@/components/home/StoryPreview").then(mod => ({ default: mod.StoryPreview })), { ssr: true });
-const TomiDifference = dynamic(() => import("@/components/home/TomiDifference").then(mod => ({ default: mod.TomiDifference })), { ssr: true });
+const FaqSection = dynamic(() => import("@/components/home/FaqSection").then(mod => ({ default: mod.FaqSection })), { ssr: true });
 const FinalCta = dynamic(() => import("@/components/home/FinalCta").then(mod => ({ default: mod.FinalCta })), { ssr: true });
 
 // Interactive modals: only load when triggered (no SSR needed)
@@ -64,8 +64,8 @@ export default function Home() {
       <AIConciergeSection onOpenChat={handleOpenChat} />
       <AgreementSection />
       <StoryPreview />
-      <TomiDifference />
-      <FinalCta onOpenChat={() => handleOpenChat()} />
+      <FaqSection onOpenChat={() => handleOpenChat()} />
+      <FinalCta />
 
       {/* Floating chat trigger */}
       <HomiChatTrigger onClick={() => handleOpenChat()} />
