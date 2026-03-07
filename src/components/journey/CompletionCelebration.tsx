@@ -30,7 +30,7 @@ function buildExerciseSummary(
   if (!responses) return []
 
   if (slug === "gems_discovery") {
-    const { goalLabels, timelineLabels, urgencyLabels } = GEMS_LABELS
+    const { goalLabels, commitmentLabels, involvementLabels } = GEMS_LABELS
     return [
       {
         label: "Primary Goal",
@@ -40,17 +40,17 @@ function buildExerciseSummary(
           "",
       },
       {
-        label: "Timeline",
+        label: "Commitment",
         value:
-          timelineLabels[responses.timeline as string] ??
-          (responses.timeline as string) ??
+          commitmentLabels[responses.commitment_duration as string] ??
+          (responses.commitment_duration as string) ??
           "",
       },
       {
-        label: "Urgency",
+        label: "Involvement",
         value:
-          urgencyLabels[responses.urgency as string] ??
-          (responses.urgency as string) ??
+          involvementLabels[responses.involvement_level as string] ??
+          (responses.involvement_level as string) ??
           "",
       },
     ].filter((item) => item.value)

@@ -1,7 +1,7 @@
 /**
  * Journey Architecture Types
  *
- * Core types for the journey system — phases, exercises, blueprint tiles,
+ * Core types for the journey system — zones, phases, exercises, blueprint tiles,
  * and journey state management.
  */
 
@@ -22,6 +22,20 @@ export interface JourneyExercise {
   scope: ExerciseScope
   /** Route path relative to /journey/exercises/ */
   route: string
+}
+
+// =============================================================================
+// ZONE TYPES
+// =============================================================================
+
+export interface JourneyZone {
+  id: string
+  name: string
+  subtitle: string
+  /** Phase IDs that belong to this zone */
+  phaseIds: number[]
+  /** Whether this zone requires an active buying party to access */
+  requiresParty: boolean
 }
 
 // =============================================================================
@@ -132,33 +146,4 @@ export interface PartyData {
     targetCity: string | null
   } | null
   members: PartyMemberProgress[]
-}
-
-// =============================================================================
-// TRAIL NODE TYPES (Board Game Trail)
-// =============================================================================
-
-export type TrailNodeStatus = 'completed' | 'current' | 'unlocked' | 'locked'
-
-export type TrailNodeType = 'phase' | 'exercise'
-
-export interface TrailNodeData {
-  /** Unique key for React rendering */
-  id: string
-  type: TrailNodeType
-  status: TrailNodeStatus
-  /** Display label */
-  label: string
-  /** Subtitle (e.g. phase subtitle or exercise description) */
-  subtitle?: string
-  /** Lucide icon name */
-  icon: string
-  /** Phase ID this node belongs to */
-  phaseId: number
-  /** Exercise slug (only for exercise nodes) */
-  exerciseSlug?: string
-  /** Route to navigate to (only for exercise nodes) */
-  route?: string
-  /** Estimated minutes (only for exercise nodes) */
-  estimatedMinutes?: number
 }

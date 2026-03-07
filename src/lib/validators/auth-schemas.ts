@@ -79,6 +79,7 @@ export const updateProfileSchema = z.object({
     .nullable(),
   timezone: z.string().optional(),
   avatarUrl: z.string().url('Please enter a valid URL').optional().nullable(),
+  onboardingCompleted: z.boolean().optional(),
 })
 
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>

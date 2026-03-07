@@ -15,9 +15,11 @@ type PasswordMode = 'login' | 'register';
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /** Called after successful authentication instead of the default window.location.reload() */
+  onAuthSuccess?: () => void;
 }
 
-export function AuthModal({ isOpen, onClose }: AuthModalProps) {
+export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
   const [method, setMethod] = useState<AuthMethod>('email');
   const [step, setStep] = useState<Step>('input');
   const [inputValue, setInputValue] = useState('');
@@ -63,8 +65,11 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             // Login successful or registration without confirmation
             onClose();
             resetForm();
-            // Force a page reload to refresh auth state
-            window.location.reload();
+            if (onAuthSuccess) {
+              onAuthSuccess();
+            } else {
+              window.location.reload();
+            }
           }
         } else {
           const { error } = await signInWithPhone(inputValue);
@@ -338,7 +343,13 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 </form>
 
                 <p className="text-xs text-center text-muted-foreground mt-4">
-                  By signing in, you agree to our Terms of Service and Privacy Policy.
+                  By signing in, you agree to our{" "}
+                  <a href="/legal/terms" className="underline hover:text-foreground">Terms of Service</a>
+                  {" "}and{" "}
+                  <a href="/legal/privacy" className="underline hover:text-foreground">Privacy Policy</a>.
+                  {method === 'phone' && (
+                    <> By providing your phone number, you consent to receive SMS messages including verification codes. Msg &amp; data rates may apply. Reply STOP to opt out.</>
+                  )}
                 </p>
               </motion.div>
             )}

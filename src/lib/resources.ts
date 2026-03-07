@@ -230,11 +230,9 @@ You have a set of resources to guide users through. Work through them **in prior
 
   for (const r of available) {
     const isCurrentPage = currentPage ? currentPage.startsWith(r.url) : false;
-    prompt += `### ${r.priority}. ${r.name} (${r.url})`;
-    if (isCurrentPage) {
-      prompt += ` ⚠️ USER IS CURRENTLY ON THIS PAGE — DO NOT PROMOTE`;
-    }
-    prompt += `\n`;
+    // Skip the resource entirely if the user is already on that page
+    if (isCurrentPage) continue;
+    prompt += `### ${r.priority}. ${r.name} (${r.url})\n`;
     prompt += `${r.description}\n`;
     prompt += `**Why it matters**: ${r.valueProp}\n`;
     prompt += `**Suggest when**: ${r.triggers.slice(0, 4).join(", ")}\n\n`;

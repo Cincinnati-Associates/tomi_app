@@ -370,7 +370,7 @@ export function AssessmentQuestion({
                 <div className="flex justify-center pt-2">
                   <button
                     onClick={onPrevious}
-                    className="flex items-center gap-1 text-xs text-white/40 hover:text-white/70 transition-colors py-1 px-3"
+                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors py-1 px-3"
                   >
                     <ChevronLeft className="w-3.5 h-3.5" />
                     Previous

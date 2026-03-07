@@ -10,6 +10,11 @@ export const COBUYER_STAGES: ExerciseStageDef[] = [
   // =========================================================================
   {
     name: "Relationship",
+    homiPrompts: [
+      "What makes a good co-buyer relationship?",
+      "Can family members co-own?",
+      "Do I need to know them well?",
+    ],
     questions: [
       {
         key: "candidate_name",
@@ -75,6 +80,11 @@ export const COBUYER_STAGES: ExerciseStageDef[] = [
   // =========================================================================
   {
     name: "Financial",
+    homiPrompts: [
+      "How do we split unequal contributions?",
+      "What credit score do I need?",
+      "How transparent do finances need to be?",
+    ],
     questions: [
       {
         key: "financial_awareness",
@@ -138,6 +148,11 @@ export const COBUYER_STAGES: ExerciseStageDef[] = [
   // =========================================================================
   {
     name: "Lifestyle",
+    homiPrompts: [
+      "How do roommates handle lifestyle differences?",
+      "What if our schedules don't match?",
+      "How do pets factor into co-ownership?",
+    ],
     questions: [
       {
         key: "lifestyle_dependents",
@@ -209,6 +224,11 @@ export const COBUYER_STAGES: ExerciseStageDef[] = [
   // =========================================================================
   {
     name: "Goals",
+    homiPrompts: [
+      "What if we have different timelines?",
+      "How important is goal alignment?",
+      "What does a buyout look like?",
+    ],
     questions: [
       {
         key: "timeline_alignment",
@@ -268,6 +288,11 @@ export const COBUYER_STAGES: ExerciseStageDef[] = [
   // =========================================================================
   {
     name: "Conflict",
+    homiPrompts: [
+      "How do TIC agreements handle disputes?",
+      "What if we disagree on something major?",
+      "Why do legal agreements matter?",
+    ],
     questions: [
       {
         key: "conflict_style",
@@ -313,6 +338,11 @@ export const COBUYER_STAGES: ExerciseStageDef[] = [
   // =========================================================================
   {
     name: "Risk",
+    homiPrompts: [
+      "What if someone's life situation changes?",
+      "How do exit clauses work?",
+      "What are the biggest risks of co-ownership?",
+    ],
     questions: [
       {
         key: "life_changes",
@@ -360,6 +390,11 @@ export const COBUYER_STAGES: ExerciseStageDef[] = [
   // =========================================================================
   {
     name: "Gut Check",
+    homiPrompts: [
+      "How do I know if I can trust someone with this?",
+      "What does a healthy co-ownership look like?",
+      "What if I'm not 100% sure?",
+    ],
     questions: [
       {
         key: "trust_score",

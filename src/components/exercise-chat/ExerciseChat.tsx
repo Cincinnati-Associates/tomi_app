@@ -1,3 +1,7 @@
+/**
+ * @deprecated Use ExercisePage + ExerciseQuestion instead.
+ * Kept for walkthrough exercise compatibility.
+ */
 "use client"
 
 import { useRef, useEffect, useState, useCallback } from "react"
@@ -39,6 +43,8 @@ interface ExerciseChatProps {
   onSkip?: () => void
   backHref?: string
   children?: React.ReactNode
+  /** Desktop-only side panel content (e.g. ExerciseContextPanel) */
+  contextPanel?: React.ReactNode
 }
 
 export function ExerciseChat({
@@ -56,9 +62,10 @@ export function ExerciseChat({
   onSkip,
   backHref = "/journey",
   children,
+  contextPanel,
 }: ExerciseChatProps) {
-  const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesScrollRef = useRef<HTMLDivElement>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const prevMessageCount = useRef(0)
   const [userHasScrolled, setUserHasScrolled] = useState(false)
@@ -71,7 +78,7 @@ export function ExerciseChat({
     })
   }, [])
 
-  // Scroll within the chat container (not the page) on new messages
+  // Scroll within the chat container on new messages
   useEffect(() => {
     if (!userHasScrolled && messagesScrollRef.current) {
       messagesScrollRef.current.scrollTo({
@@ -169,8 +176,6 @@ export function ExerciseChat({
   }
 
   // ── Main chat layout ───────────────────────────────────────────────
-  // Fixed position below AppNavbar (56px). No page scroll — only the
-  // messages area inside scrolls.
   return (
     <div className="fixed inset-0 top-14 flex flex-col bg-background z-10">
       {/* ── Header ── */}
@@ -197,79 +202,93 @@ export function ExerciseChat({
         <StageProgress stages={stages} currentStageIndex={currentStageIndex} />
       </div>
 
-      {/* ── Messages area ── */}
-      <div
-        ref={messagesScrollRef}
-        className="flex-1 overflow-y-auto p-4 sm:p-6 overscroll-contain"
-        onScroll={handleMessagesScroll}
-      >
-        <div className="max-w-2xl mx-auto space-y-4">
-          {messages.map((msg) => (
-            <div key={msg.id}>
-              {msg.role === "assistant" ? (
-                <div className="flex gap-3 max-w-[90%]">
-                  <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Sparkles className="h-4 w-4 text-primary" />
+      {/* ── Content area: chat + optional side panel ── */}
+      <div className="flex-1 flex min-h-0">
+        {/* Messages column */}
+        <div
+          ref={messagesScrollRef}
+          className="flex-1 overflow-y-auto p-4 sm:p-6 overscroll-contain"
+          onScroll={handleMessagesScroll}
+        >
+          <div className="max-w-lg mx-auto space-y-4">
+            {messages.map((msg, index) => (
+              <div key={msg.id}>
+                {msg.role === "assistant" ? (
+                  <div className="flex gap-3 max-w-[95%]">
+                    {/* Show avatar only for first message or after a user message */}
+                    {(index === 0 || messages[index - 1]?.role === "user") ? (
+                      <div className="flex-shrink-0 h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center mt-1">
+                        <Sparkles className="h-3.5 w-3.5 text-primary" />
+                      </div>
+                    ) : (
+                      <div className="w-7 flex-shrink-0" />
+                    )}
+                    <div className="flex-1">
+                      <div className="bg-muted rounded-2xl rounded-tl-md px-4 py-3 text-sm leading-relaxed text-foreground">
+                        {msg.content}
+                        {isStreaming &&
+                          msg === messages[messages.length - 1] && (
+                            <motion.span
+                              animate={{ opacity: [1, 0] }}
+                              transition={{ duration: 0.5, repeat: Infinity }}
+                              className="inline-block ml-0.5 w-1.5 h-4 bg-current align-middle"
+                            />
+                          )}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex-1 space-y-1">
-                    <span className="text-xs text-muted-foreground">Homi</span>
-                    <div className="bg-muted rounded-2xl rounded-tl-md px-4 py-3 text-sm leading-relaxed text-foreground">
-                      {msg.content}
-                      {isStreaming &&
-                        msg === messages[messages.length - 1] && (
-                          <motion.span
-                            animate={{ opacity: [1, 0] }}
-                            transition={{ duration: 0.5, repeat: Infinity }}
-                            className="inline-block ml-0.5 w-1.5 h-4 bg-current align-middle"
-                          />
-                        )}
+                ) : (
+                  <div className="flex justify-end">
+                    <div className="max-w-[80%] bg-primary text-primary-foreground rounded-2xl rounded-br-md px-4 py-2.5 text-sm">
+                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+
+            {/* Typing indicator */}
+            {isStreaming &&
+              messages[messages.length - 1]?.role !== "assistant" && (
+                <div className="flex gap-3">
+                  <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Sparkles className="h-3.5 w-3.5 text-primary" />
+                  </div>
+                  <div className="bg-muted rounded-2xl rounded-tl-md px-4 py-3">
+                    <div className="flex gap-1.5">
+                      {[0, 1, 2].map((i) => (
+                        <motion.span
+                          key={i}
+                          className="h-2 w-2 rounded-full bg-muted-foreground/50"
+                          animate={{ y: [0, -6, 0] }}
+                          transition={{
+                            duration: 0.6,
+                            repeat: Infinity,
+                            delay: i * 0.15,
+                            ease: "easeInOut",
+                          }}
+                        />
+                      ))}
                     </div>
                   </div>
                 </div>
-              ) : (
-                <div className="flex justify-end">
-                  <div className="max-w-[85%] bg-primary text-primary-foreground rounded-2xl rounded-br-md px-4 py-3 text-sm">
-                    <p className="whitespace-pre-wrap">{msg.content}</p>
-                  </div>
-                </div>
               )}
-            </div>
-          ))}
 
-          {/* Typing indicator */}
-          {isStreaming &&
-            messages[messages.length - 1]?.role !== "assistant" && (
-              <div className="flex gap-3">
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                </div>
-                <div className="bg-muted rounded-2xl rounded-tl-md px-4 py-3">
-                  <div className="flex gap-1.5">
-                    {[0, 1, 2].map((i) => (
-                      <motion.span
-                        key={i}
-                        className="h-2 w-2 rounded-full bg-muted-foreground/50"
-                        animate={{ y: [0, -6, 0] }}
-                        transition={{
-                          duration: 0.6,
-                          repeat: Infinity,
-                          delay: i * 0.15,
-                          ease: "easeInOut",
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-          <div ref={messagesEndRef} />
+            <div ref={messagesEndRef} />
+          </div>
         </div>
+
+        {/* Desktop side panel */}
+        {contextPanel && (
+          <div className="hidden lg:flex lg:w-[320px] xl:w-[360px] flex-shrink-0 border-l border-border bg-card/50">
+            {contextPanel}
+          </div>
+        )}
       </div>
 
-      {/* ── Input area (always at bottom) ── */}
+      {/* ── Input area (always at bottom, full width) ── */}
       <div className="flex-shrink-0 border-t border-border bg-background">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-3 pb-4 sm:pb-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+        <div className="max-w-lg lg:max-w-2xl mx-auto px-4 sm:px-6 pt-3 pb-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
           {/* Quick-reply chips above the text input */}
           <AnimatePresence mode="wait">
             {hasChips && (

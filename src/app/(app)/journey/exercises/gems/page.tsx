@@ -1,17 +1,53 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { ExerciseChat } from "@/components/exercise-chat/ExerciseChat"
-import { useConversationalExercise } from "@/hooks/useConversationalExercise"
-import { GEMS_STAGES, GEMS_GREETING, GEMS_INTRO_PROMPT } from "@/lib/gems-exercise/stages"
+import { useExerciseFlow } from "@/hooks/useExerciseFlow"
+import { ExercisePage } from "@/components/exercise-chat/ExercisePage"
+import { GEMS_STAGES } from "@/lib/gems-exercise/stages"
 import { motion } from "framer-motion"
 import { Gem, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { GEMS_LABELS } from "@/lib/gems-exercise/labels"
+import { getStoredAssessment } from "@/lib/assessment-context"
+
+const DEFAULT_HOMI_PROMPTS = [
+  "What are the benefits of co-ownership?",
+  "Is co-buying right for me?",
+  "How does co-ownership work?",
+]
+
+/**
+ * Load prior assessment answers for carry-forward.
+ * Checks DB (authenticated) first, then sessionStorage (anonymous).
+ */
+async function loadPriorContext(): Promise<Record<string, unknown>> {
+  // Try DB first (authenticated users)
+  try {
+    const res = await fetch("/api/exercises/cobuyer_candidate_assessment")
+    if (res.ok) {
+      const data = await res.json()
+      if (data.response?.responses) {
+        // The DB stores answers keyed by question key, but for carry-forward
+        // we need the raw assessment answers array. Check if the assessment
+        // data is stored in sessionStorage instead.
+      }
+    }
+  } catch {
+    // Continue to sessionStorage fallback
+  }
+
+  // SessionStorage fallback (anonymous users or if DB didn't have what we need)
+  const stored = getStoredAssessment()
+  if (stored?.answers) {
+    return { assessmentAnswers: stored.answers }
+  }
+
+  return {}
+}
 
 function GemsSummaryCard({ answers }: { answers: Record<string, unknown> }) {
-  const { goalLabels, timelineLabels, urgencyLabels } = GEMS_LABELS
+  const { goalLabels, commitmentLabels, involvementLabels } = GEMS_LABELS
 
   return (
     <div className="mx-auto max-w-[640px] px-4 py-8">
@@ -38,12 +74,12 @@ function GemsSummaryCard({ answers }: { answers: Record<string, unknown> }) {
             value: goalLabels[answers.primary_goal as string] ?? (answers.primary_goal as string),
           },
           {
-            label: "Timeline",
-            value: timelineLabels[answers.timeline as string] ?? (answers.timeline as string),
+            label: "Commitment",
+            value: commitmentLabels[answers.commitment_duration as string] ?? (answers.commitment_duration as string),
           },
           {
-            label: "Urgency",
-            value: urgencyLabels[answers.urgency as string] ?? (answers.urgency as string),
+            label: "Involvement",
+            value: involvementLabels[answers.involvement_level as string] ?? (answers.involvement_level as string),
           },
         ]
           .filter((item) => item.value)
@@ -87,44 +123,56 @@ export default function GemsExercisePage() {
     question: number
   } | null>(null)
   const [isLoadingSaved, setIsLoadingSaved] = useState(true)
+  const [priorContext, setPriorContext] = useState<Record<string, unknown>>({})
 
-  // Load saved state
+  // Load saved state + prior context in parallel
   useEffect(() => {
-    async function loadSaved() {
+    async function load() {
       try {
-        const res = await fetch("/api/exercises/gems_discovery")
-        if (res.ok) {
-          const data = await res.json()
-          if (data.response?.status === "in_progress" && data.response?.responses) {
-            const responses = data.response.responses as Record<string, unknown>
-            // Figure out where they left off
-            let stageIdx = 0
-            let questionIdx = 0
-            for (let s = 0; s < GEMS_STAGES.length; s++) {
-              for (let q = 0; q < GEMS_STAGES[s].questions.length; q++) {
-                const key = GEMS_STAGES[s].questions[q].key
-                if (responses[key] === undefined) {
-                  stageIdx = s
-                  questionIdx = q
-                  break
+        const [, prior] = await Promise.all([
+          // Load saved exercise state
+          (async () => {
+            try {
+              const res = await fetch("/api/exercises/gems_discovery")
+              if (res.ok) {
+                const data = await res.json()
+                if (data.response?.status === "in_progress" && data.response?.responses) {
+                  const responses = data.response.responses as Record<string, unknown>
+                  let stageIdx = 0
+                  let questionIdx = 0
+                  let found = false
+                  for (let s = 0; s < GEMS_STAGES.length; s++) {
+                    for (let q = 0; q < GEMS_STAGES[s].questions.length; q++) {
+                      const key = GEMS_STAGES[s].questions[q].key
+                      if (responses[key] === undefined) {
+                        stageIdx = s
+                        questionIdx = q
+                        found = true
+                        break
+                      }
+                    }
+                    if (found) break
+                  }
+                  setSavedState({
+                    answers: responses,
+                    stage: stageIdx,
+                    question: questionIdx,
+                  })
                 }
               }
-              if (stageIdx === s && questionIdx > 0) break
+            } catch {
+              // No saved state
             }
-            setSavedState({
-              answers: responses,
-              stage: stageIdx,
-              question: questionIdx,
-            })
-          }
-        }
-      } catch {
-        // No saved state
+          })(),
+          // Load prior assessment context
+          loadPriorContext(),
+        ])
+        setPriorContext(prior)
       } finally {
         setIsLoadingSaved(false)
       }
     }
-    loadSaved()
+    load()
   }, [])
 
   const handleComplete = useCallback(
@@ -145,16 +193,24 @@ export default function GemsExercisePage() {
     []
   )
 
-  const exercise = useConversationalExercise({
+  const exercise = useExerciseFlow({
     exerciseSlug: "gems_discovery",
     stages: GEMS_STAGES,
-    greeting: GEMS_GREETING,
-    introPrompt: GEMS_INTRO_PROMPT,
     onComplete: handleComplete,
     savedAnswers: savedState?.answers,
     savedStage: savedState?.stage,
     savedQuestion: savedState?.question,
+    priorContext,
   })
+
+  // Get Homi prompts for current stage
+  const currentStage = GEMS_STAGES[exercise.currentStageIndex]
+  const homiPrompts = currentStage?.homiPrompts ?? DEFAULT_HOMI_PROMPTS
+
+  // Compute flat question index for keying
+  const flatQuestionIndex = GEMS_STAGES
+    .slice(0, exercise.currentStageIndex)
+    .reduce((sum, s) => sum + s.questions.length, 0) + exercise.currentQuestionIndex
 
   if (isLoadingSaved) {
     return (
@@ -165,21 +221,37 @@ export default function GemsExercisePage() {
   }
 
   return (
-    <ExerciseChat
-      title="GEMs Discovery"
+    <ExercisePage
+      title="My GEMs"
       stages={exercise.stageNames}
       currentStageIndex={exercise.currentStageIndex}
-      messages={exercise.messages}
-      activeQuestion={exercise.activeQuestion}
-      selectedAnswer={exercise.selectedAnswer}
-      isStreaming={exercise.isStreaming}
+      currentQuestion={exercise.currentQuestion}
+      questionIndex={flatQuestionIndex}
+      answers={exercise.answers}
       isComplete={exercise.isComplete}
-      onSelectChip={exercise.handleSelectChip}
-      onSelectNumber={exercise.handleSelectNumber}
-      onSubmitText={exercise.handleSubmitText}
-      onSkip={exercise.handleSkip}
+      totalQuestions={exercise.totalQuestions}
+      answeredCount={exercise.answeredCount}
+      canGoBack={exercise.canGoBack}
+      homiPrompts={homiPrompts}
+      currentPage="/journey/exercises/gems"
+      onSelectAnswer={exercise.selectAnswer}
+      onSubmitText={exercise.submitText}
+      onSkip={exercise.skip}
+      onPrevious={exercise.previousQuestion}
+      carryForwardData={exercise.carryForwardData}
+      intro={{
+        pageId: "gems_discovery",
+        title: "My GEMs",
+        description: "This is a short discovery exercise that helps you get clear on your Goals, Expectations, and Motivations for co-ownership. There are no wrong answers — everything you share helps personalize your journey.",
+        bullets: [
+          "6 questions across 2 sections",
+          "About 5 minutes",
+          "You can go back and change answers anytime",
+        ],
+        ctaText: "Let's Do This",
+      }}
     >
       <GemsSummaryCard answers={exercise.answers} />
-    </ExerciseChat>
+    </ExercisePage>
   )
 }

@@ -13,10 +13,8 @@ export default function StartPage() {
   const { refreshProfile } = useAuthContext()
   const [isCompleting, setIsCompleting] = useState(false)
 
-  const handleStartExercise = (slug: string) => {
-    // TODO: Navigate to exercise when implemented
-    // For now, show a message that exercises are coming soon
-    alert(`Exercise "${slug}" coming soon! For now, continue to the dashboard.`)
+  const handleStartExercise = (route: string) => {
+    router.push(route)
   }
 
   const handleComplete = async () => {
@@ -36,11 +34,11 @@ export default function StartPage() {
       await refreshProfile()
 
       // Navigate to dashboard
-      router.push('/dashboard')
+      router.push('/journey')
     } catch (error) {
       console.error('Error completing onboarding:', error)
       // Still proceed to dashboard
-      router.push('/dashboard')
+      router.push('/journey')
     } finally {
       setIsCompleting(false)
     }
@@ -129,7 +127,7 @@ export default function StartPage() {
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <>
-              Go to Dashboard
+              Start Your Journey
               <ArrowRight className="h-4 w-4" />
             </>
           )}

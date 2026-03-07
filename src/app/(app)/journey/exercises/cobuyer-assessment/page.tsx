@@ -2,12 +2,18 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { ExerciseChat } from "@/components/exercise-chat/ExerciseChat"
-import { useConversationalExercise } from "@/hooks/useConversationalExercise"
-import { COBUYER_STAGES, COBUYER_GREETING } from "@/lib/cobuyer-assessment/stages"
+import { useExerciseFlow } from "@/hooks/useExerciseFlow"
+import { ExercisePage } from "@/components/exercise-chat/ExercisePage"
+import { COBUYER_STAGES } from "@/lib/cobuyer-assessment/stages"
 import { scoreCobuyerAssessment } from "@/lib/cobuyer-assessment/scoring"
 import { CobuyerAssessmentReport } from "@/components/cobuyer-assessment/AssessmentReport"
 import type { AssessmentScoreResult } from "@/lib/cobuyer-assessment/types"
+
+const DEFAULT_HOMI_PROMPTS = [
+  "What makes a good co-buyer?",
+  "How important is financial compatibility?",
+  "What should I look for in a partner?",
+]
 
 export default function CobuyerAssessmentPage() {
   const router = useRouter()
@@ -28,7 +34,6 @@ export default function CobuyerAssessmentPage() {
           const data = await res.json()
           if (data.response?.status === "in_progress" && data.response?.responses) {
             const responses = data.response.responses as Record<string, unknown>
-            // Find where they left off
             let stageIdx = 0
             let questionIdx = 0
             outer:
@@ -56,11 +61,9 @@ export default function CobuyerAssessmentPage() {
 
   const handleComplete = useCallback(
     async (answers: Record<string, unknown>) => {
-      // Score the assessment
       const result = scoreCobuyerAssessment(answers)
       setScoreResult(result)
 
-      // Save to API
       try {
         await fetch("/api/exercises/cobuyer_candidate_assessment", {
           method: "POST",
@@ -78,7 +81,6 @@ export default function CobuyerAssessmentPage() {
   )
 
   const handleAssessAnother = useCallback(async () => {
-    // Start a retake
     try {
       await fetch("/api/exercises/cobuyer_candidate_assessment", {
         method: "POST",
@@ -92,20 +94,27 @@ export default function CobuyerAssessmentPage() {
     } catch {
       // Non-critical
     }
-    // Reload the page to start fresh
     router.refresh()
     window.location.reload()
   }, [router])
 
-  const exercise = useConversationalExercise({
+  const exercise = useExerciseFlow({
     exerciseSlug: "cobuyer_candidate_assessment",
     stages: COBUYER_STAGES,
-    greeting: COBUYER_GREETING,
     onComplete: handleComplete,
     savedAnswers: savedState?.answers,
     savedStage: savedState?.stage,
     savedQuestion: savedState?.question,
   })
+
+  // Get Homi prompts for current stage
+  const currentStage = COBUYER_STAGES[exercise.currentStageIndex]
+  const homiPrompts = currentStage?.homiPrompts ?? DEFAULT_HOMI_PROMPTS
+
+  // Compute flat question index
+  const flatQuestionIndex = COBUYER_STAGES
+    .slice(0, exercise.currentStageIndex)
+    .reduce((sum, s) => sum + s.questions.length, 0) + exercise.currentQuestionIndex
 
   if (isLoadingSaved) {
     return (
@@ -116,19 +125,34 @@ export default function CobuyerAssessmentPage() {
   }
 
   return (
-    <ExerciseChat
-      title="Co-Buyer Assessment"
+    <ExercisePage
+      title="Co-Buyer Check-In"
       stages={exercise.stageNames}
       currentStageIndex={exercise.currentStageIndex}
-      messages={exercise.messages}
-      activeQuestion={exercise.activeQuestion}
-      selectedAnswer={exercise.selectedAnswer}
-      isStreaming={exercise.isStreaming}
+      currentQuestion={exercise.currentQuestion}
+      questionIndex={flatQuestionIndex}
+      answers={exercise.answers}
       isComplete={exercise.isComplete}
-      onSelectChip={exercise.handleSelectChip}
-      onSelectNumber={exercise.handleSelectNumber}
-      onSubmitText={exercise.handleSubmitText}
-      onSkip={exercise.handleSkip}
+      totalQuestions={exercise.totalQuestions}
+      answeredCount={exercise.answeredCount}
+      canGoBack={exercise.canGoBack}
+      homiPrompts={homiPrompts}
+      currentPage="/journey/exercises/cobuyer-assessment"
+      onSelectAnswer={exercise.selectAnswer}
+      onSubmitText={exercise.submitText}
+      onSkip={exercise.skip}
+      onPrevious={exercise.previousQuestion}
+      intro={{
+        pageId: "cobuyer_assessment",
+        title: "Co-Buyer Check-In",
+        description: "This exercise helps you privately think through how well someone might work as a co-ownership partner. It covers relationship, finances, lifestyle, and more. Everything stays between you and Homi.",
+        bullets: [
+          "23 questions across 7 sections",
+          "About 8 minutes",
+          "Completely private — only you see the results",
+        ],
+        ctaText: "Let's Start",
+      }}
     >
       {scoreResult && (
         <CobuyerAssessmentReport
@@ -137,6 +161,6 @@ export default function CobuyerAssessmentPage() {
           onAssessAnother={handleAssessAnother}
         />
       )}
-    </ExerciseChat>
+    </ExercisePage>
   )
 }

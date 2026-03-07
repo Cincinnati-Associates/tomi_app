@@ -1,61 +1,40 @@
-"use client";
+"use client"
 
-import { useState, useCallback, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUp, Loader2, Sparkles, X } from "lucide-react";
-import { useHomiChat } from "@/hooks/useHomiChat";
-import { useAnonymousContext } from "@/hooks/useAnonymousContext";
-import { useTypewriter } from "@/hooks/useTypewriter";
-import { ChatMarkdown } from "@/components/shared/ChatMarkdown";
-import { cn } from "@/lib/utils";
-import type { QuestionCategory } from "@/hooks/useAssessment";
+import { useState, useCallback, useRef, useEffect } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { ArrowUp, Loader2, Sparkles, X } from "lucide-react"
+import { useHomiChat } from "@/hooks/useHomiChat"
+import { useTypewriter } from "@/hooks/useTypewriter"
+import { ChatMarkdown } from "@/components/shared/ChatMarkdown"
+import { cn } from "@/lib/utils"
 
-const SECTION_PROMPTS: Record<QuestionCategory, string[]> = {
-  motivation: [
-    "Is co-ownership right for me?",
-    "What are the real benefits of shared ownership?",
-    "How is co-buying different from renting together?",
-  ],
-  people: [
-    "Can family members co-own?",
-    "What if my co-owner is someone I don't know well?",
-    "Do I need a partner to start?",
-  ],
-  finances: [
-    "How do we split unequal contributions?",
-    "What credit score do I actually need?",
-    "What if one person pays more of the down payment?",
-  ],
-  readiness: [
-    "What's a TIC agreement?",
-    "How is this different from joint tenancy?",
-    "What happens if someone wants out?",
-  ],
-};
+type Phase = "idle" | "focused"
 
-type Phase = "idle" | "focused";
-
-interface HomiMiniInputProps {
-  currentSection: QuestionCategory;
-  className?: string;
+interface ExerciseHomiInputProps {
+  /** Rotating contextual prompts for the current stage */
+  prompts: string[]
+  /** Current page path for Homi context */
+  currentPage: string
+  className?: string
 }
 
-export function HomiMiniInput({ currentSection, className }: HomiMiniInputProps) {
-  const [phase, setPhase] = useState<Phase>("idle");
-  const [inputValue, setInputValue] = useState("");
-  const [submittedQuestion, setSubmittedQuestion] = useState("");
-  const [showPanel, setShowPanel] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+export function ExerciseHomiInput({
+  prompts,
+  currentPage,
+  className,
+}: ExerciseHomiInputProps) {
+  const [phase, setPhase] = useState<Phase>("idle")
+  const [inputValue, setInputValue] = useState("")
+  const [submittedQuestion, setSubmittedQuestion] = useState("")
+  const [showPanel, setShowPanel] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  const { onChatMessage, getContextForAPI } = useAnonymousContext();
+  const [isPrefilled, setIsPrefilled] = useState(false)
+
   const { messages, isLoading, error, sendMessage, clearChat } = useHomiChat({
-    userContext: getContextForAPI(),
-    currentPage: "/assessment",
-  });
+    currentPage,
+  })
 
-  const [isPrefilled, setIsPrefilled] = useState(false);
-
-  const prompts = SECTION_PROMPTS[currentSection];
   const { displayText, fullText } = useTypewriter({
     texts: prompts,
     typeSpeed: 40,
@@ -63,72 +42,64 @@ export function HomiMiniInput({ currentSection, className }: HomiMiniInputProps)
     pauseAfterType: 3000,
     pauseAfterDelete: 300,
     loop: true,
-  });
+  })
 
-  // Focus input when entering focused phase
   useEffect(() => {
-    if (phase === "focused") {
-      inputRef.current?.focus();
-    }
-  }, [phase]);
+    if (phase === "focused") inputRef.current?.focus()
+  }, [phase])
 
-  // Get the last assistant message
-  const assistantMessage = messages.filter((m) => m.role === "assistant").pop();
+  const assistantMessage = messages.filter((m) => m.role === "assistant").pop()
 
   const handleSubmit = useCallback(() => {
-    const trimmed = inputValue.trim();
-    if (!trimmed || isLoading) return;
-    setSubmittedQuestion(trimmed);
-    sendMessage(trimmed);
-    onChatMessage();
-    setInputValue("");
-    setIsPrefilled(false);
-    setShowPanel(true);
-  }, [inputValue, isLoading, sendMessage, onChatMessage]);
+    const trimmed = inputValue.trim()
+    if (!trimmed || isLoading) return
+    setSubmittedQuestion(trimmed)
+    sendMessage(trimmed)
+    setInputValue("")
+    setIsPrefilled(false)
+    setShowPanel(true)
+  }, [inputValue, isLoading, sendMessage])
 
   const handleDismissPanel = useCallback(() => {
-    setShowPanel(false);
-    setPhase("idle");
-    setInputValue("");
-    setIsPrefilled(false);
-    setSubmittedQuestion("");
-    clearChat();
-  }, [clearChat]);
+    setShowPanel(false)
+    setPhase("idle")
+    setInputValue("")
+    setIsPrefilled(false)
+    setSubmittedQuestion("")
+    clearChat()
+  }, [clearChat])
 
-  // Escape key dismisses the panel
   useEffect(() => {
-    if (!showPanel) return;
+    if (!showPanel) return
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        handleDismissPanel();
-      }
-    };
-    document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
-  }, [showPanel, handleDismissPanel]);
+      if (e.key === "Escape") handleDismissPanel()
+    }
+    document.addEventListener("keydown", handleEscape)
+    return () => document.removeEventListener("keydown", handleEscape)
+  }, [showPanel, handleDismissPanel])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      e.preventDefault();
-      handleSubmit();
+      e.preventDefault()
+      handleSubmit()
     }
     if (e.key === "Backspace" && isPrefilled) {
-      e.preventDefault();
-      setInputValue("");
-      setIsPrefilled(false);
+      e.preventDefault()
+      setInputValue("")
+      setIsPrefilled(false)
     }
     if (e.key === "Escape") {
       if (phase === "focused" && !inputValue.trim()) {
-        setPhase("idle");
+        setPhase("idle")
       }
     }
-  };
+  }
 
   return (
     <>
       <div className={cn("w-full max-w-lg mx-auto", className)}>
         <AnimatePresence mode="wait">
-          {/* ---- IDLE: clickable prompt pill ---- */}
+          {/* ── IDLE: clickable prompt pill ── */}
           {phase === "idle" && !showPanel && (
             <motion.button
               key="idle"
@@ -137,9 +108,9 @@ export function HomiMiniInput({ currentSection, className }: HomiMiniInputProps)
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.15 }}
               onClick={() => {
-                setInputValue(fullText);
-                setIsPrefilled(true);
-                setPhase("focused");
+                setInputValue(fullText)
+                setIsPrefilled(true)
+                setPhase("focused")
               }}
               className={cn(
                 "w-full flex items-center gap-2.5",
@@ -158,7 +129,7 @@ export function HomiMiniInput({ currentSection, className }: HomiMiniInputProps)
             </motion.button>
           )}
 
-          {/* ---- FOCUSED: text input (hidden once panel is showing) ---- */}
+          {/* ── FOCUSED: text input ── */}
           {phase === "focused" && !showPanel && (
             <motion.div
               key="focused"
@@ -183,11 +154,11 @@ export function HomiMiniInput({ currentSection, className }: HomiMiniInputProps)
                   value={inputValue}
                   onChange={(e) => {
                     if (isPrefilled) {
-                      setIsPrefilled(false);
-                      const typed = e.target.value.slice(inputValue.length);
-                      setInputValue(typed);
+                      setIsPrefilled(false)
+                      const typed = e.target.value.slice(inputValue.length)
+                      setInputValue(typed)
                     } else {
-                      setInputValue(e.target.value);
+                      setInputValue(e.target.value)
                     }
                   }}
                   onKeyDown={handleKeyDown}
@@ -215,11 +186,10 @@ export function HomiMiniInput({ currentSection, className }: HomiMiniInputProps)
         </AnimatePresence>
       </div>
 
-      {/* ---- BOTTOM SHEET PANEL ---- */}
+      {/* ── BOTTOM SHEET PANEL ── */}
       <AnimatePresence>
         {showPanel && (
           <>
-            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -229,16 +199,11 @@ export function HomiMiniInput({ currentSection, className }: HomiMiniInputProps)
               onClick={handleDismissPanel}
             />
 
-            {/* Panel */}
             <motion.div
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
-              transition={{
-                type: "spring",
-                damping: 30,
-                stiffness: 400,
-              }}
+              transition={{ type: "spring", damping: 30, stiffness: 400 }}
               className="fixed bottom-0 inset-x-0 z-[65] max-h-[60vh] md:max-w-[50vw] md:mx-auto md:rounded-t-3xl flex flex-col rounded-t-2xl bg-card border-t border-border shadow-2xl"
             >
               {/* Header */}
@@ -260,37 +225,37 @@ export function HomiMiniInput({ currentSection, className }: HomiMiniInputProps)
 
               {/* Body */}
               <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
-                {/* User question — right-aligned bubble */}
+                {/* User question */}
                 <div className="flex justify-end">
-                  <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-primary/10 border border-primary/20 px-4 py-2.5">
+                  <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-primary/15 border border-primary/20 px-4 py-2.5">
                     <p className="text-sm text-foreground/80">{submittedQuestion}</p>
                   </div>
                 </div>
 
-                {/* Error state */}
+                {/* Error */}
                 {error && (
                   <div className="flex items-start gap-2.5">
                     <div className="flex-shrink-0 h-6 w-6 rounded-full bg-red-500/10 flex items-center justify-center mt-0.5">
-                      <Sparkles className="h-3 w-3 text-red-500" />
+                      <Sparkles className="h-3 w-3 text-red-400" />
                     </div>
                     <div className="flex-1 bg-red-500/[0.05] rounded-2xl rounded-tl-sm px-4 py-3">
-                      <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                      <p className="text-sm text-red-400">{error}</p>
                     </div>
                   </div>
                 )}
 
-                {/* Loading state */}
+                {/* Loading */}
                 {isLoading && !assistantMessage && (
                   <div className="flex items-start gap-2.5">
                     <div className="flex-shrink-0 h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
                       <Sparkles className="h-3 w-3 text-primary" />
                     </div>
-                    <div className="bg-muted/50 rounded-2xl rounded-tl-sm px-4 py-3">
+                    <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3">
                       <div className="flex gap-1.5">
                         {[0, 1, 2].map((i) => (
                           <motion.span
                             key={i}
-                            className="h-2 w-2 rounded-full bg-muted-foreground/30"
+                            className="h-2 w-2 rounded-full bg-muted-foreground/50"
                             animate={{ y: [0, -6, 0] }}
                             transition={{
                               duration: 0.6,
@@ -305,13 +270,13 @@ export function HomiMiniInput({ currentSection, className }: HomiMiniInputProps)
                   </div>
                 )}
 
-                {/* Homi response — left-aligned with avatar */}
+                {/* Homi response */}
                 {assistantMessage && (
                   <div className="flex items-start gap-2.5">
                     <div className="flex-shrink-0 h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
                       <Sparkles className="h-3 w-3 text-primary" />
                     </div>
-                    <div className="flex-1 bg-muted/50 rounded-2xl rounded-tl-sm px-4 py-3">
+                    <div className="flex-1 bg-muted rounded-2xl rounded-tl-sm px-4 py-3">
                       <div className="text-sm leading-relaxed text-foreground/85">
                         <ChatMarkdown content={assistantMessage.content} />
                       </div>
@@ -324,5 +289,5 @@ export function HomiMiniInput({ currentSection, className }: HomiMiniInputProps)
         )}
       </AnimatePresence>
     </>
-  );
+  )
 }

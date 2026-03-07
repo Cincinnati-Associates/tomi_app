@@ -41,16 +41,14 @@ async function getSmartRedirect(userId: string, next: string | null, origin: str
       return `${origin}${next}`
     }
 
-    if (!profile) {
-      return `${origin}/onboarding/welcome`
+    if (!profile || !profile.onboardingCompleted) {
+      // New users go to /journey — the useAssessmentLinker hook
+      // will auto-link assessment data and mark onboarding complete
+      return `${origin}/journey`
     }
 
-    if (!profile.onboardingCompleted) {
-      return `${origin}/onboarding/welcome`
-    }
-
-    // User has completed onboarding - respect the next param or go to dashboard
-    return `${origin}${next || '/dashboard'}`
+    // Returning users - respect the next param or go to journey
+    return `${origin}${next || '/journey'}`
   } catch (error) {
     console.error('Error in smart redirect:', error)
     return `${origin}${next || '/dashboard'}`
