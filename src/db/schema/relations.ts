@@ -20,6 +20,11 @@ import {
 } from './homebase'
 import { emailSends, emailSequences } from './email'
 import { partyMemberSharedData } from './shared-knowledge'
+import {
+  groupConversations,
+  groupMessages,
+  groupConversationMembers,
+} from './group-chat'
 
 // =============================================================================
 // APP-OWNED RELATIONS
@@ -230,3 +235,57 @@ export const emailSequencesRelations = relations(emailSequences, ({ one }) => ({
     references: [emailSends.id],
   }),
 }))
+
+// =============================================================================
+// GROUP CHAT RELATIONS
+// =============================================================================
+
+export const groupConversationsRelations = relations(
+  groupConversations,
+  ({ one, many }) => ({
+    party: one(buyingParties, {
+      fields: [groupConversations.partyId],
+      references: [buyingParties.id],
+    }),
+    parentConversation: one(groupConversations, {
+      fields: [groupConversations.parentConversationId],
+      references: [groupConversations.id],
+      relationName: 'threads',
+    }),
+    lastMessageSender: one(profiles, {
+      fields: [groupConversations.lastMessageSenderId],
+      references: [profiles.id],
+    }),
+    messages: many(groupMessages),
+    members: many(groupConversationMembers),
+  })
+)
+
+export const groupMessagesRelations = relations(groupMessages, ({ one }) => ({
+  conversation: one(groupConversations, {
+    fields: [groupMessages.conversationId],
+    references: [groupConversations.id],
+  }),
+  sender: one(profiles, {
+    fields: [groupMessages.senderId],
+    references: [profiles.id],
+  }),
+}))
+
+export const groupConversationMembersRelations = relations(
+  groupConversationMembers,
+  ({ one }) => ({
+    conversation: one(groupConversations, {
+      fields: [groupConversationMembers.conversationId],
+      references: [groupConversations.id],
+    }),
+    user: one(profiles, {
+      fields: [groupConversationMembers.userId],
+      references: [profiles.id],
+    }),
+    lastReadMessage: one(groupMessages, {
+      fields: [groupConversationMembers.lastReadMessageId],
+      references: [groupMessages.id],
+    }),
+  })
+)

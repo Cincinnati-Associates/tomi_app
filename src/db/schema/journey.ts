@@ -125,6 +125,11 @@ export const userExerciseResponses = pgTable(
       onDelete: 'set null',
     }),
 
+    // Optional target user for per-member exercises (e.g., Co-Buyer Check-In per co-buyer)
+    targetUserId: uuid('target_user_id').references(() => profiles.id, {
+      onDelete: 'set null',
+    }),
+
     // Response data
     responses: jsonb('responses').default({}).notNull(), // Answers per schema
     computedScores: jsonb('computed_scores').default({}), // Derived metrics
