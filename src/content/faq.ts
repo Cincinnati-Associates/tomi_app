@@ -17,13 +17,13 @@ export const faqItems: FaqItem[] = [
   {
     question: "What is a Tenancy in Common (TIC) agreement?",
     answer:
-      "A Tenancy in Common (TIC) is the legal structure that lets two or more people own individual percentages of a single property. Unlike joint tenancy (typically used by married couples), a TIC lets each owner hold a distinct share they can sell, refinance, or pass to heirs independently. Your TIC agreement defines ownership splits, financial responsibilities, decision-making rules, and exit procedures before you buy.",
+      "A Tenancy in Common (TIC) is the legal structure that lets two or more people own individual percentages of a single property. Unlike joint tenancy (typically used by married couples), a TIC lets each owner hold a distinct share they can sell, refinance, or pass to heirs independently. Your TIC agreement defines ownership splits, financial responsibilities, decision-making rules, and exit procedures before you buy. Tomi guides you through drafting that agreement step by step\u2014no legal background required.",
     category: "legal",
   },
   {
     question: "Can I get a mortgage with a friend or family member?",
     answer:
-      "Yes. Lenders evaluate your combined debt-to-income ratio and credit scores\u2014they don\u2019t require a marriage certificate. Co-buying with a partner often increases your purchasing power by 2\u20134x. The process is similar to any joint mortgage application; you just need a co-ownership agreement that defines what happens if one person wants out.",
+      "Yes. Lenders evaluate your combined debt-to-income ratio and credit scores\u2014they don\u2019t require a marriage certificate. Co-buying with a partner often increases your purchasing power by 2\u20134x. The process is similar to any joint mortgage application; you just need a co-ownership agreement that defines what happens if one person wants out. Tomi can connect you with lenders experienced in co-buyer mortgages.",
     category: "financial",
   },
   {
@@ -35,13 +35,13 @@ export const faqItems: FaqItem[] = [
   {
     question: "What happens if one co-owner wants to sell or move out?",
     answer:
-      "Your co-ownership agreement includes a built-in exit strategy. Typically this means a Right of First Refusal\u2014remaining owners get the first opportunity to buy the departing owner\u2019s share at fair market value. The agreement also defines notice periods, valuation methods, and buyout timelines so the transition is orderly, not adversarial.",
+      "Your co-ownership agreement includes a built-in exit strategy. Typically this means a Right of First Refusal\u2014remaining owners get the first opportunity to buy the departing owner\u2019s share at fair market value. The agreement also defines notice periods, valuation methods, and buyout timelines so the transition is orderly, not adversarial. Tomi\u2019s tools help you and your co-buyers align on these terms before you ever sign anything.",
     category: "legal",
   },
   {
     question: "What if someone stops paying their share of the mortgage?",
     answer:
-      "Your TIC agreement defines grace periods, remedies, and consequences before you ever close. This usually includes a cure period (30\u201390 days), mediation steps, and ultimately a forced buyout provision. Planning for this scenario upfront is exactly why co-ownership agreements exist\u2014it protects everyone.",
+      "Your TIC agreement defines grace periods, remedies, and consequences before you ever close. This usually includes a cure period (30\u201390 days), mediation steps, and ultimately a forced buyout provision. Planning for this scenario upfront is exactly why co-ownership agreements exist\u2014it protects everyone. Tomi walks your group through each of these provisions so nothing gets overlooked.",
     category: "legal",
   },
   {
@@ -53,19 +53,19 @@ export const faqItems: FaqItem[] = [
   {
     question: "How do co-owners make decisions about the property?",
     answer:
-      "Your agreement defines a decision-making framework: day-to-day decisions (repairs under a certain dollar amount) can be made individually, while major decisions (renovations, refinancing, selling) require consensus or a majority vote. You set these thresholds together during the agreement process.",
+      "Your agreement defines a decision-making framework: day-to-day decisions (repairs under a certain dollar amount) can be made individually, while major decisions (renovations, refinancing, selling) require consensus or a majority vote. You set these thresholds together during the agreement process. Tomi\u2019s exercises help your group surface and resolve these preferences before they become conflicts.",
     category: "living",
   },
   {
     question: "Can I co-buy a home with someone who has bad credit?",
     answer:
-      "It depends on how the mortgage is structured. All co-borrowers on a joint mortgage are evaluated together, so one person\u2019s low score can affect the rate or approval. Some groups work around this by having only the higher-credit members on the mortgage while the other co-owner contributes to the down payment and is on the title via the TIC agreement.",
+      "It depends on how the mortgage is structured. All co-borrowers on a joint mortgage are evaluated together, so one person\u2019s low score can affect the rate or approval. Some groups work around this by having only the higher-credit members on the mortgage while the other co-owner contributes to the down payment and is on the title via the TIC agreement. Tomi can connect you with lenders and agents who specialize in these arrangements.",
     category: "financial",
   },
   {
     question: "Is co-ownership legally recognized? Is it safe?",
     answer:
-      "Tenancy in common has been a recognized property ownership structure for centuries in every U.S. state. It\u2019s the same legal framework used in commercial real estate, investment properties, and inherited homes. A well-drafted TIC agreement\u2014reviewed by an attorney\u2014gives you the same legal protections as any other property contract.",
+      "Tenancy in common has been a recognized property ownership structure for centuries in every U.S. state. It\u2019s the same legal framework used in commercial real estate, investment properties, and inherited homes. A well-drafted TIC agreement\u2014reviewed by an attorney\u2014gives you the same legal protections as any other property contract. Tomi\u2019s agreement drafting is built on this established legal framework.",
     category: "legal",
   },
   {
