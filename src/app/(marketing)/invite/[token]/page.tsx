@@ -1,10 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Users, CheckCircle2, XCircle } from "lucide-react"
 import { useAuthContext } from "@/providers/AuthProvider"
+import { AuthModal } from "@/components/auth/AuthModal"
 
 export default function AcceptInvitePage() {
   const { token } = useParams<{ token: string }>()
@@ -12,11 +13,12 @@ export default function AcceptInvitePage() {
   const { user } = useAuthContext()
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
   const [errorMsg, setErrorMsg] = useState("")
+  const [showAuth, setShowAuth] = useState(false)
+  const hasAutoAccepted = useRef(false)
 
   async function handleAccept() {
     if (!user) {
-      // Redirect to login with return URL
-      router.push(`/login?redirect=/invite/${token}`)
+      setShowAuth(true)
       return
     }
 
@@ -37,6 +39,14 @@ export default function AcceptInvitePage() {
     }
   }
 
+  // Auto-accept when user becomes authenticated (e.g. after Google OAuth redirect)
+  useEffect(() => {
+    if (user && status === "idle" && !hasAutoAccepted.current) {
+      hasAutoAccepted.current = true
+      handleAccept()
+    }
+  }, [user])
+
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
@@ -48,10 +58,19 @@ export default function AcceptInvitePage() {
           <p className="text-sm text-muted-foreground mb-6">
             Sign in or create an account to join this buying party.
           </p>
-          <Button onClick={() => router.push(`/login?redirect=/invite/${token}`)} className="w-full">
+          <Button onClick={() => setShowAuth(true)} className="w-full">
             Sign In to Accept
           </Button>
         </div>
+
+        <AuthModal
+          isOpen={showAuth}
+          onClose={() => setShowAuth(false)}
+          onAuthSuccess={() => {
+            setShowAuth(false)
+            // After password auth, user state updates and the useEffect will auto-accept
+          }}
+        />
       </div>
     )
   }
