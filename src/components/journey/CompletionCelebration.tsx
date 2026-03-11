@@ -6,6 +6,7 @@ import { Check, Lock, ArrowRight, Clock, Sparkles } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { GEMS_LABELS } from "@/lib/gems-exercise/labels"
+import { RISK_EXIT_LABELS } from "@/lib/risk-exit/labels"
 import {
   JOURNEY_PHASES,
   getExerciseBySlug,
@@ -51,6 +52,33 @@ function buildExerciseSummary(
         value:
           involvementLabels[responses.involvement_level as string] ??
           (responses.involvement_level as string) ??
+          "",
+      },
+    ].filter((item) => item.value)
+  }
+
+  if (slug === "exit_preferences") {
+    const { riskToleranceLabels, earlySellLabels, disputeLabels } = RISK_EXIT_LABELS
+    return [
+      {
+        label: "Risk Tolerance",
+        value:
+          riskToleranceLabels[responses.risk_tolerance as string] ??
+          (responses.risk_tolerance as string) ??
+          "",
+      },
+      {
+        label: "Early Sale Policy",
+        value:
+          earlySellLabels[responses.early_sell_scenario as string] ??
+          (responses.early_sell_scenario as string) ??
+          "",
+      },
+      {
+        label: "Dispute Resolution",
+        value:
+          disputeLabels[responses.dispute_resolution as string] ??
+          (responses.dispute_resolution as string) ??
           "",
       },
     ].filter((item) => item.value)

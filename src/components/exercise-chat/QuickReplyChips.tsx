@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils"
 export interface ChipOption {
   label: string
   value: string
+  /** Optional description shown below the label in form-style exercises */
+  description?: string
 }
 
 interface QuickReplyChipsProps {

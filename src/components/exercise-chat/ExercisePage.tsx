@@ -116,6 +116,10 @@ interface ExercisePageProps {
   }
   /** Carry-forward data for confirm-type questions */
   carryForwardData?: { label: string; value: string } | null
+  /** Multi-select state (for multi_chips questions) */
+  multiSelectValues?: string[]
+  onToggleMultiSelect?: (value: string) => void
+  onConfirmMultiSelect?: () => void
 }
 
 export function ExercisePage({
@@ -139,6 +143,9 @@ export function ExercisePage({
   children,
   intro,
   carryForwardData,
+  multiSelectValues,
+  onToggleMultiSelect,
+  onConfirmMultiSelect,
 }: ExercisePageProps) {
   // ── Complete state ──
   if (isComplete && children) {
@@ -226,6 +233,9 @@ export function ExercisePage({
                       onPrevious={onPrevious}
                       showPrevious={canGoBack}
                       carryForwardData={carryForwardData}
+                      multiSelectValues={multiSelectValues}
+                      onToggleMultiSelect={onToggleMultiSelect}
+                      onConfirmMultiSelect={onConfirmMultiSelect}
                     />
                   )}
                 </div>

@@ -28,6 +28,10 @@ export interface ExerciseFlowState {
   stageNames: string[]
   /** Select an answer for the current question (for chips/number_scale) */
   selectAnswer: (value: string | number) => void
+  /** Toggle a multi-select chip (for multi_chips) */
+  toggleMultiSelect: (value: string) => void
+  /** Confirm multi-select and advance */
+  confirmMultiSelect: () => void
   /** Submit text answer */
   submitText: (text: string) => void
   /** Skip current question */
@@ -42,6 +46,8 @@ export interface ExerciseFlowState {
   answeredCount: number
   /** Resolved carry-forward data for the current confirm question (if any) */
   carryForwardData: { label: string; value: string } | null
+  /** Current multi-select selections (for multi_chips) */
+  multiSelectValues: string[]
 }
 
 export function useExerciseFlow({
@@ -59,6 +65,7 @@ export function useExerciseFlow({
     savedAnswers ?? {}
   )
   const [isComplete, setIsComplete] = useState(false)
+  const [multiSelectValues, setMultiSelectValues] = useState<string[]>([])
 
   const autoSaveTimeout = useRef<ReturnType<typeof setTimeout>>()
   const onCompleteRef = useRef(onComplete)
@@ -177,6 +184,27 @@ export function useExerciseFlow({
     [recordAndAdvance]
   )
 
+  const toggleMultiSelect = useCallback(
+    (value: string) => {
+      setMultiSelectValues((prev) => {
+        const idx = prev.indexOf(value)
+        if (idx >= 0) return prev.filter((v) => v !== value)
+        return [...prev, value]
+      })
+    },
+    []
+  )
+
+  const confirmMultiSelect = useCallback(() => {
+    if (!currentQuestion) return
+    const values = multiSelectValues.length > 0 ? multiSelectValues : ["none"]
+    const updatedAnswers = { ...answers, [currentQuestion.key]: values }
+    setAnswers(updatedAnswers)
+    autoSave(updatedAnswers)
+    setMultiSelectValues([])
+    setTimeout(() => advance(updatedAnswers), 200)
+  }, [currentQuestion, multiSelectValues, answers, autoSave, advance])
+
   const submitText = useCallback(
     (text: string) => {
       recordAndAdvance(text)
@@ -195,6 +223,7 @@ export function useExerciseFlow({
   const previousQuestion = useCallback(() => {
     if (!canGoBack) return
 
+    setMultiSelectValues([])
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1)
     } else {
@@ -223,6 +252,8 @@ export function useExerciseFlow({
     isComplete,
     stageNames: stages.map((s) => s.name),
     selectAnswer,
+    toggleMultiSelect,
+    confirmMultiSelect,
     submitText,
     skip,
     previousQuestion,
@@ -230,5 +261,6 @@ export function useExerciseFlow({
     totalQuestions,
     answeredCount,
     carryForwardData,
+    multiSelectValues,
   }
 }

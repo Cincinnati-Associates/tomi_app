@@ -142,12 +142,15 @@ export default function CobuyerAssessmentPage() {
       onSubmitText={exercise.submitText}
       onSkip={exercise.skip}
       onPrevious={exercise.previousQuestion}
+      multiSelectValues={exercise.multiSelectValues}
+      onToggleMultiSelect={exercise.toggleMultiSelect}
+      onConfirmMultiSelect={exercise.confirmMultiSelect}
       intro={{
         pageId: "cobuyer_assessment",
         title: "Co-Buyer Check-In",
         description: "This exercise helps you privately think through how well someone might work as a co-ownership partner. It covers relationship, finances, lifestyle, and more. Everything stays between you and Homi.",
         bullets: [
-          "23 questions across 7 sections",
+          "15 questions across 5 sections",
           "About 8 minutes",
           "Completely private — only you see the results",
         ],

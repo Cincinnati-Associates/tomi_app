@@ -53,14 +53,18 @@ function useQuestionTypewriter(text: string, speed = 18, startDelay = 150) {
 
 function OptionCard({
   label,
+  description,
   index,
   isSelected,
+  isMulti,
   onClick,
   disabled,
 }: {
   label: string
+  description?: string
   index: number
   isSelected: boolean
+  isMulti?: boolean
   onClick: () => void
   disabled: boolean
 }) {
@@ -83,10 +87,11 @@ function OptionCard({
         disabled && !isSelected && "opacity-50 cursor-not-allowed hover:border-border hover:bg-card"
       )}
     >
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-start gap-2.5">
         <div
           className={cn(
-            "flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200",
+            "flex-shrink-0 w-5 h-5 mt-0.5 border-2 flex items-center justify-center transition-all duration-200",
+            isMulti ? "rounded-md" : "rounded-full",
             isSelected
               ? "border-primary bg-primary"
               : "border-muted-foreground/30"
@@ -102,14 +107,21 @@ function OptionCard({
             </motion.div>
           )}
         </div>
-        <span
-          className={cn(
-            "text-sm leading-snug transition-colors duration-200",
-            isSelected ? "text-foreground font-medium" : "text-foreground/80"
+        <div className="flex-1 min-w-0">
+          <span
+            className={cn(
+              "text-sm leading-snug transition-colors duration-200",
+              isSelected ? "text-foreground font-medium" : "text-foreground/80"
+            )}
+          >
+            {label}
+          </span>
+          {description && (
+            <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+              {description}
+            </p>
           )}
-        >
-          {label}
-        </span>
+        </div>
       </div>
     </motion.button>
   )
@@ -487,6 +499,10 @@ interface ExerciseQuestionProps {
   onPrevious?: () => void
   showPrevious?: boolean
   carryForwardData?: { label: string; value: string } | null
+  /** Multi-select state (for multi_chips questions) */
+  multiSelectValues?: string[]
+  onToggleMultiSelect?: (value: string) => void
+  onConfirmMultiSelect?: () => void
 }
 
 export function ExerciseQuestion({
@@ -499,6 +515,9 @@ export function ExerciseQuestion({
   onPrevious,
   showPrevious,
   carryForwardData,
+  multiSelectValues = [],
+  onToggleMultiSelect,
+  onConfirmMultiSelect,
 }: ExerciseQuestionProps) {
   const [selectedValue, setSelectedValue] = useState<string | number | null>(null)
   const [isAnimatingOut, setIsAnimatingOut] = useState(false)
@@ -582,6 +601,7 @@ export function ExerciseQuestion({
                     <OptionCard
                       key={`${question.key}-${option.value}`}
                       label={option.label}
+                      description={option.description}
                       index={index}
                       isSelected={selectedValue === option.value}
                       onClick={() => handleSelectChip(option.value)}
@@ -602,6 +622,54 @@ export function ExerciseQuestion({
                     onSubmit={handleCustomChipSubmit}
                     disabled={isAnimatingOut}
                   />
+                </>
+              )}
+
+              {/* ── Multi-chips (multi select) ── */}
+              {question.type === "multi_chips" && question.options && onToggleMultiSelect && onConfirmMultiSelect && (
+                <>
+                  {question.options.map((option, index) => (
+                    <OptionCard
+                      key={`${question.key}-${option.value}`}
+                      label={option.label}
+                      description={option.description}
+                      index={index}
+                      isMulti
+                      isSelected={multiSelectValues.includes(option.value)}
+                      onClick={() => onToggleMultiSelect(option.value)}
+                      disabled={isAnimatingOut}
+                    />
+                  ))}
+                  {/* "Type your own" custom input */}
+                  <CustomInputCard
+                    placeholder="Type your own..."
+                    index={question.options.length}
+                    isSelected={false}
+                    onSubmit={(text) => {
+                      onToggleMultiSelect(text)
+                    }}
+                    disabled={isAnimatingOut}
+                  />
+                  {/* Done button */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: multiSelectValues.length > 0 ? 1 : 0.4, y: 0 }}
+                    transition={{ duration: 0.2, delay: (question.options.length + 1) * 0.08 }}
+                    className="pt-2"
+                  >
+                    <button
+                      onClick={onConfirmMultiSelect}
+                      disabled={isAnimatingOut || multiSelectValues.length === 0}
+                      className={cn(
+                        "w-full py-3 rounded-xl text-sm font-medium transition-all duration-200",
+                        multiSelectValues.length > 0
+                          ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                          : "bg-muted text-muted-foreground cursor-not-allowed"
+                      )}
+                    >
+                      Done{multiSelectValues.length > 0 ? ` (${multiSelectValues.length} selected)` : ""}
+                    </button>
+                  </motion.div>
                 </>
               )}
 

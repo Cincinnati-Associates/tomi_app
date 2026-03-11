@@ -1,15 +1,20 @@
 /**
- * Co-Buyer Compatibility Assessment — 7 Stages, 23 Questions
+ * Co-Buyer Compatibility Assessment — 5 Stages, 15 Questions
+ *
+ * Trimmed from 23→15 questions (issue #347).
+ * Dropped: lived_together, roommate_context, shared_finances, lifestyle_sensitivities,
+ *   substance_concerns, buyout_expectation, conflict_history, life_changes, pause_factors,
+ *   key_comfort, exit_conversation
  */
 
 import type { ExerciseStageDef } from "@/hooks/useConversationalExercise"
 
 export const COBUYER_STAGES: ExerciseStageDef[] = [
   // =========================================================================
-  // STAGE 1: RELATIONSHIP FOUNDATION
+  // STAGE 1: WHO THEY ARE
   // =========================================================================
   {
-    name: "Relationship",
+    name: "Who They Are",
     homiPrompts: [
       "What makes a good co-buyer relationship?",
       "Can family members co-own?",
@@ -47,39 +52,16 @@ export const COBUYER_STAGES: ExerciseStageDef[] = [
           { label: "Less than 2 years", value: "under_2" },
         ],
       },
-      {
-        key: "lived_together",
-        dynamicPrompt: (a) =>
-          `Have you ever lived with ${a.candidate_name || "them"} or been roommates?`,
-        prompt: "Have you ever lived with them or been roommates?",
-        type: "chips",
-        options: [
-          { label: "Yes — it went well", value: "yes_good" },
-          { label: "Yes — it was challenging", value: "yes_challenging" },
-          { label: "No — but I've spent extended time with them", value: "no_extended" },
-          { label: "No — never", value: "no_never" },
-        ],
-      },
-      {
-        key: "roommate_context",
-        dynamicPrompt: (a) =>
-          a.lived_together === "yes_good" || a.lived_together === "yes_challenging"
-            ? "What was that like?"
-            : `What would previous roommates say about ${a.candidate_name || "them"}?`,
-        prompt: "What was that like living together?",
-        type: "text_with_skip",
-        skipLabel: "I'd rather not say",
-      },
     ],
     transitionPrompt: (a) =>
-      `The user is assessing "${a.candidate_name}" as a potential co-buyer. They describe the relationship as "${a.relationship_type}", known for "${a.relationship_duration}", living together: "${a.lived_together}". Generate a 1-2 sentence transition acknowledging the relationship foundation and moving to financial compatibility. Be warm and natural.`,
+      `The user is assessing "${a.candidate_name}" as a potential co-buyer. They describe the relationship as "${a.relationship_type}", known for "${a.relationship_duration}". Generate a 1-2 sentence transition acknowledging the relationship and moving to money & trust. Be warm and natural.`,
   },
 
   // =========================================================================
-  // STAGE 2: FINANCIAL COMPATIBILITY
+  // STAGE 2: MONEY & TRUST
   // =========================================================================
   {
-    name: "Financial",
+    name: "Money & Trust",
     homiPrompts: [
       "How do we split unequal contributions?",
       "What credit score do I need?",
@@ -97,19 +79,6 @@ export const COBUYER_STAGES: ExerciseStageDef[] = [
           { label: "General sense", value: "general" },
           { label: "Haven't discussed it", value: "not_discussed" },
           { label: "No idea", value: "no_idea" },
-        ],
-      },
-      {
-        key: "shared_finances",
-        dynamicPrompt: (a) =>
-          `Have you ever shared financial responsibilities with ${a.candidate_name || "them"}?`,
-        prompt: "Have you ever shared financial responsibilities with them?",
-        type: "chips",
-        options: [
-          { label: "Split bills/rent", value: "bills_rent" },
-          { label: "Smaller things (trips, events)", value: "smaller" },
-          { label: "Only informal (splitting dinner)", value: "informal" },
-          { label: "Never", value: "never" },
         ],
       },
       {
@@ -140,14 +109,14 @@ export const COBUYER_STAGES: ExerciseStageDef[] = [
       },
     ],
     transitionPrompt: (a) =>
-      `Financial awareness: "${a.financial_awareness}", shared finances: "${a.shared_finances}", money personality: "${a.money_personality}". Generate a 1-2 sentence transition from financial compatibility to lifestyle alignment. Briefly note the importance of financial alignment and move to day-to-day compatibility. Be warm.`,
+      `Financial awareness: "${a.financial_awareness}", money personality: "${a.money_personality}". Generate a 1-2 sentence transition from money to living together. Briefly note the importance of financial alignment and move to day-to-day compatibility. Be warm.`,
   },
 
   // =========================================================================
-  // STAGE 3: LIFESTYLE & LIVING ALIGNMENT
+  // STAGE 3: LIVING TOGETHER
   // =========================================================================
   {
-    name: "Lifestyle",
+    name: "Living Together",
     homiPrompts: [
       "How do roommates handle lifestyle differences?",
       "What if our schedules don't match?",
@@ -169,13 +138,14 @@ export const COBUYER_STAGES: ExerciseStageDef[] = [
         ],
       },
       {
-        key: "lifestyle_sensitivities",
-        prompt: "Any dietary restrictions, allergies, or sensitivities that would affect shared spaces?",
+        key: "lifestyle_alignment",
+        prompt: "How aligned are you on habits — cleanliness, noise, having guests over?",
         type: "chips",
         options: [
-          { label: "None that I know of", value: "none" },
-          { label: "Yes — minor things", value: "minor" },
-          { label: "Yes — significant considerations", value: "significant" },
+          { label: "Very aligned with mine", value: "very" },
+          { label: "Mostly aligned — minor differences", value: "mostly" },
+          { label: "We're pretty different", value: "different" },
+          { label: "I don't really know", value: "unknown" },
         ],
       },
       {
@@ -192,38 +162,16 @@ export const COBUYER_STAGES: ExerciseStageDef[] = [
           { label: "Not sure", value: "unsure" },
         ],
       },
-      {
-        key: "lifestyle_alignment",
-        prompt: "How aligned are you on habits — cleanliness, noise, having guests over?",
-        type: "chips",
-        options: [
-          { label: "Very aligned with mine", value: "very" },
-          { label: "Mostly aligned — minor differences", value: "mostly" },
-          { label: "We're pretty different", value: "different" },
-          { label: "I don't really know", value: "unknown" },
-        ],
-      },
-      {
-        key: "substance_concerns",
-        prompt: "Anything regarding smoking, drinking, or substances you'd want to address?",
-        type: "chips",
-        options: [
-          { label: "No concerns", value: "none" },
-          { label: "Minor — nothing that'd be an issue", value: "minor" },
-          { label: "Yes — this would need a conversation", value: "needs_conversation" },
-          { label: "I'm not comfortable discussing this", value: "uncomfortable" },
-        ],
-      },
     ],
     transitionPrompt: () =>
       "Generate a 1-2 sentence transition from lifestyle to goals & expectations. Note that lifestyle differences are usually manageable when discussed upfront. Move to the bigger picture — goals for the property.",
   },
 
   // =========================================================================
-  // STAGE 4: GOALS & EXPECTATIONS
+  // STAGE 4: GOALS & PLANS
   // =========================================================================
   {
-    name: "Goals",
+    name: "Goals & Plans",
     homiPrompts: [
       "What if we have different timelines?",
       "How important is goal alignment?",
@@ -267,27 +215,16 @@ export const COBUYER_STAGES: ExerciseStageDef[] = [
           { label: "Haven't discussed this", value: "not_discussed" },
         ],
       },
-      {
-        key: "buyout_expectation",
-        prompt: "Would either of you eventually want to buy the other out?",
-        type: "chips",
-        options: [
-          { label: "Yes that's the plan", value: "yes_plan" },
-          { label: "It's a possibility", value: "possible" },
-          { label: "No — we'd sell together", value: "sell_together" },
-          { label: "Haven't thought about it", value: "not_thought" },
-        ],
-      },
     ],
     transitionPrompt: () =>
-      "Generate a 1-2 sentence transition from goals to conflict & communication. Note that goal alignment is critical and that Tomi agreements cover this explicitly. Move to handling disagreements.",
+      "Generate a 1-2 sentence transition from goals to trust & conflict. Note that goal alignment is critical and that Tomi agreements cover this explicitly. Move to handling disagreements.",
   },
 
   // =========================================================================
-  // STAGE 5: CONFLICT & COMMUNICATION
+  // STAGE 5: TRUST & CONFLICT
   // =========================================================================
   {
-    name: "Conflict",
+    name: "Trust & Conflict",
     homiPrompts: [
       "How do TIC agreements handle disputes?",
       "What if we disagree on something major?",
@@ -308,12 +245,13 @@ export const COBUYER_STAGES: ExerciseStageDef[] = [
         ],
       },
       {
-        key: "conflict_history",
+        key: "trust_score",
         dynamicPrompt: (a) =>
-          `Have you ever had a significant conflict with ${a.candidate_name || "them"}?`,
-        prompt: "Have you ever had a significant conflict with them?",
-        type: "text_with_skip",
-        skipLabel: "No major conflicts",
+          `On a scale of 1-10, how much do you trust ${a.candidate_name || "them"} with a major financial commitment?`,
+        prompt: "On a scale of 1-10, how much do you trust them with a major financial commitment?",
+        type: "number_scale",
+        min: 1,
+        max: 10,
       },
       {
         key: "agreement_willingness",
@@ -329,109 +267,8 @@ export const COBUYER_STAGES: ExerciseStageDef[] = [
         ],
       },
     ],
-    transitionPrompt: () =>
-      "Generate a 1-2 sentence transition from conflict to life changes & risk factors. Note that handling disagreements early sets the tone. Move to 'what ifs.'",
-  },
-
-  // =========================================================================
-  // STAGE 6: LIFE CHANGES & RISK
-  // =========================================================================
-  {
-    name: "Risk",
-    homiPrompts: [
-      "What if someone's life situation changes?",
-      "How do exit clauses work?",
-      "What are the biggest risks of co-ownership?",
-    ],
-    questions: [
-      {
-        key: "life_changes",
-        dynamicPrompt: (a) =>
-          `Any major life changes on ${a.candidate_name || "their"}'s horizon?`,
-        prompt: "Any major life changes on their horizon?",
-        type: "multi_chips",
-        options: [
-          { label: "Marriage/engagement", value: "marriage" },
-          { label: "Having children", value: "children" },
-          { label: "Career change/relocation", value: "career_change" },
-          { label: "Divorce/separation", value: "divorce" },
-          { label: "None that I know of", value: "none" },
-          { label: "I'm not sure", value: "unsure" },
-        ],
-      },
-      {
-        key: "employment_stability",
-        dynamicPrompt: (a) =>
-          `How stable is ${a.candidate_name || "their"}'s employment?`,
-        prompt: "How stable is their employment?",
-        type: "chips",
-        options: [
-          { label: "Very stable — long-term", value: "very_stable" },
-          { label: "Stable — no red flags", value: "stable" },
-          { label: "Somewhat uncertain", value: "uncertain" },
-          { label: "I don't know enough to say", value: "unknown" },
-        ],
-      },
-      {
-        key: "pause_factors",
-        dynamicPrompt: (a) =>
-          `Is there anything about ${a.candidate_name || "them"} that gives you pause — even something small?`,
-        prompt: "Is there anything about them that gives you pause — even something small?",
-        type: "text_with_skip",
-        skipLabel: "Nothing comes to mind",
-      },
-    ],
-    transitionPrompt: () =>
-      "Generate a 1-2 sentence transition to the final gut check section. Acknowledge they've been thorough and this is the last section.",
-  },
-
-  // =========================================================================
-  // STAGE 7: THE GUT CHECK
-  // =========================================================================
-  {
-    name: "Gut Check",
-    homiPrompts: [
-      "How do I know if I can trust someone with this?",
-      "What does a healthy co-ownership look like?",
-      "What if I'm not 100% sure?",
-    ],
-    questions: [
-      {
-        key: "trust_score",
-        dynamicPrompt: (a) =>
-          `On a scale of 1-10, how much do you trust ${a.candidate_name || "them"} with a major financial commitment?`,
-        prompt: "On a scale of 1-10, how much do you trust them with a major financial commitment?",
-        type: "number_scale",
-        min: 1,
-        max: 10,
-      },
-      {
-        key: "key_comfort",
-        dynamicPrompt: (a) =>
-          `Would you feel comfortable if ${a.candidate_name || "they"} had a key to your home while you were away for a month?`,
-        prompt: "Would you feel comfortable if they had a key to your home while you were away for a month?",
-        type: "chips",
-        options: [
-          { label: "Completely comfortable", value: "completely" },
-          { label: "Mostly — but I'd set ground rules", value: "mostly" },
-          { label: "I'd be a bit nervous", value: "nervous" },
-          { label: "No", value: "no" },
-        ],
-      },
-      {
-        key: "exit_conversation",
-        prompt: "If things didn't work out, could you have a civil conversation about selling?",
-        type: "chips",
-        options: [
-          { label: "Definitely — we'd handle it maturely", value: "definitely" },
-          { label: "Probably — uncomfortable but doable", value: "probably" },
-          { label: "I'm not sure", value: "unsure" },
-          { label: "I worry about that", value: "worried" },
-        ],
-      },
-    ],
   },
 ]
 
 export const COBUYER_GREETING =
-  "Let's privately assess someone you're considering as a co-ownership partner. I'll walk you through 7 areas — this takes about 10 minutes. Everything here stays between us."
+  "Let's privately assess someone you're considering as a co-ownership partner. I'll walk you through 5 areas — this takes about 8 minutes. Everything here stays between us."
