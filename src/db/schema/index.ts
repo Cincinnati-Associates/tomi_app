@@ -23,5 +23,8 @@ export * from './homebase'
 // Email System
 export * from './email'
 
+// Shared Knowledge (group privacy boundary)
+export * from './shared-knowledge'
+
 // Relations (must be last to avoid circular imports)
 export * from './relations'

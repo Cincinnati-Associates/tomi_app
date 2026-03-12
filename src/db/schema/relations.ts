@@ -19,6 +19,7 @@ import {
   homeTaskActivity,
 } from './homebase'
 import { emailSends, emailSequences } from './email'
+import { partyMemberSharedData } from './shared-knowledge'
 
 // =============================================================================
 // APP-OWNED RELATIONS
@@ -76,6 +77,20 @@ export const authAuditLogsRelations = relations(authAuditLogs, ({ one }) => ({
     references: [profiles.id],
   }),
 }))
+
+// =============================================================================
+// SHARED KNOWLEDGE RELATIONS
+// =============================================================================
+
+export const partyMemberSharedDataRelations = relations(
+  partyMemberSharedData,
+  ({ one }) => ({
+    partyMember: one(partyMembers, {
+      fields: [partyMemberSharedData.partyMemberId],
+      references: [partyMembers.id],
+    }),
+  })
+)
 
 // =============================================================================
 // HOMEBASE RELATIONS
