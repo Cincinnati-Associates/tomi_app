@@ -138,10 +138,11 @@ export async function POST(request: NextRequest) {
       knowledgeSection = formatKnowledgeForPrompt(knowledge, assessmentData);
     }
 
-    // Build system prompt
+    // Build system prompt (tier-aware: authenticated → journey, anonymous → marketing)
     const systemPrompt = buildSystemPrompt({
       calculatorContext,
       knowledgeSection,
+      isAuthenticated: !!user,
       // Legacy fallback: if knowledgeSection wasn't built but we have raw context
       assessmentContext: knowledgeSection ? undefined : assessmentContext,
       currentPage,

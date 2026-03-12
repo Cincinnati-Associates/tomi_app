@@ -1,6 +1,8 @@
 import { formatResourcesForPrompt } from "./resources";
 import { getExerciseContext } from "./exercise-contexts";
 import type { AnonymousUserContext } from "./user-context";
+import { MARKETING_SYSTEM_PROMPT } from "./homi/prompts/marketing";
+import { JOURNEY_SYSTEM_PROMPT } from "./homi/prompts/journey";
 
 /**
  * System prompt for Homi, Tomi's AI co-ownership guide.
@@ -259,6 +261,8 @@ export interface BuildSystemPromptOptions {
   calculatorContext?: string;
   /** Pre-formatted knowledge section from UserKnowledge assembler */
   knowledgeSection?: string;
+  /** Whether the user is authenticated — selects Tier 1 (marketing) vs Tier 2 (journey) prompt */
+  isAuthenticated?: boolean;
   /** @deprecated Use knowledgeSection instead. Kept for backward compatibility. */
   userContext?: AnonymousUserContext;
   /** @deprecated Included in knowledgeSection. Kept for backward compatibility. */
@@ -271,12 +275,16 @@ export interface BuildSystemPromptOptions {
  * Build a system prompt with resources, user knowledge, and calculator context.
  */
 export function buildSystemPrompt(options: BuildSystemPromptOptions = {}): string {
-  const { calculatorContext, knowledgeSection, userContext, assessmentContext, currentPage } = options;
+  const { calculatorContext, knowledgeSection, isAuthenticated, userContext, assessmentContext, currentPage } = options;
+
+  // Select tier-based prompt: authenticated → Tier 2 (journey), anonymous → Tier 1 (marketing)
+  // Tier 3 (concierge) is handled by /api/homebase/chat separately
+  const basePrompt = isAuthenticated ? JOURNEY_SYSTEM_PROMPT : MARKETING_SYSTEM_PROMPT;
 
   // Always include the resources catalog (filtered by current page)
   const resourcesSection = formatResourcesForPrompt(currentPage);
 
-  let prompt = `${HOMI_SYSTEM_PROMPT}
+  let prompt = `${basePrompt}
 
 ${resourcesSection}`;
 
