@@ -244,6 +244,7 @@ export async function assembleAuthenticatedKnowledge(
       exerciseInsights[slug] = {
         scores: resp.computed_scores,
         completedAt: resp.completed_at,
+        keyAnswers: extractKeyAnswers(slug, resp.responses as Record<string, unknown> | null),
       };
     }
   }
@@ -400,13 +401,25 @@ export function formatKnowledgeForPrompt(
       const data = knowledge.exerciseInsights[slug] as {
         scores?: Record<string, unknown>;
         completedAt?: string;
+        keyAnswers?: Record<string, string>;
       };
-      const scoreStr = data.scores
-        ? Object.entries(data.scores)
-            .map(([k, v]) => `${k}: ${v}`)
-            .join(", ")
-        : "no scores";
-      lines.push(`- **${slug.replace(/_/g, " ")}**: ${scoreStr}`);
+      const displayName = EXERCISE_DISPLAY_NAMES[slug] || slug.replace(/_/g, " ");
+      lines.push(`- **${displayName}**:`);
+
+      // Key answers first (human-readable)
+      if (data.keyAnswers && Object.keys(data.keyAnswers).length > 0) {
+        for (const [label, value] of Object.entries(data.keyAnswers)) {
+          lines.push(`  - ${label}: ${value}`);
+        }
+      }
+
+      // Scores (if any, as supplementary)
+      if (data.scores && Object.keys(data.scores).length > 0) {
+        const scoreStr = Object.entries(data.scores)
+          .map(([k, v]) => `${k}: ${v}`)
+          .join(", ");
+        lines.push(`  - Scores: ${scoreStr}`);
+      }
     }
   }
 
@@ -439,6 +452,120 @@ export function formatKnowledgeForPrompt(
   lines.push(`[END USER DATA]`);
 
   return lines.join("\n");
+}
+
+// ---------------------------------------------------------------------------
+// Exercise Key Answer Extraction
+// ---------------------------------------------------------------------------
+
+const EXERCISE_DISPLAY_NAMES: Record<string, string> = {
+  gems_discovery: "My GEMs",
+  shared_home_vision: "My Home Vision",
+  roadmap_walkthrough: "Co-Buying Roadmap",
+  cobuyer_candidate_assessment: "Co-Buyer Check-In",
+  money_picture: "The Money Picture",
+  exit_preferences: "Exit & Risk Preferences",
+  housing_preferences: "Housing Preferences",
+};
+
+/**
+ * Extract the most meaningful fields from exercise responses for prompt injection.
+ * Returns human-readable label -> value pairs.
+ */
+function extractKeyAnswers(
+  slug: string,
+  responses: Record<string, unknown> | null
+): Record<string, string> {
+  if (!responses) return {};
+  const result: Record<string, string> = {};
+
+  const get = (key: string): string | undefined => {
+    const val = responses[key];
+    if (val === undefined || val === null) return undefined;
+    if (Array.isArray(val)) return val.join(", ");
+    return String(val);
+  };
+
+  switch (slug) {
+    case "gems_discovery": {
+      const goal = get("primary_goal");
+      if (goal) result["Primary goal"] = goal;
+      const concerns = get("concerns");
+      if (concerns) result["Concerns"] = concerns;
+      const duration = get("commitment_duration");
+      if (duration) result["Commitment duration"] = duration;
+      const involvement = get("involvement_level");
+      if (involvement) result["Involvement level"] = involvement;
+      const vision = get("success_vision");
+      if (vision) result["Success vision"] = vision;
+      break;
+    }
+    case "shared_home_vision": {
+      const homeType = get("home_type");
+      if (homeType) result["Home type"] = homeType;
+      const vibe = get("location_vibe");
+      if (vibe) result["Location vibe"] = vibe;
+      const count = get("cobuyer_count");
+      if (count) result["Co-buyer count"] = count;
+      const usage = get("usage_pattern");
+      if (usage) result["Usage pattern"] = usage;
+      const budget = get("budget_range");
+      if (budget) result["Budget range"] = budget;
+      const timeline = get("timeline");
+      if (timeline) result["Timeline"] = timeline;
+      break;
+    }
+    case "cobuyer_candidate_assessment": {
+      const name = get("candidate_name");
+      if (name) result["Candidate name"] = name;
+      const trust = get("trust_score");
+      if (trust) result["Trust score"] = trust;
+      const timeline = get("timeline_alignment");
+      if (timeline) result["Timeline alignment"] = timeline;
+      break;
+    }
+    case "money_picture": {
+      const income = get("income_range") || get("income");
+      if (income) result["Income"] = income;
+      const savings = get("savings");
+      if (savings) result["Savings"] = savings;
+      const debt = get("debt");
+      if (debt) result["Debt"] = debt;
+      const comfort = get("monthly_comfort");
+      if (comfort) result["Monthly comfort"] = comfort;
+      const credit = get("credit_standing") || get("credit");
+      if (credit) result["Credit standing"] = credit;
+      const city = get("target_city");
+      if (city) result["Target city"] = city;
+      break;
+    }
+    case "exit_preferences": {
+      const risk = get("risk_tolerance");
+      if (risk) result["Risk tolerance"] = risk;
+      const dispute = get("dispute_resolution") || get("dispute_resolution_preference");
+      if (dispute) result["Dispute resolution"] = dispute;
+      const hold = get("min_hold_period");
+      if (hold) result["Min hold period"] = hold;
+      const buyout = get("buyout_method");
+      if (buyout) result["Buyout method"] = buyout;
+      const breakers = get("deal_breakers");
+      if (breakers) result["Deal breakers"] = breakers;
+      break;
+    }
+    case "housing_preferences": {
+      const location = get("location");
+      if (location) result["Location"] = location;
+      const type = get("property_type") || get("home_type");
+      if (type) result["Property type"] = type;
+      const features = get("must_have_features") || get("features");
+      if (features) result["Must-have features"] = features;
+      break;
+    }
+    default:
+      break;
+  }
+
+  return result;
 }
 
 // ---------------------------------------------------------------------------
