@@ -65,7 +65,6 @@ export const GEMS_STAGES: ExerciseStageDef[] = [
           { label: "Stop renting", value: "stop_renting" },
           { label: "Live near family/friends", value: "near_people" },
           { label: "Investment property", value: "investment" },
-          { label: "Something else", value: "other" },
         ],
         carryForward: (prior) => {
           const answers = prior.assessmentAnswers as { optionIndex: number; isCustom?: boolean; customText?: string }[] | undefined

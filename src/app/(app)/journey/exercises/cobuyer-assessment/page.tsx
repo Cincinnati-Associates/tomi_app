@@ -142,6 +142,9 @@ export default function CobuyerAssessmentPage() {
       onSubmitText={exercise.submitText}
       onSkip={exercise.skip}
       onPrevious={exercise.previousQuestion}
+      multiSelectValues={exercise.multiSelectValues}
+      onToggleMultiSelect={exercise.toggleMultiSelect}
+      onConfirmMultiSelect={exercise.confirmMultiSelect}
       intro={{
         pageId: "cobuyer_assessment",
         title: "Co-Buyer Check-In",

@@ -375,7 +375,7 @@ function ConfirmCard({
               />
             ))}
             <CustomInputCard
-              placeholder="Type your own..."
+              placeholder="Something else..."
               index={question.options.length}
               isSelected={false}
               onSubmit={onSubmitText}
@@ -487,6 +487,10 @@ interface ExerciseQuestionProps {
   onPrevious?: () => void
   showPrevious?: boolean
   carryForwardData?: { label: string; value: string } | null
+  /** Multi-select support */
+  multiSelectValues?: string[]
+  onToggleMultiSelect?: (value: string) => void
+  onConfirmMultiSelect?: () => void
 }
 
 export function ExerciseQuestion({
@@ -499,6 +503,9 @@ export function ExerciseQuestion({
   onPrevious,
   showPrevious,
   carryForwardData,
+  multiSelectValues = [],
+  onToggleMultiSelect,
+  onConfirmMultiSelect,
 }: ExerciseQuestionProps) {
   const [selectedValue, setSelectedValue] = useState<string | number | null>(null)
   const [isAnimatingOut, setIsAnimatingOut] = useState(false)
@@ -588,9 +595,9 @@ export function ExerciseQuestion({
                       disabled={isAnimatingOut}
                     />
                   ))}
-                  {/* "Type your own" custom input as last card */}
+                  {/* "Something else" custom input as last card */}
                   <CustomInputCard
-                    placeholder="Type your own..."
+                    placeholder="Something else..."
                     index={question.options.length}
                     isSelected={selectedValue === "__custom__"}
                     savedText={
@@ -602,6 +609,37 @@ export function ExerciseQuestion({
                     onSubmit={handleCustomChipSubmit}
                     disabled={isAnimatingOut}
                   />
+                </>
+              )}
+
+              {/* ── Multi-select chips ── */}
+              {question.type === "multi_chips" && question.options && onToggleMultiSelect && (
+                <>
+                  {question.options.map((option, index) => (
+                    <OptionCard
+                      key={`${question.key}-${option.value}`}
+                      label={option.label}
+                      index={index}
+                      isSelected={multiSelectValues.includes(option.value)}
+                      onClick={() => onToggleMultiSelect(option.value)}
+                      disabled={isAnimatingOut}
+                    />
+                  ))}
+                  {multiSelectValues.length > 0 && onConfirmMultiSelect && (
+                    <motion.button
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.2 }}
+                      onClick={() => {
+                        if (isAnimatingOut) return
+                        setIsAnimatingOut(true)
+                        setTimeout(() => onConfirmMultiSelect(), 200)
+                      }}
+                      className="w-full py-3 px-4 rounded-xl bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-all"
+                    >
+                      Continue
+                    </motion.button>
+                  )}
                 </>
               )}
 

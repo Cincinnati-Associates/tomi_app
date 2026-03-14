@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
+import { randomUUID } from "crypto"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
-import { db, profiles } from "@/db"
+import { db, profiles, buyingParties, partyMembers, partyInvites } from "@/db"
 import { eq } from "drizzle-orm"
 import { sendEmail } from "@/lib/email"
 
@@ -8,13 +9,17 @@ import { sendEmail } from "@/lib/email"
  * POST /api/parties
  * Creates a new buying party and generates an invite link.
  *
+ * Uses Drizzle transaction for atomicity: party + admin member are created
+ * together or not at all. Avoids RPC functions that depend on auth.uid()
+ * being available in the server-side context.
+ *
  * Body: { name: string, targetCity?: string, targetBudget?: number, inviteEmail?: string }
  * Returns: { party: {...}, inviteToken: string, inviteUrl: string, emailSent?: boolean }
  */
 export async function POST(request: Request) {
   const supabase = createServerSupabaseClient()
 
-  // Verify auth
+  // Verify auth — JWT validated server-side by Supabase
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -38,48 +43,64 @@ export async function POST(request: Request) {
     )
   }
 
-  // Create party with current user as admin
-  const { data: party, error: partyError } = await supabase.rpc(
-    "create_party_with_admin",
-    {
-      party_name: partyName,
-      target_city: body.targetCity ?? null,
-      target_budget: body.targetBudget ?? null,
-    }
-  )
+  // Atomic transaction: create party + add creator as admin member
+  // If either fails, both are rolled back.
+  let party: typeof buyingParties.$inferSelect
+  try {
+    party = await db.transaction(async (tx) => {
+      const [newParty] = await tx
+        .insert(buyingParties)
+        .values({
+          name: partyName,
+          createdBy: user.id,
+          targetCity: body.targetCity ?? null,
+          targetBudget: body.targetBudget?.toString() ?? null,
+        })
+        .returning()
 
-  if (partyError) {
-    console.error("Failed to create party:", partyError)
+      await tx.insert(partyMembers).values({
+        partyId: newParty.id,
+        userId: user.id,
+        role: "admin",
+        inviteStatus: "accepted",
+      })
+
+      return newParty
+    })
+  } catch (error) {
+    console.error("Failed to create party:", error)
     return NextResponse.json(
       { error: "Failed to create party" },
       { status: 500 }
     )
   }
 
-  // Generate invite link (7-day expiry)
-  const { data: invite, error: inviteError } = await supabase.rpc(
-    "create_invite_link",
-    {
-      p_party_id: party.id,
-      p_role: "member",
-      p_expires_in_days: 7,
-    }
-  )
+  // Generate invite link (non-critical — party already exists)
+  const inviteToken = randomUUID()
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
 
-  if (inviteError) {
-    console.error("Failed to create invite:", inviteError)
+  try {
+    await db.insert(partyInvites).values({
+      partyId: party.id,
+      inviteType: "link",
+      inviteValue: inviteToken,
+      invitedBy: user.id,
+      role: "member",
+      expiresAt,
+    })
+  } catch (error) {
+    console.error("Failed to create invite:", error)
     // Party was created but invite failed — still return party info
     return NextResponse.json({ party, inviteToken: null, inviteUrl: null })
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.headers.get("origin") || ""
-  const inviteUrl = `${baseUrl}/invite/${invite.invite_value}`
+  const inviteUrl = `${baseUrl}/invite/${inviteToken}`
 
   // Send invite email if provided (fire-and-forget)
   let emailSent = false
   const inviteEmail = body.inviteEmail?.trim().toLowerCase()
   if (inviteEmail) {
-    // Look up inviter name
     const profile = await db.query.profiles.findFirst({
       where: eq(profiles.id, user.id),
       columns: { fullName: true, email: true },
@@ -98,7 +119,7 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     party,
-    inviteToken: invite.invite_value,
+    inviteToken,
     inviteUrl,
     emailSent,
   })
