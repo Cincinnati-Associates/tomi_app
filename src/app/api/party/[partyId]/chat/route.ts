@@ -24,6 +24,7 @@ import {
   getClientIp,
   rateLimitResponse,
 } from '@/lib/rate-limit'
+import { assembleGroupKnowledge } from '@/lib/group-knowledge'
 import { db, buyingParties, groupConversations } from '@/db'
 import { eq } from 'drizzle-orm'
 
@@ -138,15 +139,18 @@ export async function POST(
     const history = await loadGroupMessages(conversationId, { limit: 80 })
     const aiMessages = formatMessagesForAI(history)
 
-    // Get party info
-    const party = await db.query.buyingParties.findFirst({
-      where: eq(buyingParties.id, partyId),
-    })
+    // Get party info, members, and group knowledge in parallel
+    const [party, partyMembersResult, groupKnowledge] = await Promise.all([
+      db.query.buyingParties.findFirst({
+        where: eq(buyingParties.id, partyId),
+      }),
+      getPartyMembersWithProfiles(partyId),
+      assembleGroupKnowledge(partyId),
+    ])
+
     const partyStatus = party?.status || 'forming'
     const partyName = party?.name || 'Co-Buying Party'
 
-    // Get members
-    const partyMembersResult = await getPartyMembersWithProfiles(partyId)
     const members = partyMembersResult.map((m) => ({
       id: m.userId,
       name: m.user?.fullName || m.user?.email || 'Unknown',
@@ -155,13 +159,14 @@ export async function POST(
 
     const currentUser = members.find((m) => m.id === auth.userId)
 
-    // Build system prompt
+    // Build system prompt with group knowledge
     let systemPrompt = buildGroupChatSystemPrompt({
       currentUserName: currentUser?.name || 'Unknown',
       currentUserId: auth.userId,
       members,
       partyName,
       partyStatus,
+      groupKnowledge,
     })
 
     // For post-closing parties, add HomeBase context + tools

@@ -1,4 +1,6 @@
 import { HOMEBASE_SYSTEM_PROMPT } from '@/lib/homebase/prompts'
+import type { GroupKnowledge } from '@/lib/group-knowledge'
+import { formatGroupKnowledgeForPrompt } from '@/lib/group-knowledge'
 
 interface GroupChatPromptOptions {
   currentUserName: string
@@ -7,6 +9,8 @@ interface GroupChatPromptOptions {
   partyName: string
   partyStatus: string
   customInstructions?: string | null
+  /** Assembled group knowledge (exercise progress, shared data, party context) */
+  groupKnowledge?: GroupKnowledge | null
 }
 
 const GROUP_CHAT_RULES = `## Group Chat Mode
@@ -44,6 +48,7 @@ export function buildGroupChatSystemPrompt(
     partyName,
     partyStatus,
     customInstructions,
+    groupKnowledge,
   } = options
 
   const isPostClosing = partyStatus === 'closed'
@@ -88,6 +93,12 @@ export function buildGroupChatSystemPrompt(
   lines.push(`## Party Context`)
   lines.push(`- Party: ${partyName}`)
   lines.push(`- Status: ${partyStatus}`)
+
+  // Group knowledge (exercise progress, shared data, privacy-respecting context)
+  if (groupKnowledge) {
+    lines.push('')
+    lines.push(formatGroupKnowledgeForPrompt(groupKnowledge, currentUserId))
+  }
 
   // Custom instructions
   if (customInstructions) {
