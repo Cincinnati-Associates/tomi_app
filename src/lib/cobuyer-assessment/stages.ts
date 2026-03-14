@@ -128,11 +128,11 @@ export const COBUYER_STAGES: ExerciseStageDef[] = [
       {
         key: "financial_transparency",
         dynamicPrompt: (a) =>
-          `Would ${a.candidate_name || "they"} be comfortable being fully transparent about finances — income, debts, credit?`,
-        prompt: "Would they be comfortable being fully transparent about finances?",
+          `Would you be comfortable sharing your financial details — income, debts, credit — with ${a.candidate_name || "your co-buyer"}?`,
+        prompt: "Would you be comfortable sharing your financial details with your co-buyer?",
         type: "chips",
         options: [
-          { label: "Definitely — they're an open book", value: "definitely" },
+          { label: "Definitely — I'm an open book", value: "definitely" },
           { label: "Probably — with the right framework", value: "probably" },
           { label: "I'm not sure", value: "unsure" },
           { label: "Probably not", value: "probably_not" },
