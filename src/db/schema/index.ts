@@ -26,5 +26,8 @@ export * from './email'
 // Shared Knowledge (group privacy boundary)
 export * from './shared-knowledge'
 
+// Group Chat System
+export * from './group-chat'
+
 // Relations (must be last to avoid circular imports)
 export * from './relations'

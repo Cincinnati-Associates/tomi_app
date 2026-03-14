@@ -85,6 +85,21 @@ export const taskPriorityEnum = pgEnum('task_priority', ['low', 'medium', 'high'
 // HomeBase Project System
 export const projectStatusEnum = pgEnum('project_status', ['active', 'completed', 'archived'])
 
+// Group Chat
+export const groupMessageRoleEnum = pgEnum('group_message_role', [
+  'user',
+  'assistant',
+  'system',
+])
+
+export const messageChannelEnum = pgEnum('message_channel', [
+  'app',
+  'imessage',
+  'whatsapp',
+  'telegram',
+  'signal',
+])
+
 // Auth Audit Events (PRD-001)
 export const authEventTypeEnum = pgEnum('auth_event_type', [
   'user.registered',
