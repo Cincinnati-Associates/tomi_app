@@ -28,6 +28,12 @@ export interface ExerciseFlowState {
   stageNames: string[]
   /** Select an answer for the current question (for chips/number_scale) */
   selectAnswer: (value: string | number) => void
+  /** Toggle a multi-select chip and return updated selections */
+  toggleMultiSelect: (value: string) => void
+  /** Confirm multi-select and advance */
+  confirmMultiSelect: () => void
+  /** Current multi-select values */
+  multiSelectValues: string[]
   /** Submit text answer */
   submitText: (text: string) => void
   /** Skip current question */
@@ -59,6 +65,7 @@ export function useExerciseFlow({
     savedAnswers ?? {}
   )
   const [isComplete, setIsComplete] = useState(false)
+  const [multiSelectValues, setMultiSelectValues] = useState<string[]>([])
 
   const autoSaveTimeout = useRef<ReturnType<typeof setTimeout>>()
   const onCompleteRef = useRef(onComplete)
@@ -106,6 +113,17 @@ export function useExerciseFlow({
 
   const canGoBack = flatIndex > 0
 
+  // Reset multi-select state when question changes
+  useEffect(() => {
+    if (currentQuestion?.type === "multi_chips") {
+      const existing = answers[currentQuestion.key]
+      setMultiSelectValues(Array.isArray(existing) ? existing as string[] : [])
+    } else {
+      setMultiSelectValues([])
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStageIndex, currentQuestionIndex])
+
   // Auto-save answers (debounced)
   const autoSave = useCallback(
     (updatedAnswers: Record<string, unknown>) => {
@@ -148,7 +166,9 @@ export function useExerciseFlow({
           setCurrentStageIndex(nextStageIdx)
           setCurrentQuestionIndex(0)
         } else {
-          // All stages complete
+          // All stages complete — cancel any pending auto-save so it doesn't
+          // overwrite the "completed" status with "in_progress"
+          if (autoSaveTimeout.current) clearTimeout(autoSaveTimeout.current)
           setIsComplete(true)
           onCompleteRef.current(updatedAnswers)
         }
@@ -176,6 +196,25 @@ export function useExerciseFlow({
     },
     [recordAndAdvance]
   )
+
+  const toggleMultiSelect = useCallback(
+    (value: string) => {
+      setMultiSelectValues((prev) => {
+        const idx = prev.indexOf(value)
+        if (idx >= 0) return prev.filter((v) => v !== value)
+        return [...prev, value]
+      })
+    },
+    []
+  )
+
+  const confirmMultiSelect = useCallback(() => {
+    if (!currentQuestion || multiSelectValues.length === 0) return
+    const updatedAnswers = { ...answers, [currentQuestion.key]: multiSelectValues }
+    setAnswers(updatedAnswers)
+    autoSave(updatedAnswers)
+    setTimeout(() => advance(updatedAnswers), 200)
+  }, [currentQuestion, multiSelectValues, answers, autoSave, advance])
 
   const submitText = useCallback(
     (text: string) => {
@@ -223,6 +262,9 @@ export function useExerciseFlow({
     isComplete,
     stageNames: stages.map((s) => s.name),
     selectAnswer,
+    toggleMultiSelect,
+    confirmMultiSelect,
+    multiSelectValues,
     submitText,
     skip,
     previousQuestion,

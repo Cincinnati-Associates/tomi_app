@@ -122,9 +122,9 @@ export default function JourneyPage() {
   const fetchJourneyData = useCallback(async () => {
     try {
       const [exercisesRes, journeyRes, partyRes] = await Promise.all([
-        fetch("/api/exercises"),
-        fetch("/api/journey"),
-        fetch("/api/parties/mine"),
+        fetch("/api/exercises", { cache: "no-store" }),
+        fetch("/api/journey", { cache: "no-store" }),
+        fetch("/api/parties/mine", { cache: "no-store" }),
       ])
 
       const exercisesData = exercisesRes.ok

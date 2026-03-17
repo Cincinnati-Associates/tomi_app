@@ -52,7 +52,6 @@ const templates = [
           { value: 'stop_renting', label: 'Stop renting' },
           { value: 'near_people', label: 'Live near family/friends' },
           { value: 'investment', label: 'Investment property' },
-          { value: 'other', label: 'Something else' },
         ]},
         { key: 'timeline', type: 'single_select', required: true, options: [
           { value: 'asap', label: 'ASAP (3-6 months)' },
