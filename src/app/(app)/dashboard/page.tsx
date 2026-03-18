@@ -2,7 +2,7 @@
 
 import { useAuthContext } from '@/providers/AuthProvider';
 import { motion } from 'framer-motion';
-import { User, Home, Settings, ArrowRight, Plus, Compass } from 'lucide-react';
+import { User, Home, Settings, ArrowRight, Plus, Compass, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
@@ -18,6 +18,21 @@ export default function DashboardPage() {
   }
 
   const displayName = profile?.full_name || profile?.email?.split('@')[0] || 'there';
+
+  // Calculate age from date_of_birth
+  const getAge = (dob: string | null | undefined): number | null => {
+    if (!dob) return null;
+    const birth = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  const age = getAge(profile?.date_of_birth);
 
   return (
     <div className="pb-16">
@@ -71,6 +86,24 @@ export default function DashboardPage() {
                 </Button>
               </Link>
             </div>
+
+            {/* Age & Location */}
+            {(age !== null || profile?.location) && (
+              <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                {age !== null && (
+                  <span>Age {age}</span>
+                )}
+                {age !== null && profile?.location && (
+                  <span className="text-border">|</span>
+                )}
+                {profile?.location && (
+                  <span className="flex items-center gap-1">
+                    <MapPin className="h-3.5 w-3.5" />
+                    {profile.location}
+                  </span>
+                )}
+              </div>
+            )}
 
             {!profile?.onboarding_completed && (
               <div className="mt-4 rounded-lg bg-amber-500/10 p-3">

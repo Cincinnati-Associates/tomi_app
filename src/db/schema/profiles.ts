@@ -6,6 +6,7 @@ import {
   timestamp,
   index,
   varchar,
+  date,
 } from 'drizzle-orm/pg-core'
 import { userRoleEnum } from './enums'
 
@@ -26,6 +27,8 @@ export const profiles = pgTable(
     fullName: text('full_name'), // PRD-001 §4.1 - display_name mapped to full_name
     avatarUrl: text('avatar_url'),
     timezone: varchar('timezone', { length: 50 }).default('UTC'), // PRD-001 §4.1 - IANA timezone
+    dateOfBirth: date('date_of_birth'), // YYYY-MM-DD format
+    location: text('location'), // City, State (freeform)
     onboardingCompleted: boolean('onboarding_completed').default(false),
     role: userRoleEnum('role').default('user').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true })

@@ -55,7 +55,7 @@ export default function Home() {
         showTypewriter
       />
       <UnlockSection
-        header={<>What if your barrier to homeownership wasn&apos;t cost<br />but instead coordination?</>}
+        header={<>What if your barrier to homeownership wasn&apos;t cost<br className="hidden sm:inline" />{" "}but coordination?</>}
         subheader=""
       />
       <ImpactStatement header="Every year, more than 1.7 million Americans buy a home with family or friends." />
