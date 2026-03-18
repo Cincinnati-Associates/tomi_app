@@ -94,7 +94,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ party, inviteToken: null, inviteUrl: null })
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.headers.get("origin") || ""
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || request.headers.get("origin") || ""
   const inviteUrl = `${baseUrl}/invite/${inviteToken}`
 
   // Send invite email if provided (fire-and-forget)

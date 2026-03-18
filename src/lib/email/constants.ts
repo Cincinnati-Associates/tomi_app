@@ -16,4 +16,4 @@ export const BRAND = {
   borderColor: '#e5e7eb',
 } as const
 
-export const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://livetomi.com'
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://livetomi.com'
