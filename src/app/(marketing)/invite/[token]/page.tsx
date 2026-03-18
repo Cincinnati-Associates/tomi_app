@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Users, CheckCircle2, XCircle } from "lucide-react"
 import { useAuthContext } from "@/providers/AuthProvider"
 import { AuthModal } from "@/components/auth/AuthModal"
+import { storePendingInvite } from "@/lib/invite-context"
 
 export default function AcceptInvitePage() {
   const { token } = useParams<{ token: string }>()
@@ -15,6 +16,13 @@ export default function AcceptInvitePage() {
   const [errorMsg, setErrorMsg] = useState("")
   const [showAuth, setShowAuth] = useState(false)
   const hasAutoAccepted = useRef(false)
+
+  // Persist invite token so it survives auth redirects (magic link, signup confirmation)
+  useEffect(() => {
+    if (token) {
+      storePendingInvite(token)
+    }
+  }, [token])
 
   async function handleAccept() {
     if (!user) {

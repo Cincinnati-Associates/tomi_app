@@ -2,6 +2,7 @@ import {
   pgTable,
   uuid,
   text,
+  varchar,
   numeric,
   jsonb,
   timestamp,
@@ -81,6 +82,7 @@ export const partyInvites = pgTable(
       .notNull(),
     inviteType: inviteTypeEnum('invite_type').notNull(),
     inviteValue: text('invite_value').notNull(), // email, phone, or token
+    invitedEmail: varchar('invited_email', { length: 255 }), // email the invite was sent to
     invitedBy: uuid('invited_by').references(() => profiles.id, {
       onDelete: 'set null',
     }),

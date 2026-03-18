@@ -79,11 +79,14 @@ export async function POST(request: Request) {
   const inviteToken = randomUUID()
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
 
+  const inviteEmail = body.inviteEmail?.trim().toLowerCase() || null
+
   try {
     await db.insert(partyInvites).values({
       partyId: party.id,
       inviteType: "link",
       inviteValue: inviteToken,
+      invitedEmail: inviteEmail,
       invitedBy: user.id,
       role: "member",
       expiresAt,
@@ -99,7 +102,6 @@ export async function POST(request: Request) {
 
   // Send invite email if provided (fire-and-forget)
   let emailSent = false
-  const inviteEmail = body.inviteEmail?.trim().toLowerCase()
   if (inviteEmail) {
     const profile = await db.query.profiles.findFirst({
       where: eq(profiles.id, user.id),
