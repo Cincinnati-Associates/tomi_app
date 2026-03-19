@@ -7,12 +7,14 @@ import { useAuthContext } from "@/providers/AuthProvider"
 import { JourneyShell } from "@/components/journey/JourneyShell"
 import { WelcomeBanner } from "@/components/journey/WelcomeBanner"
 import { CompletionCelebration } from "@/components/journey/CompletionCelebration"
+import { PendingInviteBanner } from "@/components/journey/PendingInviteBanner"
 import {
   JOURNEY_PHASES,
   getUnlockedPhases,
   getRecommendedExercise,
 } from "@/lib/journey/phases"
 import { useAssessmentLinker } from "@/hooks/useAssessmentLinker"
+import { useInviteLinker } from "@/hooks/useInviteLinker"
 import type {
   JourneyState,
   PhaseProgress,
@@ -115,16 +117,20 @@ export default function JourneyPage() {
   useAssessmentLinker(isAuthenticated)
   const [journeyState, setJourneyState] = useState<JourneyState | null>(null)
   const [partyData, setPartyData] = useState<PartyData | null>(null)
+  const [pendingInvites, setPendingInvites] = useState<
+    Array<{ token: string; partyName: string; inviterName: string }>
+  >([])
   const [isLoading, setIsLoading] = useState(true)
   const [showWelcomeBanner, setShowWelcomeBanner] = useState(false)
   const [showCelebration, setShowCelebration] = useState(false)
 
   const fetchJourneyData = useCallback(async () => {
     try {
-      const [exercisesRes, journeyRes, partyRes] = await Promise.all([
+      const [exercisesRes, journeyRes, partyRes, invitesRes] = await Promise.all([
         fetch("/api/exercises", { cache: "no-store" }),
         fetch("/api/journey", { cache: "no-store" }),
         fetch("/api/parties/mine", { cache: "no-store" }),
+        fetch("/api/parties/invites/pending", { cache: "no-store" }),
       ])
 
       const exercisesData = exercisesRes.ok
@@ -133,6 +139,10 @@ export default function JourneyPage() {
       const journeyData = journeyRes.ok ? await journeyRes.json() : null
       const partyResult: PartyData | null = partyRes.ok ? await partyRes.json() : null
       setPartyData(partyResult)
+
+      // Pending invites (safety net for broken invite link flows)
+      const invitesData = invitesRes.ok ? await invitesRes.json() : { invites: [] }
+      setPendingInvites(invitesData.invites ?? [])
 
       const journeyRecord = journeyData?.id ? journeyData : null
       const welcomeCompleted = Boolean(
@@ -165,6 +175,9 @@ export default function JourneyPage() {
       setIsLoading(false)
     }
   }, [])
+
+  // Auto-accept pending party invite from sessionStorage after auth redirect
+  useInviteLinker(isAuthenticated, fetchJourneyData)
 
   useEffect(() => {
     if (!authLoading) {
@@ -224,12 +237,20 @@ export default function JourneyPage() {
         userName={displayName}
         partyData={partyData}
         topSlot={
-          showWelcomeBanner ? (
-            <WelcomeBanner
-              displayName={displayName}
-              onDismiss={handleDismissWelcome}
-            />
-          ) : undefined
+          <>
+            {pendingInvites.length > 0 && (
+              <PendingInviteBanner
+                invites={pendingInvites}
+                onAccepted={fetchJourneyData}
+              />
+            )}
+            {showWelcomeBanner && (
+              <WelcomeBanner
+                displayName={displayName}
+                onDismiss={handleDismissWelcome}
+              />
+            )}
+          </>
         }
       />
 
