@@ -11,6 +11,8 @@ export interface Profile {
   full_name: string | null
   avatar_url: string | null
   timezone: string | null
+  date_of_birth: string | null
+  location: string | null
   onboarding_completed: boolean
   role: UserRole
   created_at: string

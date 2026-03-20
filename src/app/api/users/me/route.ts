@@ -110,6 +110,12 @@ export async function PATCH(request: NextRequest) {
     if (updates.timezone !== undefined) {
       updateData.timezone = updates.timezone
     }
+    if (updates.dateOfBirth !== undefined) {
+      updateData.date_of_birth = updates.dateOfBirth
+    }
+    if (updates.location !== undefined) {
+      updateData.location = updates.location
+    }
     if (updates.avatarUrl !== undefined) {
       updateData.avatar_url = updates.avatarUrl
     }

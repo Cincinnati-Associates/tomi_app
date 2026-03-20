@@ -78,6 +78,8 @@ export const updateProfileSchema = z.object({
     .optional()
     .nullable(),
   timezone: z.string().optional(),
+  dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Please enter a valid date').optional().nullable(),
+  location: z.string().max(200, 'Location must be less than 200 characters').trim().optional().nullable(),
   avatarUrl: z.string().url('Please enter a valid URL').optional().nullable(),
   onboardingCompleted: z.boolean().optional(),
 })

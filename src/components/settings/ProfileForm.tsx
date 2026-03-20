@@ -2,13 +2,15 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { User, Phone, Globe, Loader2, Check } from 'lucide-react'
+import { User, Phone, Globe, Loader2, Check, Cake, MapPin } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface ProfileData {
   fullName: string | null
   phone: string | null
   timezone: string | null
+  dateOfBirth: string | null
+  location: string | null
   avatarUrl: string | null
   onboardingCompleted: boolean
 }
@@ -32,6 +34,8 @@ const TIMEZONES = [
 export function ProfileForm({ initialData, onSave }: ProfileFormProps) {
   const [fullName, setFullName] = useState(initialData.fullName || '')
   const [phone, setPhone] = useState(initialData.phone || '')
+  const [dateOfBirth, setDateOfBirth] = useState(initialData.dateOfBirth || '')
+  const [location, setLocation] = useState(initialData.location || '')
   const [timezone, setTimezone] = useState(initialData.timezone || 'America/New_York')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
@@ -65,6 +69,8 @@ export function ProfileForm({ initialData, onSave }: ProfileFormProps) {
         body: JSON.stringify({
           fullName: fullName || undefined,
           phone: phone || null,
+          dateOfBirth: dateOfBirth || null,
+          location: location || null,
           timezone,
         }),
       })
@@ -154,6 +160,48 @@ export function ProfileForm({ initialData, onSave }: ProfileFormProps) {
         </div>
         <p className="text-xs text-muted-foreground">
           For important notifications about your co-buying journey
+        </p>
+      </div>
+
+      {/* Date of Birth */}
+      <div className="space-y-2">
+        <label htmlFor="dateOfBirth" className="block text-sm font-medium text-foreground">
+          Date of Birth <span className="text-muted-foreground">(optional)</span>
+        </label>
+        <div className="relative">
+          <Cake className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <input
+            id="dateOfBirth"
+            type="date"
+            value={dateOfBirth}
+            onChange={(e) => setDateOfBirth(e.target.value)}
+            max={new Date().toISOString().split('T')[0]}
+            className="w-full pl-10 pr-4 py-3 rounded-lg bg-muted border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Used to verify eligibility and personalize your experience
+        </p>
+      </div>
+
+      {/* Location */}
+      <div className="space-y-2">
+        <label htmlFor="location" className="block text-sm font-medium text-foreground">
+          Location <span className="text-muted-foreground">(optional)</span>
+        </label>
+        <div className="relative">
+          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <input
+            id="location"
+            type="text"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            placeholder="Cincinnati, OH"
+            className="w-full pl-10 pr-4 py-3 rounded-lg bg-muted border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Helps us find relevant properties and co-buyers near you
         </p>
       </div>
 

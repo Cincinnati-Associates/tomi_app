@@ -96,6 +96,8 @@ export default function ProfileSettingsPage() {
           initialData={{
             fullName: profile.full_name,
             phone: profile.phone,
+            dateOfBirth: profile.date_of_birth,
+            location: profile.location,
             timezone: profile.timezone,
             avatarUrl: profile.avatar_url,
             onboardingCompleted: profile.onboarding_completed,
